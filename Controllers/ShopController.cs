@@ -97,7 +97,8 @@ public class ShopController : Controller
             ComboItems = product.IsCombo
                 ? CartService.GetComboItems(product)
                 : new List<ComboItemDto>(),
-            Related = related
+            Related = related,
+            Settings = await _db.Settings.AsNoTracking().FirstOrDefaultAsync() ?? new SiteSetting()
         };
 
         ViewData["Title"] = product.Name;

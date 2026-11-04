@@ -31,6 +31,7 @@ public class CartController : Controller
     [HttpGet]
     public IActionResult Index()
     {
+        ViewData["Robots"] = "noindex, follow";   // transactional pages are not content
         ViewData["Title"] = "Your basket";
         ViewData["Description"] = "Review the jars in your basket before checkout.";
         return View(_cart.GetLines());
@@ -121,6 +122,7 @@ public class CartController : Controller
             return RedirectToAction(nameof(Index));
         }
 
+        ViewData["Robots"] = "noindex, follow";
         ViewData["Title"] = "Checkout";
         ViewData["Description"] = "Delivery details and online payment. No cash on delivery.";
 
@@ -134,6 +136,7 @@ public class CartController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Checkout(CheckoutViewModel model)
     {
+        ViewData["Robots"] = "noindex, follow";
         ViewData["Title"] = "Checkout";
         ViewData["Description"] = "Delivery details and online payment. No cash on delivery.";
 
@@ -251,6 +254,7 @@ public class CartController : Controller
             return RedirectToAction("Index", "Home");
         }
 
+        ViewData["Robots"] = "noindex, follow";   // transactional pages are not content
         ViewData["Title"] = "Order confirmed";
         ViewData["Description"] = "Your Matibari parcel is being packed.";
         return View(order);

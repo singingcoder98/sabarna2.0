@@ -2,8 +2,14 @@
 @*
     Everything that lives inside <head>:
       • page title + meta description (set per page with ViewData["Title"] / ViewData["Description"])
-      • Open Graph / Twitter cards so pasted links look good on WhatsApp
-      • favicon, Google Fonts, then the locally vendored Bootstrap and our single site.css
+      • canonical URL, robots directive, Open Graph / Twitter cards
+      • favicon, Google Fonts preconnect, then the locally vendored Bootstrap and our site.css
+
+    Optional ViewData a page may set before rendering:
+      ViewData["OgType"]       "product" on a product page, "website" everywhere else
+      ViewData["OgImage"]      a page-specific share image (path, not absolute)
+      ViewData["Robots"]       e.g. "noindex, follow" on the basket and the admin
+      ViewData["PreloadImage"] a hero image worth fetching before the CSS asks for it
 *@
 @{
     var brandName = string.IsNullOrWhiteSpace(Model.BrandName) ? "Matibari" : Model.BrandName;
@@ -22,31 +28,64 @@
     }
 
     var origin = $"{Context.Request.Scheme}://{Context.Request.Host}";
-    var canonical = origin + Context.Request.Path;
-    var ogImage = origin + "/images/og-cover.jpg";
+
+    // The category filter is part of the address of a real page, so it belongs in the canonical.
+    // Anything else in the query string (paging, tracking) is dropped, which is the point of it.
+    var path = Context.Request.Path.Value ?? "/";
+    var canonical = origin + path;
+    var category = Context.Request.Query["category"].ToString();
+    if (!string.IsNullOrWhiteSpace(category))
+    {
+        canonical += "?category=" + Uri.EscapeDataString(category);
+    }
+
+    var robots = ViewData["Robots"] as string ?? "index, follow, max-image-preview:large, max-snippet:-1";
+
+    var ogType = ViewData["OgType"] as string ?? "website";
+    var shareImagePath = ViewData["OgImage"] as string;
+    var hasCustomImage = !string.IsNullOrWhiteSpace(shareImagePath);
+    var ogImage = origin + (hasCustomImage ? shareImagePath : "/images/og-cover.jpg");
+
+    var preloadImage = ViewData["PreloadImage"] as string;
 }
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>@fullTitle</title>
 <meta name="description" content="@description" />
+<meta name="robots" content="@robots" />
 <meta name="theme-color" content="#1e2a14" />
 <link rel="canonical" href="@canonical" />
 
-@* Open Graph — used by WhatsApp, Facebook, LinkedIn when a link is shared. *@
-<meta property="og:type" content="website" />
+@* Open Graph — used by WhatsApp, Facebook, LinkedIn and Google when a link is shared. *@
+<meta property="og:type" content="@ogType" />
 <meta property="og:site_name" content="@brandName" />
 <meta property="og:title" content="@fullTitle" />
 <meta property="og:description" content="@description" />
 <meta property="og:url" content="@canonical" />
 <meta property="og:image" content="@ogImage" />
+<meta property="og:image:alt" content="@brandName" />
+@if (!hasCustomImage)
+{
+    @* Only the default share card has known dimensions; product photos are cropped by the card. *@
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+}
 <meta property="og:locale" content="en_IN" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="@fullTitle" />
 <meta name="twitter:description" content="@description" />
 <meta name="twitter:image" content="@ogImage" />
+<meta name="twitter:image:alt" content="@brandName" />
 
 <link rel="icon" href="~/images/favicon.svg" type="image/svg+xml" />
 <link rel="apple-touch-icon" href="~/images/logo.png" />
+
+@if (!string.IsNullOrWhiteSpace(preloadImage))
+{
+    @* The hero is a CSS background, so the browser cannot discover it until site.css parses.
+       Fetching it here is the single cheapest improvement to the largest contentful paint. *@
+    <link rel="preload" as="image" href="@preloadImage" fetchpriority="high" />
+}
 
 @* Typography only — Fraunces for headings, Poppins for body copy. Fallbacks are in site.css. *@
 <link rel="preconnect" href="https://fonts.googleapis.com" />

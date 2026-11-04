@@ -216,8 +216,12 @@
         ["url"] = $"{Context.Request.Scheme}://{Context.Request.Host}",
         ["email"] = store.Email,
         ["telephone"] = store.Phone,
+        ["image"] = $"{Context.Request.Scheme}://{Context.Request.Host}/images/og-cover.jpg",
+        ["logo"] = $"{Context.Request.Scheme}://{Context.Request.Host}/images/logo.png",
         ["currenciesAccepted"] = "INR",
         ["paymentAccepted"] = "UPI, Credit Card, Debit Card, Netbanking",
+        ["areaServed"] = "IN",
+        ["priceRange"] = "₹249–₹1699",
         ["address"] = new Dictionary<string, object>
         {
             ["@type"] = "PostalAddress",

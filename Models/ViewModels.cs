@@ -20,6 +20,12 @@ public class HomeViewModel
     /// <summary>Products marked "Featured" (used for the small hero trust strip).</summary>
     public List<Product> Featured { get; set; } = new();
 
+    /// <summary>
+    /// Three jars for the slow-motion band — one from each shelf the shop wants to show off.
+    /// The band is pure CSS, so these are ordinary products with ordinary links to their pages.
+    /// </summary>
+    public List<Product> Motion { get; set; } = new();
+
     /// <summary>How many parcels have been delivered — a real number, not a marketing invention.</summary>
     public int OrdersDelivered { get; set; }
 
@@ -52,6 +58,9 @@ public class ProductDetailsViewModel
 
     /// <summary>Three "you may also like" products from the same category.</summary>
     public List<Product> Related { get; set; } = new();
+
+    /// <summary>Brand details — the structured data and the share card both need the shop name.</summary>
+    public SiteSetting Settings { get; set; } = new();
 }
 
 /// <summary>The numbers and tables shown on the admin dashboard.</summary>

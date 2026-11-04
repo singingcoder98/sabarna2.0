@@ -18,6 +18,9 @@
         : "Shop owner";
     var toastMessage = TempData["Toast"] as string;
     var errorMessage = TempData["Error"] as string;
+
+    // Nothing behind the login belongs in a search index. Set before _Head renders.
+    ViewData["Robots"] = "noindex, nofollow";
 }
 <!DOCTYPE html>
 <html lang="en-IN">

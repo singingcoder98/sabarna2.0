@@ -26,6 +26,10 @@ public class HomeController : Controller
         ViewData["Description"] = "Small-batch A2 bilona ghee, raw forest honey, sun-cured pickles and "
                                 + "cold-pressed oils from a family farm in Midnapore, West Bengal. Shipped across India.";
 
+        // The hero backdrop is a CSS background image, so nothing tells the browser about it until
+        // site.css has been parsed. Preloading it here is what keeps the first paint quick.
+        ViewData["PreloadImage"] = "/images/hero-farm.jpg";
+
         var visible = _db.Products.AsNoTracking().Where(p => p.Active);
 
         // SQLite stores decimal as TEXT and refuses to ORDER BY it, so the combos are read first
@@ -33,6 +37,37 @@ public class HomeController : Controller
         var comboRows = await visible
             .Where(p => p.IsCombo)
             .ToListAsync();
+
+        // ---- the slow-motion band: one jar per shelf, then best sellers if a shelf is empty ----
+        var singleJars = await visible
+            .Where(p => !p.IsCombo)
+            .ToListAsync();
+
+        var motion = new List<Product>();
+        foreach (var shelf in new[] { "jaggery", "ghee", "honey" })
+        {
+            var pick = singleJars.FirstOrDefault(p =>
+                p.Category.Contains(shelf, StringComparison.OrdinalIgnoreCase) &&
+                motion.All(taken => taken.Id != p.Id));
+
+            if (pick != null)
+            {
+                motion.Add(pick);
+            }
+        }
+
+        foreach (var product in singleJars.OrderByDescending(p => p.Sold))
+        {
+            if (motion.Count == 3)
+            {
+                break;
+            }
+
+            if (motion.All(taken => taken.Id != product.Id))
+            {
+                motion.Add(product);
+            }
+        }
 
         var model = new HomeViewModel
         {
@@ -51,6 +86,7 @@ public class HomeController : Controller
                 .OrderBy(p => p.Id)
                 .Take(3)
                 .ToListAsync(),
+            Motion = motion,
             OrdersDelivered = await _db.Orders.AsNoTracking()
                 .CountAsync(o => o.Status == OrderStatuses.Delivered),
             ProductsOnline = await visible.CountAsync()
@@ -132,6 +168,8 @@ public class HomeController : Controller
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error(int? statusCode)
     {
+        // Error pages carry a 404/500 status, but say so explicitly as well.
+        ViewData["Robots"] = "noindex, follow";
         ViewData["Title"] = "Something went wrong";
         ViewData["Description"] = "A friendly explanation of what happened and where to go next.";
         ViewData["StatusCode"] = statusCode ?? 500;

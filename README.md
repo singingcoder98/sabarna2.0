@@ -112,8 +112,10 @@ Controllers/
   ShopController.cs              Index(?category), Details(id), Combos
   CartController.cs              Index, Add, Update, Remove, Checkout (GET/POST), Success
   ContactController.cs           Index (GET + POST)
-  AdminController.cs             Login, VerifyOtp, Logout, Dashboard, Orders, AdvanceOrder,
-                                 Products, SaveProduct, ToggleProduct, DeleteProduct, Settings
+  AdminController.cs             Login, VerifyOtp, Logout, Dashboard, Orders (filter/search/status/
+                                 CSV), Customers, Products, SaveProduct, UpdateStock, ToggleProduct,
+                                 DeleteProduct, Settings
+  SeoController.cs               /sitemap.xml and /robots.txt, generated from the database
 
 Models/
   Entities.cs                    Product, SiteSetting, AdminUser, OtpChallenge, Order, OrderStatuses,
@@ -130,6 +132,7 @@ Data/
 Services/
   CartService.cs                 session JSON cart + combo helpers + shipping rules
   AuthService.cs                 password hash check, OTP create/verify, SHA-256
+  StructuredData.cs              the JSON-LD blocks (Product, BreadcrumbList, ItemList)
 
 Views/
   _ViewImports.cshtml            namespaces + tag helpers
@@ -153,7 +156,7 @@ wwwroot/
   lib/bootstrap/                 bootstrap.min.css, bootstrap.bundle.min.js, LICENSE (v5.3.3)
   images/                        logo, hero, farmer photo, product photography (incl. jaggery),
                                  og-cover, favicon
-  robots.txt, sitemap.xml
+  (robots.txt and sitemap.xml are no longer files — SeoController serves both)
 ```
 
 A note on the two `Shared/_*` files that are not in the original brief: `_ProductFormFields.cshtml`
@@ -234,7 +237,49 @@ Changing the palette means editing those nine values — nothing else.
 
 ---
 
-## 8. Before launch checklist
+## 8. Search engines and sharing
+
+Everything below is already wired up; the only thing left for launch day is the domain itself.
+
+**Per page**
+* A unique `<title>` and meta description, set in the controller with `ViewData["Title"]` and
+  `ViewData["Description"]` (never duplicated between pages).
+* `rel="canonical"` built from the request. A category filter (`/Shop?category=Honey`) keeps its
+  query in the canonical because it is a real page; anything else in the query string is dropped.
+* Robots directive defaults to `index, follow, max-image-preview:large`. The basket, checkout,
+  confirmation page and the whole admin area send `noindex` instead — transactional pages are
+  not content and should never compete with the shop.
+* Open Graph and Twitter cards, with a per-product share image on product pages and
+  `og:type=product` there as well.
+
+**Structured data (JSON-LD)**
+* `OnlineStore` in the layout — name, address, phone, accepted payments, price range, area served.
+* `Product` on every product page — name, image, SKU, brand, price in INR with `Offer`,
+  availability, and an `AggregateRating` only when the product actually has reviews.
+* `BreadcrumbList` on product pages, mirroring the visible trail.
+* `ItemList` on the shop listing, in the order the jars appear.
+
+**Crawling**
+* `/robots.txt` is generated (`SeoController`), so its `Sitemap:` line always names the host that
+  served it — the classic launch-day bug of a hard-coded domain cannot happen.
+* `/sitemap.xml` is generated from the database: every visible product, every category and the
+  static pages, each with a `lastmod`. Add a jar in the admin panel and it is in the sitemap before
+  the next crawl; nothing to regenerate by hand.
+* `UseStatusCodePagesWithReExecute` keeps the real 404/500 status code while showing the friendly
+  page, which is what search engines actually need to see.
+* A trailing slash (`/Shop/`) 301s to `/Shop`, so one page never has two addresses.
+
+**Speed (Core Web Vitals)**
+* The hero photograph is a CSS background, so it is `preload`ed with `fetchpriority="high"` — this
+  is the largest contentful paint on the site and now starts with the HTML, not with the CSS.
+* Every product image carries `width`/`height` (no layout shift), `loading="lazy"` and
+  `decoding="async"`; only the hero is eager.
+* Fonts are `preconnect`ed and loaded with `display=swap`; Bootstrap ships from `wwwroot`, so there
+  is no third-party request on the critical path.
+* The "In the kitchen" band animates with a CSS transform on the compositor — no video, no GIF,
+  and it is switched off entirely under `prefers-reduced-motion`.
+
+## 9. Before launch checklist
 
 * [ ] Change the admin password and remove the demo hint from `Views/Admin/Login.cshtml`.
 * [ ] Run in Production (`ASPNETCORE_ENVIRONMENT=Production`) so the OTP is no longer shown on screen.
@@ -248,7 +293,7 @@ Changing the palette means editing those nine values — nothing else.
 
 ---
 
-## 9. Content notes
+## 10. Content notes
 
 Everything the shop says about itself is placeholder copy that reads like a real small business:
 the farm story, the batch sizes, the "nine months of shelf life", the courier timelines. Replace it
@@ -266,7 +311,7 @@ with the owner's own words — the home page hero and contact details are editab
 
 ---
 
-## 10. Hands-on with the running site (a 3-minute tour)
+## 11. Hands-on with the running site (a 3-minute tour)
 
 1. `/` — hero, trust marquee, product grid, combos, FAQ, newsletter.
 2. Add two jars to the basket, open `/Cart`, use the +/− steppers, then *Proceed to checkout*.

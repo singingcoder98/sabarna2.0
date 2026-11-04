@@ -143,3 +143,30 @@
         </div>
     </section>
 }
+
+@{
+    // ---- search engine furniture for this one jar -------------------------------------------
+    // These ViewData values are read by _Head, which renders after the body, so setting them
+    // here works exactly like setting them in the controller.
+    var seoOrigin = $"{Context.Request.Scheme}://{Context.Request.Host}";
+    var seoPageUrl = seoOrigin + Context.Request.Path;
+    var seoTrail = new List<(string Name, string Url)>
+    {
+        ("Home", seoOrigin + "/"),
+        ("Shop", seoOrigin + "/Shop"),
+        (product.Category, seoOrigin + "/Shop?category=" + Uri.EscapeDataString(product.Category)),
+        (product.Name, seoPageUrl)
+    };
+
+    ViewData["OgType"] = "product";
+    ViewData["OgImage"] = image;
+}
+
+@* Product: name, image, price, currency and whether it is in stock. This is what turns a plain
+   blue link into a result with a price under it. BreadcrumbList: the trail rather than a raw URL. *@
+<script type="application/ld+json">
+    @Html.Raw(StructuredData.Product(product, Model.Settings.BrandName, seoPageUrl, seoOrigin + image))
+</script>
+<script type="application/ld+json">
+    @Html.Raw(StructuredData.Breadcrumbs(seoTrail))
+</script>

@@ -56,3 +56,16 @@
         }
     </div>
 </section>
+
+@{
+    // ItemList tells Google this page is a list of products, in the order they are shown, with
+    // one URL per jar — useful when it decides which page to load for "buy ghee online india".
+    var shelfOrigin = $"{Context.Request.Scheme}://{Context.Request.Host}";
+    var listName = hasFilter ? $"{Model.Category} at Matibari" : "Everything on the shelf at Matibari";
+}
+@if (Model.Products.Count > 0)
+{
+    <script type="application/ld+json">
+        @Html.Raw(StructuredData.ProductList(Model.Products, shelfOrigin, listName))
+    </script>
+}

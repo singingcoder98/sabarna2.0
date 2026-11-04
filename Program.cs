@@ -96,6 +96,21 @@ app.Use(async (context, next) =>
     await next();
 });
 
+// A page should have exactly one address. /Shop/ answers with a 301 to /Shop so search engines
+// do not treat the two as competing copies of the same content.
+app.Use(async (context, next) =>
+{
+    var path = context.Request.Path.Value;
+    if (path is { Length: > 1 } && path.EndsWith('/'))
+    {
+        var target = path.TrimEnd('/') + context.Request.QueryString;
+        context.Response.Redirect(target, permanent: true);
+        return;
+    }
+
+    await next();
+});
+
 app.UseStaticFiles();
 app.UseRouting();
 app.UseSession();
