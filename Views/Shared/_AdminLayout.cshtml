@@ -1,3 +1,6 @@
+@using Microsoft.EntityFrameworkCore
+@* AsNoTracking() is an EF Core extension method, and Razor does not import this namespace
+   for you — that is why this line is here rather than in _ViewImports. *@
 @inject Matibari.Web.Data.AppDbContext Db
 @*
     The admin shell: a fixed sidebar on desktop, which becomes an offcanvas drawer below 992px,

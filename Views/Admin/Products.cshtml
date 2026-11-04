@@ -8,6 +8,9 @@
         .OrderBy(category => category)
         .ToList();
     var liveCount = Model.Count(product => product.Active);
+
+    // A blank product for the "add" modal: Active defaults to true, ComboItemsJson defaults to "[]".
+    var blankProduct = new Matibari.Web.Models.Product();
 }
 <div class="mb-admin-head">
     <div>
@@ -150,8 +153,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    @* A blank Product: Active defaults to true and ComboItemsJson defaults to "[]". *@
-                    <partial name="_ProductFormFields" model="new Matibari.Web.Models.Product()" />
+                    <partial name="_ProductFormFields" model="blankProduct" />
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-ghost btn-sm" data-bs-dismiss="modal">Cancel</button>

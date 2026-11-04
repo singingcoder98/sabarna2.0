@@ -28,10 +28,15 @@ The database file `app.db` is created *and seeded* automatically on the first ru
 ## 2. Run it
 
 ```bash
-# from the folder that contains Matibari.Web.csproj
+# from the folder that contains Matibari.Web.csproj / Matibari.sln
 dotnet restore
 dotnet run
 ```
+
+`Matibari.sln` (classic format) is included, so `dotnet build Matibari.sln`, `dotnet run
+--project Matibari.Web.csproj` and "Open project/solution" in Visual Studio or Rider all work.
+Do not keep a `Matibari.slnx` in the same folder as well — two solution files make `dotnet build`
+fail with `MSB1011`.
 
 Then open **<http://localhost:5080>** (the port is set in `Properties/launchSettings.json`).
 
