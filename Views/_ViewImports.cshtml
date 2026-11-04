@@ -3,4 +3,7 @@
 @using Matibari.Web.Models
 @using Matibari.Web.Controllers
 @using Matibari.Web.Services
+@* EF Core: the three layouts and the two auth screens read the settings row straight from the
+   DbContext, and AsNoTracking() lives in this namespace (Razor does not import it for you). *@
+@using Microsoft.EntityFrameworkCore
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
