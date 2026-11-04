@@ -3408,3 +3408,223 @@ code {
     --bs-toast-bg: var(--mb-green-900);
     --bs-toast-color: var(--mb-cream);
 }
+
+/* ------------------------------- 31. Admin console -------------------------------- */
+
+/* Panel heads that also carry a search box or a row of pills. Same row on desktop, but the
+   controls are allowed to wrap onto their own line before anything gets squeezed. */
+.mb-admin-panel-head-wrap {
+    align-items: flex-start;
+}
+
+.mb-admin-panel-note {
+    font-size: 0.85rem;
+    color: var(--mb-muted);
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.mb-admin-today {
+    font-size: 0.9rem;
+    color: var(--mb-muted);
+    margin: 0 0 1rem;
+}
+
+/* Search box: input, the Search button and the optional Clear link on one line. */
+.mb-admin-search {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin: 0;
+}
+
+.mb-admin-search .form-control {
+    width: min(15rem, 60vw);
+}
+
+/* A row of pills used as the catalogue summary above the product table. */
+.mb-admin-pillrow {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+/* The little total inside each order filter pill. */
+.mb-pill-count {
+    font-size: 0.7rem;
+    font-weight: 600;
+    opacity: 0.65;
+    font-variant-numeric: tabular-nums;
+}
+
+/* --- Seven day bar chart ---------------------------------------------------------------- */
+.mb-bars {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.5rem;
+    align-items: end;
+}
+
+.mb-bar-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.mb-bar-track {
+    display: flex;
+    align-items: flex-end;
+    width: 100%;
+    height: 7.5rem;
+    background-color: var(--mb-cream);
+    border: 1px solid var(--mb-line);
+    border-radius: 0.6rem;
+    overflow: hidden;
+}
+
+.mb-bar {
+    width: 100%;
+    min-height: 3px;
+    background-color: var(--mb-green-600);
+    border-radius: 0.5rem 0.5rem 0 0;
+    transition: height 0.4s ease;
+}
+
+.mb-bar.is-today {
+    background-color: var(--mb-terra);
+}
+
+.mb-bar-day {
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mb-muted);
+}
+
+.mb-bar-value {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--mb-green-900);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+/* --- "What sells" list ------------------------------------------------------------------ */
+.mb-top-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+}
+
+.mb-top-item {
+    display: grid;
+    gap: 0.3rem;
+}
+
+.mb-top-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+}
+
+.mb-top-name {
+    margin: 0;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--mb-green-900);
+}
+
+.mb-top-amount {
+    margin: 0;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--mb-green-800);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.mb-top-track {
+    height: 0.4rem;
+    background-color: var(--mb-cream-2);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.mb-top-fill {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--mb-green-600), var(--mb-gold));
+}
+
+.mb-top-meta {
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--mb-muted);
+}
+
+/* --- Per-row controls in the admin tables ------------------------------------------------ */
+.mb-order-actions {
+    display: grid;
+    gap: 0.4rem;
+    justify-items: end;
+}
+
+.mb-status-form {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    justify-content: flex-end;
+}
+
+.mb-status-form .form-select {
+    width: auto;
+    min-width: 8.5rem;
+}
+
+.mb-stock-form {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 0.35rem;
+}
+
+.mb-stock-form .form-control {
+    width: 5.5rem;
+}
+
+/* Below the tablet breakpoint the tables become horizontally scrollable, so the row controls
+   stack and the search box takes the full width rather than fighting for space. */
+@media (max-width: 575.98px) {
+    .mb-bars {
+        gap: 0.3rem;
+    }
+
+    .mb-bar-track {
+        height: 5.5rem;
+    }
+
+    .mb-bar-value {
+        font-size: 0.62rem;
+    }
+
+    .mb-order-actions {
+        justify-items: stretch;
+    }
+
+    .mb-status-form {
+        justify-content: flex-start;
+    }
+
+    .mb-admin-search,
+    .mb-admin-search .form-control {
+        width: 100%;
+    }
+}

@@ -1,4 +1,6 @@
+using System.Globalization;
 using System.Security.Claims;
+using System.Text;
 using System.Text.Json;
 using Matibari.Web.Data;
 using Matibari.Web.Models;
@@ -206,34 +208,86 @@ public class AdminController : Controller
     [HttpGet]
     public async Task<IActionResult> Dashboard()
     {
-        var orders = _db.Orders.AsNoTracking();
+        // Six small columns of the order book, aggregated in memory. SQLite cannot SUM or ORDER BY
+        // a decimal column, and a farm this size has nothing to gain from pushing the maths into SQL.
+        var facts = await _db.Orders.AsNoTracking()
+            .Select(o => new { o.CreatedAt, o.Total, o.Payment, o.Status, o.ProductName, o.ItemCount })
+            .ToListAsync();
 
-        // SUM over a decimal column is not available on SQLite either, so the paid totals are
-        // pulled back (one column, a few rows) and added up on the server side of the app.
-        var paidTotals = await orders
-            .Where(o => o.Payment == "Paid")
-            .Select(o => o.Total)
+        var paid = facts.Where(f => f.Payment == "Paid").ToList();
+        var revenue = paid.Sum(f => f.Total);
+        var today = DateTime.UtcNow.Date;
+
+        // ---- seven days of takings, oldest first, with bar heights scaled to the best day
+        var week = new List<AdminDaySales>();
+        for (var offset = 6; offset >= 0; offset--)
+        {
+            var day = today.AddDays(-offset);
+            week.Add(new AdminDaySales
+            {
+                Day = day,
+                Revenue = paid.Where(f => f.CreatedAt.Date == day).Sum(f => f.Total),
+                Orders = facts.Count(f => f.CreatedAt.Date == day),
+                IsToday = offset == 0
+            });
+        }
+
+        var bestDay = week.Max(d => d.Revenue);
+        foreach (var day in week)
+        {
+            // A floor of 3% keeps quiet days visible as a stub rather than an empty gap.
+            day.Height = bestDay <= 0 ? 3 : Math.Max(3, (int)Math.Round((double)(day.Revenue / bestDay) * 100));
+        }
+
+        // ---- what actually sells, by revenue
+        var top = paid
+            .Where(f => !string.IsNullOrWhiteSpace(f.ProductName))
+            .GroupBy(f => f.ProductName)
+            .Select(group => new AdminTopProduct
+            {
+                Name = group.Key,
+                Jars = group.Sum(f => f.ItemCount),
+                Revenue = group.Sum(f => f.Total)
+            })
+            .OrderByDescending(row => row.Revenue)
+            .Take(5)
+            .ToList();
+
+        var bestSeller = top.Count == 0 ? 0m : top[0].Revenue;
+        foreach (var row in top)
+        {
+            row.Share = bestSeller <= 0 ? 0 : Math.Max(6, (int)Math.Round((double)(row.Revenue / bestSeller) * 100));
+        }
+
+        var lowStock = await _db.Products.AsNoTracking()
+            .Where(p => p.Active && p.Stock <= LowStockThreshold)
+            .OrderBy(p => p.Stock)
+            .Take(6)
             .ToListAsync();
 
         var model = new AdminDashboardViewModel
         {
-            Revenue = paidTotals.Sum(),
-            OrderCount = await orders.CountAsync(),
-            OpenOrders = await orders.CountAsync(o => o.Status != OrderStatuses.Delivered),
+            Revenue = revenue,
+            PaidOrderCount = paid.Count,
+            AverageOrderValue = paid.Count == 0 ? 0m : revenue / paid.Count,
+            OrderCount = facts.Count,
+            OpenOrders = facts.Count(f => f.Status != OrderStatuses.Delivered),
+            OpenValue = facts.Where(f => f.Status != OrderStatuses.Delivered).Sum(f => f.Total),
+            TodayOrderCount = facts.Count(f => f.CreatedAt.Date == today),
+            TodayRevenue = paid.Where(f => f.CreatedAt.Date == today).Sum(f => f.Total),
             ProductsLive = await _db.Products.AsNoTracking().CountAsync(p => p.Active),
             ProductsTotal = await _db.Products.AsNoTracking().CountAsync(),
-            RecentOrders = await orders
+            // Counted separately from the list above, which is capped at six rows.
+            LowStockCount = await _db.Products.AsNoTracking()
+                .CountAsync(p => p.Active && p.Stock <= LowStockThreshold),
+            LowStockProducts = lowStock,
+            SalesLast7Days = week,
+            TopProducts = top,
+            RecentOrders = await _db.Orders.AsNoTracking()
                 .OrderByDescending(o => o.CreatedAt)
                 .Take(8)
-                .ToListAsync(),
-            LowStockProducts = await _db.Products.AsNoTracking()
-                .Where(p => p.Active && p.Stock <= LowStockThreshold)
-                .OrderBy(p => p.Stock)
-                .Take(6)
                 .ToListAsync()
         };
-
-        model.LowStockCount = model.LowStockProducts.Count;
 
         ViewData["Title"] = "Dashboard";
         return View(model);
@@ -244,7 +298,7 @@ public class AdminController : Controller
     // =============================================================================================
 
     [HttpGet]
-    public async Task<IActionResult> Orders(string status)
+    public async Task<IActionResult> Orders(string status, string search)
     {
         var query = _db.Orders.AsNoTracking();
 
@@ -257,17 +311,47 @@ public class AdminController : Controller
             status = "All";
         }
 
-        var orders = await query.OrderByDescending(o => o.CreatedAt).ToListAsync();
+        // Search runs in SQL (LIKE), so the filter pills and the search box can be combined.
+        var term = (search ?? string.Empty).Trim();
+        if (term.Length > 0)
+        {
+            query = query.Where(o =>
+                o.OrderNumber.Contains(term) || o.Customer.Contains(term) || o.Email.Contains(term));
+        }
+
+        var rows = await query.OrderByDescending(o => o.CreatedAt).ToListAsync();
+
+        // "How many in each state" is one grouped query, not four counts.
+        var grouped = await _db.Orders.AsNoTracking()
+            .GroupBy(o => o.Status)
+            .Select(g => new { Status = g.Key, Count = g.Count() })
+            .ToListAsync();
+
+        var counts = new Dictionary<string, int> { ["All"] = grouped.Sum(g => g.Count) };
+        foreach (var name in OrderStatuses.All)
+        {
+            counts[name] = grouped.FirstOrDefault(g => g.Status == name)?.Count ?? 0;
+        }
+
+        var model = new AdminOrdersViewModel
+        {
+            Orders = rows,
+            Status = status,
+            Search = term,
+            FilteredCount = rows.Count,
+            FilteredValue = rows.Sum(o => o.Total),
+            TotalCount = counts["All"],
+            CountsByStatus = counts
+        };
 
         ViewData["Title"] = "Orders";
-        ViewData["Status"] = status;
-        return View(orders);
+        return View(model);
     }
 
     /// <summary>Processing -> Packed -> Shipped -> Delivered. One click per parcel.</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AdvanceOrder(int id, string filter = null)
+    public async Task<IActionResult> AdvanceOrder(int id, string filter = null, string search = null)
     {
         var order = await _db.Orders.FirstOrDefaultAsync(o => o.Id == id);
         if (order == null)
@@ -279,14 +363,100 @@ public class AdminController : Controller
         if (order.Status == OrderStatuses.Delivered)
         {
             TempData["Error"] = $"{order.OrderNumber} is already delivered.";
-            return RedirectToAction(nameof(Orders), new { status = filter });
+            return RedirectToAction(nameof(Orders), new { status = filter, search });
         }
 
         order.Status = OrderStatuses.Next(order.Status);
         await _db.SaveChangesAsync();
 
         TempData["Toast"] = $"{order.OrderNumber} moved to {order.Status}.";
-        return RedirectToAction(nameof(Orders), new { status = filter });
+        return RedirectToAction(nameof(Orders), new { status = filter, search });
+    }
+
+    /// <summary>
+    /// Sets any status directly — for the times a parcel is handed back or a click was wrong.
+    /// The one-click "next step" button above stays the fast path for the daily routine.
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SetOrderStatus(int id, string status, string filter = null, string search = null)
+    {
+        var order = await _db.Orders.FirstOrDefaultAsync(o => o.Id == id);
+        if (order == null)
+        {
+            TempData["Error"] = "That order no longer exists.";
+            return RedirectToAction(nameof(Orders));
+        }
+
+        if (string.IsNullOrWhiteSpace(status) || !OrderStatuses.All.Contains(status))
+        {
+            TempData["Error"] = "That is not a status this shop uses.";
+            return RedirectToAction(nameof(Orders), new { status = filter, search });
+        }
+
+        if (order.Status == status)
+        {
+            TempData["Toast"] = $"{order.OrderNumber} is already {status}.";
+            return RedirectToAction(nameof(Orders), new { status = filter, search });
+        }
+
+        var previous = order.Status;
+        order.Status = status;
+        await _db.SaveChangesAsync();
+
+        TempData["Toast"] = $"{order.OrderNumber} moved from {previous} to {status}.";
+        return RedirectToAction(nameof(Orders), new { status = filter, search });
+    }
+
+    /// <summary>Downloads the order book (all of it, or one status) as a spreadsheet-friendly CSV.</summary>
+    [HttpGet]
+    public async Task<IActionResult> ExportOrders(string status = null)
+    {
+        var query = _db.Orders.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(status) && OrderStatuses.All.Contains(status))
+        {
+            query = query.Where(o => o.Status == status);
+        }
+
+        var rows = await query.OrderByDescending(o => o.CreatedAt).ToListAsync();
+
+        var csv = new StringBuilder();
+        csv.AppendLine("Order number,Date (UTC),Customer,Email,Items,Total INR,Payment,Method,Status,Products");
+
+        foreach (var order in rows)
+        {
+            csv.AppendLine(string.Join(',',
+                CsvField(order.OrderNumber),
+                order.CreatedAt.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture),
+                CsvField(order.Customer),
+                CsvField(order.Email),
+                order.ItemCount.ToString(CultureInfo.InvariantCulture),
+                order.Total.ToString("0.00", CultureInfo.InvariantCulture),
+                CsvField(order.Payment),
+                CsvField(order.PaymentMethod),
+                CsvField(order.Status),
+                CsvField(order.ProductName)));
+        }
+
+        // The BOM is what makes Excel open the file as UTF-8 and keep the ₹-priced names readable.
+        var bytes = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true).GetBytes(csv.ToString());
+        var fileName = $"matibari-orders-{DateTime.UtcNow:yyyyMMdd-HHmm}.csv";
+
+        return File(bytes, "text/csv", fileName);
+    }
+
+    /// <summary>Quotes a CSV field when it contains a comma, a quote or a line break.</summary>
+    private static string CsvField(string value)
+    {
+        value ??= string.Empty;
+
+        if (value.Contains(',') || value.Contains('"') || value.Contains('\n') || value.Contains('\r'))
+        {
+            return $"\"{value.Replace("\"", "\"\"")}\"";
+        }
+
+        return value;
     }
 
     // =============================================================================================
@@ -294,16 +464,61 @@ public class AdminController : Controller
     // =============================================================================================
 
     [HttpGet]
-    public async Task<IActionResult> Products()
+    public async Task<IActionResult> Products(string search)
     {
-        var products = await _db.Products.AsNoTracking()
+        var all = await _db.Products.AsNoTracking()
             .OrderBy(p => p.Category)
             .ThenBy(p => p.Name)
             .ToListAsync();
 
+        var term = (search ?? string.Empty).Trim();
+        var rows = term.Length == 0
+            ? all
+            : all.Where(p => p.Name.Contains(term, StringComparison.OrdinalIgnoreCase)
+                          || p.Category.Contains(term, StringComparison.OrdinalIgnoreCase)
+                          || p.Unit.Contains(term, StringComparison.OrdinalIgnoreCase))
+                 .ToList();
+
+        var model = new AdminProductsViewModel
+        {
+            Products = rows,
+            Search = term,
+            TotalCount = all.Count,
+            ActiveCount = all.Count(p => p.Active),
+            HiddenCount = all.Count(p => !p.Active),
+            OutOfStockCount = all.Count(p => p.Stock == 0),
+            TotalUnits = all.Sum(p => p.Stock)
+        };
+
         ViewData["Title"] = "Products";
-        return View(products);
+        return View(model);
     }
+
+    /// <summary>Quick stock correction straight from the products table.</summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateStock(int id, int stock, string search = null)
+    {
+        var product = await _db.Products.FirstOrDefaultAsync(p => p.Id == id);
+        if (product == null)
+        {
+            TempData["Error"] = "That product no longer exists.";
+            return RedirectToAction(nameof(Products), new { search });
+        }
+
+        // Keep the number sane: the shop cannot hold negative jars or a million of them.
+        stock = Math.Clamp(stock, 0, 9999);
+        var changed = product.Stock != stock;
+        product.Stock = stock;
+        await _db.SaveChangesAsync();
+
+        TempData["Toast"] = changed
+            ? $"{product.Name} now has {stock} on the shelf."
+            : $"{product.Name} already had {stock} on the shelf.";
+
+        return RedirectToAction(nameof(Products), new { search });
+    }
+
 
     /// <summary>Creates a product when Id is 0, otherwise updates it.</summary>
     [HttpPost]
@@ -420,6 +635,63 @@ public class AdminController : Controller
 
         TempData["Toast"] = $"\"{product.Name}\" deleted. Past orders are unaffected.";
         return RedirectToAction(nameof(Products));
+    }
+
+    // =============================================================================================
+    // CUSTOMERS
+    // =============================================================================================
+
+    /// <summary>
+    /// There is no customer account table — the shop does not ask visitors to sign up. So the
+    /// customer list is rolled up from the order book: one row per email address.
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> Customers(string search)
+    {
+        var facts = await _db.Orders.AsNoTracking()
+            .Select(o => new { o.Customer, o.Email, o.ItemCount, o.Total, o.Payment, o.CreatedAt })
+            .ToListAsync();
+
+        var rows = facts
+            .GroupBy(f => string.IsNullOrWhiteSpace(f.Email) ? f.Customer : f.Email)
+            .Select(group =>
+            {
+                var latest = group.OrderByDescending(f => f.CreatedAt).First();
+
+                return new AdminCustomerRow
+                {
+                    Name = latest.Customer,
+                    Email = latest.Email,
+                    Orders = group.Count(),
+                    Jars = group.Sum(f => f.ItemCount),
+                    Spent = group.Where(f => f.Payment == "Paid").Sum(f => f.Total),
+                    LastOrderAt = group.Max(f => f.CreatedAt),
+                    IsReturning = group.Count() > 1
+                };
+            })
+            .OrderByDescending(row => row.Spent)
+            .ThenByDescending(row => row.LastOrderAt)
+            .ToList();
+
+        var term = (search ?? string.Empty).Trim();
+        if (term.Length > 0)
+        {
+            rows = rows
+                .Where(row => row.Name.Contains(term, StringComparison.OrdinalIgnoreCase)
+                           || row.Email.Contains(term, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+
+        var model = new AdminCustomersViewModel
+        {
+            Customers = rows,
+            Search = term,
+            ReturningCount = rows.Count(row => row.IsReturning),
+            Lifetime = rows.Sum(row => row.Spent)
+        };
+
+        ViewData["Title"] = "Customers";
+        return View(model);
     }
 
     // =============================================================================================

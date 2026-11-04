@@ -1,13 +1,18 @@
-@model List<Matibari.Web.Models.Product>
+@model Matibari.Web.Models.AdminProductsViewModel
 @{
     Layout = "_AdminLayout";
-    var categories = Model
+
+    // The rows the table shows (already filtered by the search box). The edit modals are built
+    // from the same list, so a row that is not on screen cannot be opened by accident.
+    var allProducts = Model.Products;
+    var categories = allProducts
         .Select(product => product.Category)
         .Where(category => !string.IsNullOrWhiteSpace(category))
         .Distinct()
         .OrderBy(category => category)
         .ToList();
-    var liveCount = Model.Count(product => product.Active);
+    var liveCount = Model.ActiveCount;
+    var searchTerm = string.IsNullOrWhiteSpace(Model.Search) ? null : Model.Search;
 
     // A blank product for the "add" modal: Active defaults to true, ComboItemsJson defaults to "[]".
     var blankProduct = new Matibari.Web.Models.Product();
@@ -16,8 +21,8 @@
     <div>
         <h1 class="mb-admin-title">Products</h1>
         <p class="mb-admin-sub">
-            @Model.Count products in the catalogue, @liveCount visible in the shop.
-            Changes appear on the storefront immediately.
+            @Model.TotalCount products in the catalogue, @liveCount visible in the shop,
+            @Model.TotalUnits jars on the shelf. Changes appear on the storefront immediately.
         </p>
     </div>
     <div class="mb-admin-head-actions">
@@ -28,9 +33,35 @@
 </div>
 
 <div class="mb-admin-panel">
-    @if (Model.Count == 0)
+    <div class="mb-admin-panel-head mb-admin-panel-head-wrap">
+        <div class="mb-admin-pillrow">
+            <span class="pill pill-green">@Model.ActiveCount live</span>
+            <span class="pill pill-grey">@Model.HiddenCount hidden</span>
+            @if (Model.OutOfStockCount > 0)
+            {
+                <span class="pill pill-red">@Model.OutOfStockCount out of stock</span>
+            }
+        </div>
+
+        <form method="get" asp-controller="Admin" asp-action="Products" class="mb-admin-search" role="search">
+            <label class="visually-hidden" for="productSearch">Search products</label>
+            <input class="form-control form-control-sm" id="productSearch" type="search" name="search"
+                   value="@Model.Search" placeholder="Name, category or size" />
+            <button class="btn btn-ghost btn-sm" type="submit">Search</button>
+            @if (searchTerm != null)
+            {
+                <a class="btn btn-ghost btn-sm" asp-controller="Admin" asp-action="Products">Clear</a>
+            }
+        </form>
+    </div>
+
+    @if (Model.Products.Count == 0)
     {
-        <p class="mb-admin-empty">No products yet. Use "Add a product" to put the first jar on the shelf.</p>
+        <p class="mb-admin-empty">
+            @(searchTerm == null
+                ? "No products yet. Use \"Add a product\" to put the first jar on the shelf."
+                : "Nothing in the catalogue matches that search.")
+        </p>
     }
     else
     {
@@ -73,6 +104,16 @@
                                 }
                             </td>
                             <td>
+                                <form method="post" asp-controller="Admin" asp-action="UpdateStock" class="mb-stock-form">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@product.Id" />
+                                    <input type="hidden" name="search" value="@searchTerm" />
+                                    <label class="visually-hidden" for="stock-@product.Id">Stock for @product.Name</label>
+                                    <input class="form-control form-control-sm" id="stock-@product.Id"
+                                           type="number" name="stock" min="0" max="9999" step="1"
+                                           value="@product.Stock" />
+                                    <button type="submit" class="btn btn-ghost btn-sm">Set</button>
+                                </form>
                                 @if (product.Stock == 0)
                                 {
                                     <span class="pill pill-red">Out</span>
@@ -80,10 +121,6 @@
                                 else if (product.Stock <= 10)
                                 {
                                     <span class="pill pill-amber">@product.Stock left</span>
-                                }
-                                else
-                                {
-                                    <span class="pill pill-green">@product.Stock</span>
                                 }
                             </td>
                             <td>
@@ -165,7 +202,7 @@
 </div>
 
 @* ------------------------------- Edit modals ------------------------------- *@
-@foreach (var product in Model)
+@foreach (var product in allProducts)
 {
     <div class="modal fade" id="edit-@product.Id" tabindex="-1" aria-labelledby="editLabel-@product.Id" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">

@@ -8,6 +8,7 @@
 
     var onDashboard = controller == "Admin" && (action == "Dashboard" || action == "Index");
     var onOrders = controller == "Admin" && action == "Orders";
+    var onCustomers = controller == "Admin" && action == "Customers";
     var onProducts = controller == "Admin" && action == "Products";
     var onSettings = controller == "Admin" && action == "Settings";
 }
@@ -25,6 +26,10 @@
         <li>
             <a class="mb-admin-nav-link @(onOrders ? "is-active" : string.Empty)"
                asp-controller="Admin" asp-action="Orders">Orders</a>
+        </li>
+        <li>
+            <a class="mb-admin-nav-link @(onCustomers ? "is-active" : string.Empty)"
+               asp-controller="Admin" asp-action="Customers">Customers</a>
         </li>
         <li>
             <a class="mb-admin-nav-link @(onProducts ? "is-active" : string.Empty)"

@@ -1,6 +1,11 @@
 @model Matibari.Web.Models.AdminDashboardViewModel
 @{
     Layout = "_AdminLayout";
+
+    // The seven day chart needs its own totals, worked out once here rather than in the loop.
+    var weekRevenue = Model.SalesLast7Days.Sum(day => day.Revenue);
+    var weekOrders = Model.SalesLast7Days.Sum(day => day.Orders);
+    var lowStockLevel = AdminController.LowStockThreshold;
 }
 <div class="mb-admin-head">
     <div>
@@ -18,33 +23,113 @@
         <div class="mb-stat-card">
             <p class="mb-stat-card-label">Revenue collected</p>
             <p class="mb-stat-card-value">&#8377;@Model.Revenue.ToString("#,##0")</p>
-            <p class="mb-stat-card-note">All paid orders, since the shop opened</p>
+            <p class="mb-stat-card-note">@Model.PaidOrderCount paid orders, all time</p>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="mb-stat-card">
+            <p class="mb-stat-card-label">Average order</p>
+            <p class="mb-stat-card-value">&#8377;@Model.AverageOrderValue.ToString("#,##0")</p>
+            <p class="mb-stat-card-note">Revenue &divide; paid orders</p>
         </div>
     </div>
     <div class="col-sm-6 col-xl-3">
         <div class="mb-stat-card">
             <p class="mb-stat-card-label">Orders</p>
             <p class="mb-stat-card-value">@Model.OrderCount</p>
-            <p class="mb-stat-card-note">@Model.OpenOrders still to pack or deliver</p>
-        </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="mb-stat-card">
-            <p class="mb-stat-card-label">Products live</p>
-            <p class="mb-stat-card-value">@Model.ProductsLive<span class="mb-stat-card-of">/@Model.ProductsTotal</span></p>
-            <p class="mb-stat-card-note">Hidden products do not appear in the shop</p>
+            <p class="mb-stat-card-note">
+                @Model.OpenOrders to pack or deliver &middot;
+                &#8377;@Model.OpenValue.ToString("#,##0") in the workshop
+            </p>
         </div>
     </div>
     <div class="col-sm-6 col-xl-3">
         <div class="mb-stat-card @(Model.LowStockCount > 0 ? "mb-stat-card-warn" : string.Empty)">
             <p class="mb-stat-card-label">Running low</p>
             <p class="mb-stat-card-value">@Model.LowStockCount</p>
-            <p class="mb-stat-card-note">10 jars or fewer left on the shelf</p>
+            <p class="mb-stat-card-note">
+                @lowStockLevel jars or fewer &middot; @Model.ProductsLive of @Model.ProductsTotal live
+            </p>
         </div>
     </div>
 </div>
 
 <div class="row g-4">
+    <div class="col-xl-7">
+        <div class="mb-admin-panel">
+            <div class="mb-admin-panel-head">
+                <h2 class="mb-admin-panel-title">The last seven days</h2>
+                <span class="mb-admin-panel-note">
+                    &#8377;@weekRevenue.ToString("#,##0") &middot; @weekOrders @(weekOrders == 1 ? "order" : "orders")
+                </span>
+            </div>
+
+            <p class="mb-admin-today">
+                Today: <strong>&#8377;@Model.TodayRevenue.ToString("#,##0")</strong>
+                from @Model.TodayOrderCount @(Model.TodayOrderCount == 1 ? "order" : "orders").
+            </p>
+
+            <div class="mb-bars" aria-hidden="true">
+                @foreach (var day in Model.SalesLast7Days)
+                {
+                    <div class="mb-bar-col">
+                        <div class="mb-bar-track">
+                            <div class="mb-bar @(day.IsToday ? "is-today" : string.Empty)"
+                                 style="height:@(day.Height)%"></div>
+                        </div>
+                        <span class="mb-bar-day">@day.Day.ToString("ddd")</span>
+                        <span class="mb-bar-value">&#8377;@day.Revenue.ToString("#,##0")</span>
+                    </div>
+                }
+            </div>
+
+            @* The bars are decorative; this list carries the same numbers for screen readers. *@
+            <ul class="visually-hidden">
+                @foreach (var day in Model.SalesLast7Days)
+                {
+                    <li>
+                        @(day.Day.ToString("dddd d MMMM")): &#8377;@(day.Revenue.ToString("#,##0"))
+                        from @day.Orders @(day.Orders == 1 ? "order" : "orders").
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-xl-5">
+        <div class="mb-admin-panel">
+            <div class="mb-admin-panel-head">
+                <h2 class="mb-admin-panel-title">What sells</h2>
+                <a class="mb-link" asp-controller="Admin" asp-action="Orders">Orders</a>
+            </div>
+
+            @if (Model.TopProducts.Count == 0)
+            {
+                <p class="mb-admin-empty">Nothing sold yet. The first order will start this list.</p>
+            }
+            else
+            {
+                <ul class="mb-top-list">
+                    @foreach (var product in Model.TopProducts)
+                    {
+                        <li class="mb-top-item">
+                            <div class="mb-top-head">
+                                <p class="mb-top-name">@product.Name</p>
+                                <p class="mb-top-amount">&#8377;@product.Revenue.ToString("#,##0")</p>
+                            </div>
+                            <div class="mb-top-track">
+                                <span class="mb-top-fill" style="width:@(product.Share)%"></span>
+                            </div>
+                            <p class="mb-top-meta">@product.Jars @(product.Jars == 1 ? "jar" : "jars") sold</p>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-1">
     <div class="col-xl-7">
         <div class="mb-admin-panel">
             <div class="mb-admin-panel-head">
@@ -79,7 +164,7 @@
                                     </td>
                                     <td>
                                         <span class="mb-table-strong">@order.Customer</span>
-                                        <span class="mb-table-sub">@order.ItemCount jars · @order.PaymentMethod</span>
+                                        <span class="mb-table-sub">@order.ItemCount jars &middot; @order.PaymentMethod</span>
                                     </td>
                                     <td class="mb-table-num">&#8377;@order.Total.ToString("#,##0")</td>
                                     <td>
@@ -137,6 +222,7 @@
             </div>
             <ul class="mb-admin-notes">
                 <li>Orders move Processing &rarr; Packed &rarr; Shipped &rarr; Delivered from the Orders screen.</li>
+                <li>Stock is edited in one click on the Products screen, without opening the full form.</li>
                 <li>Payment is recorded as paid by the site today; the Razorpay step is still marked as a TODO in <code>CartController.Checkout</code>.</li>
                 <li>Hiding a product keeps it in the database and in past orders — it just leaves the shop.</li>
             </ul>

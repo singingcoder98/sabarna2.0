@@ -282,6 +282,52 @@ public static class DbSeeder
             },
             new()
             {
+                Name = "Organic Jaggery Powder — 500 g",
+                Category = "Jaggery & Gur",
+                Price = 249m,
+                Mrp = 299m,
+                Unit = "500 g pouch",
+                Rating = 4.8,
+                Reviews = 63,
+                Image = "/images/products/jaggery-powder.jpg",
+                Tag = "New on the shelf",
+                Description = "Cane juice boiled down in an open pan until it sets, then ground coarse. "
+                            + "Nothing refined, nothing bleached, no sulphur — just the whole sweetness "
+                            + "with the minerals still in it. A spoonful in warm water in the morning.",
+                Active = true,
+                Stock = 36,
+                Sold = 24,
+                IsCombo = false,
+                Featured = true,
+                ComboItemsJson = "[]",
+                CreatedAt = now.AddDays(-18),
+                UpdatedAt = now.AddDays(-2)
+            },
+            new()
+            {
+                Name = "Jaggery Blocks (Gur) — 1 kg",
+                Category = "Jaggery & Gur",
+                Price = 329m,
+                Mrp = 399m,
+                Unit = "1 kg block pack",
+                Rating = 4.7,
+                Reviews = 28,
+                Image = "/images/products/jaggery-blocks.jpg",
+                Tag = "Winter batch",
+                Description = "The old-fashioned gur: poured into wooden moulds and left to cool overnight, "
+                            + "so the blocks stay dark, damp and full of molasses. Break a piece off for "
+                            + "pithe, payesh, or a cup of cha on a cold morning.",
+                Active = true,
+                Stock = 18,
+                Sold = 9,
+                IsCombo = false,
+                Featured = false,
+                ComboItemsJson = "[]",
+                CreatedAt = now.AddDays(-18),
+                UpdatedAt = now.AddDays(-5)
+            },
+            new()
+            {
                 Name = "The Everyday Duo — Ghee + Honey",
                 Category = "Combos",
                 Price = 1399m,
@@ -328,6 +374,31 @@ public static class DbSeeder
                     ("Wild Forest Honey", "500 g", "/images/products/honey-500.jpg")),
                 CreatedAt = now.AddDays(-22),
                 UpdatedAt = now.AddDays(-1)
+            },
+            new()
+            {
+                Name = "Ghee & Gur Box — 500 ml + 500 g",
+                Category = "Combos",
+                Price = 1089m,
+                Mrp = 1148m,
+                Unit = "2 jars · gift boxed",
+                Rating = 4.9,
+                Reviews = 16,
+                Image = "/images/products/combo-gur.jpg",
+                Tag = "Save ₹59",
+                Description = "Ghee and gur, the two jars a Bengali kitchen empties first. One 500 ml "
+                            + "bilona ghee, one 500 g jaggery powder, packed together in a cotton-wrapped "
+                            + "crate that needs no wrapping paper.",
+                Active = true,
+                Stock = 15,
+                Sold = 4,
+                IsCombo = true,
+                Featured = false,
+                ComboItemsJson = ComboJson(
+                    ("A2 Bilona Cow Ghee", "500 ml", "/images/products/ghee-500.jpg"),
+                    ("Organic Jaggery Powder", "500 g", "/images/products/jaggery-powder.jpg")),
+                CreatedAt = now.AddDays(-9),
+                UpdatedAt = now.AddDays(-2)
             }
         };
 

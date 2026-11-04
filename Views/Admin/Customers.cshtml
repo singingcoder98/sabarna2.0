@@ -1,0 +1,112 @@
+@model Matibari.Web.Models.AdminCustomersViewModel
+@{
+    Layout = "_AdminLayout";
+
+    var searchTerm = string.IsNullOrWhiteSpace(Model.Search) ? null : Model.Search;
+}
+<div class="mb-admin-head">
+    <div>
+        <h1 class="mb-admin-title">Customers</h1>
+        <p class="mb-admin-sub">
+            Everyone who has ever ordered, rolled up from the order book — the shop has no customer
+            accounts, so an email address is the key.
+        </p>
+    </div>
+    <div class="mb-admin-head-actions">
+        <a class="btn btn-ghost btn-sm" asp-controller="Admin" asp-action="ExportOrders">Export CSV</a>
+        <a class="btn btn-ghost btn-sm" asp-controller="Admin" asp-action="Orders">All orders</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-admin-stats">
+    <div class="col-sm-4">
+        <div class="mb-stat-card">
+            <p class="mb-stat-card-label">People</p>
+            <p class="mb-stat-card-value">@Model.Customers.Count</p>
+            <p class="mb-stat-card-note">On this list right now</p>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="mb-stat-card">
+            <p class="mb-stat-card-label">Ordered twice or more</p>
+            <p class="mb-stat-card-value">@Model.ReturningCount</p>
+            <p class="mb-stat-card-note">The ones worth a thank-you note</p>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="mb-stat-card">
+            <p class="mb-stat-card-label">Lifetime value</p>
+            <p class="mb-stat-card-value">&#8377;@Model.Lifetime.ToString("#,##0")</p>
+            <p class="mb-stat-card-note">Paid orders only</p>
+        </div>
+    </div>
+</div>
+
+<div class="mb-admin-panel">
+    <div class="mb-admin-panel-head mb-admin-panel-head-wrap">
+        <h2 class="mb-admin-panel-title">The address book</h2>
+
+        <form method="get" asp-controller="Admin" asp-action="Customers" class="mb-admin-search" role="search">
+            <label class="visually-hidden" for="customerSearch">Search customers</label>
+            <input class="form-control form-control-sm" id="customerSearch" type="search" name="search"
+                   value="@Model.Search" placeholder="Name or email" />
+            <button class="btn btn-ghost btn-sm" type="submit">Search</button>
+            @if (searchTerm != null)
+            {
+                <a class="btn btn-ghost btn-sm" asp-controller="Admin" asp-action="Customers">Clear</a>
+            }
+        </form>
+    </div>
+
+    @if (Model.Customers.Count == 0)
+    {
+        <p class="mb-admin-empty">
+            @(searchTerm == null
+                ? "Nobody has ordered yet. The first checkout will fill this page."
+                : "No customer matches that search.")
+        </p>
+    }
+    else
+    {
+        <div class="mb-table-wrap">
+            <table class="table mb-table mb-table-admin align-middle">
+                <caption class="visually-hidden">Customers, biggest spenders first</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Customer</th>
+                        <th scope="col">Orders</th>
+                        <th scope="col">Jars</th>
+                        <th scope="col">Spent</th>
+                        <th scope="col">Last order</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var customer in Model.Customers)
+                    {
+                        <tr>
+                            <td>
+                                <span class="mb-table-strong">@customer.Name</span>
+                                <span class="mb-table-sub">@customer.Email</span>
+                                @if (customer.IsReturning)
+                                {
+                                    <span class="pill pill-gold pill-xs">Returning</span>
+                                }
+                            </td>
+                            <td class="mb-table-num">@customer.Orders</td>
+                            <td class="mb-table-num">@customer.Jars</td>
+                            <td class="mb-table-num">&#8377;@customer.Spent.ToString("#,##0")</td>
+                            <td>
+                                <span class="mb-table-sub">@customer.LastOrderAt.ToLocalTime().ToString("dd MMM yyyy")</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<p class="mb-admin-fine">
+    <strong>Note:</strong> this page reads the order book, so it never goes out of date and needs no
+    maintenance. It also means a person who has never ordered cannot appear here.
+</p>

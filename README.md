@@ -44,7 +44,8 @@ On the first start `DbSeeder` creates `app.db` with:
 
 * the brand identity and hero copy,
 * one admin account,
-* 10 products (8 single jars + 2 combos, several featured, one deliberately out of stock),
+* 13 products (10 single jars + 3 combos, including the jaggery shelf, several featured,
+  one deliberately out of stock),
 * 6 orders spread across every status.
 
 **Start over with clean demo data:** stop the app, delete `app.db` (and `app.db-shm` / `app.db-wal`
@@ -74,12 +75,26 @@ Only a SHA-256 hash of it is stored. In Development the code is displayed in a y
 
 Screens:
 
-* **Dashboard** — revenue, order count, live/total products, low stock, recent orders, restock list.
-* **Orders** — filter by status; one click advances Processing → Packed → Shipped → Delivered.
-* **Products** — thumbnail table with stock/type/visibility pills, live↔hidden switch, edit modal per
-  row, "add product" modal, delete with a confirmation dialog.
-* **Settings** — brand name, tagline, logo path, hero kicker/headline/intro, email, phone, WhatsApp,
-  address. Saved to the database and picked up by every page on the next request.
+* **Dashboard** (`/Admin/Dashboard`) — revenue collected, average order value, orders open and what
+  they are worth, today's takings, a seven-day bar chart, the five best sellers by revenue, the
+  recent orders and a restock list. Everything is computed from the order book; nothing is faked.
+* **Orders** (`/Admin/Orders`) — status filter pills with live counts, search across order number,
+  name and email, a total for whatever is on screen, one click to advance
+  Processing → Packed → Shipped → Delivered, a "set status" dropdown for corrections, and
+  **Export CSV** for the accountant.
+* **Customers** (`/Admin/Customers`) — one row per person, rolled up from the order book: orders,
+  jars, money spent, last order and a "returning" flag. There is no customer account table, so this
+  page needs no maintenance and can never drift out of date.
+* **Products** (`/Admin/Products`) — thumbnail table with stock/type/visibility pills, live↔hidden
+  switch, **stock edited in place** (type a number, press Set — no form to open), search, edit modal
+  per row, "add product" modal, delete with a confirmation dialog.
+* **Settings** (`/Admin/Settings`) — brand name, tagline, logo path, hero kicker/headline/intro,
+  email, phone, WhatsApp, address. Saved to the database and picked up by every page on the next
+  request.
+
+Every POST carries `[ValidateAntiForgeryToken]` and the whole controller sits behind the `AdminOnly`
+policy, so no screen above is reachable without the two-step login. The CSV export writes a UTF-8
+byte-order mark so Excel opens ₹ amounts as numbers rather than mojibake.
 
 ---
 
@@ -105,11 +120,12 @@ Models/
                                  ComboItemDto, CartLine, CheckoutViewModel, AdminLoginViewModel,
                                  OtpViewModel, ContactViewModel
   ViewModels.cs                  HomeViewModel, ShopViewModel, ProductDetailsViewModel,
-                                 AdminDashboardViewModel, ContactPageModel
+                                 AdminDashboardViewModel, AdminOrdersViewModel,
+                                 AdminProductsViewModel, AdminCustomersViewModel, ContactPageModel
 
 Data/
   AppDbContext.cs                DbSets, precision, indexes, CreatedAt/UpdatedAt stamping
-  DbSeeder.cs                    EnsureCreatedAsync + settings, admin, products, orders
+  DbSeeder.cs                    EnsureCreatedAsync + settings, admin, 13 products, 6 orders
 
 Services/
   CartService.cs                 session JSON cart + combo helpers + shipping rules
@@ -130,12 +146,13 @@ Views/
   Shop/                          Index, Details, Combos
   Cart/                          Index, Checkout, Success
   Contact/                       Index
-  Admin/                         Login, VerifyOtp, Dashboard, Orders, Products, Settings
+  Admin/                         Login, VerifyOtp, Dashboard, Orders, Customers, Products, Settings
 
 wwwroot/
   css/site.css                   the whole brand layer (~1 of 1 stylesheets)
   lib/bootstrap/                 bootstrap.min.css, bootstrap.bundle.min.js, LICENSE (v5.3.3)
-  images/                        logo, hero, farmer photo, product photography, og-cover, favicon
+  images/                        logo, hero, farmer photo, product photography (incl. jaggery),
+                                 og-cover, favicon
   robots.txt, sitemap.xml
 ```
 
