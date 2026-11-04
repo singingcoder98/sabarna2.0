@@ -208,11 +208,16 @@ public class AdminController : Controller
     {
         var orders = _db.Orders.AsNoTracking();
 
+        // SUM over a decimal column is not available on SQLite either, so the paid totals are
+        // pulled back (one column, a few rows) and added up on the server side of the app.
+        var paidTotals = await orders
+            .Where(o => o.Payment == "Paid")
+            .Select(o => o.Total)
+            .ToListAsync();
+
         var model = new AdminDashboardViewModel
         {
-            Revenue = await orders
-                .Where(o => o.Payment == "Paid")
-                .SumAsync(o => (decimal?)o.Total) ?? 0m,
+            Revenue = paidTotals.Sum(),
             OrderCount = await orders.CountAsync(),
             OpenOrders = await orders.CountAsync(o => o.Status != OrderStatuses.Delivered),
             ProductsLive = await _db.Products.AsNoTracking().CountAsync(p => p.Active),

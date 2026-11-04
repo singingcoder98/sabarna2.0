@@ -166,6 +166,13 @@ Bootstrap toasts and a few lines of vanilla JS show them automatically.
 are ASP.NET Core `PasswordHasher` hashes — never plain text. `returnUrl` values are checked with
 `Url.IsLocalUrl` so they cannot be used as an open redirect.
 
+**SQLite and decimals (read this before adding price sorts).** SQLite has no native decimal
+type: EF Core stores `Price`, `Mrp` and `Total` as TEXT, so any `ORDER BY`, `SUM`, `MAX` or `>`
+comparison over them must not run in the database. The three places that need it — the combos band
+on the home page, `/Shop/Combos` and the dashboard revenue — already read the rows first and finish
+in memory, with a comment saying why. If you add another, either do the same or cast in the query
+(`OrderBy(p => (double)p.Price)`).
+
 **Admin changes are instant.** Product and settings writes go straight to SQLite; the storefront
 reads on every render, so there is no cache to clear.
 

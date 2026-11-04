@@ -112,11 +112,14 @@ public class ShopController : Controller
     [HttpGet]
     public async Task<IActionResult> Combos()
     {
-        var combos = await _db.Products.AsNoTracking()
-            .Where(p => p.Active && p.IsCombo)
+        // "Featured first, then cheapest" — sorted in memory because SQLite cannot ORDER BY a
+        // decimal column (it keeps decimals as TEXT).
+        var combos = (await _db.Products.AsNoTracking()
+                .Where(p => p.Active && p.IsCombo)
+                .ToListAsync())
             .OrderByDescending(p => p.Featured)
             .ThenBy(p => p.Price)
-            .ToListAsync();
+            .ToList();
 
         ViewData["Title"] = "Special combos";
         ViewData["Description"] = "Two or three of our jars wrapped together in a cotton gift box, at a "

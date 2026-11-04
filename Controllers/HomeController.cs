@@ -28,6 +28,12 @@ public class HomeController : Controller
 
         var visible = _db.Products.AsNoTracking().Where(p => p.Active);
 
+        // SQLite stores decimal as TEXT and refuses to ORDER BY it, so the combos are read first
+        // and sorted in memory. There are only a handful of them, so this costs nothing.
+        var comboRows = await visible
+            .Where(p => p.IsCombo)
+            .ToListAsync();
+
         var model = new HomeViewModel
         {
             Settings = await GetSettingsAsync(),
@@ -37,10 +43,9 @@ public class HomeController : Controller
                 .ThenBy(p => p.Id)
                 .Take(8)
                 .ToListAsync(),
-            Combos = await visible
-                .Where(p => p.IsCombo)
+            Combos = comboRows
                 .OrderBy(p => p.Price)
-                .ToListAsync(),
+                .ToList(),
             Featured = await visible
                 .Where(p => p.Featured)
                 .OrderBy(p => p.Id)
