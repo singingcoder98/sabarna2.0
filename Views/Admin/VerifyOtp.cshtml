@@ -1,4 +1,7 @@
 @model Matibari.Web.Models.OtpViewModel
+@using Microsoft.EntityFrameworkCore
+@* AsNoTracking() is an EF Core extension method, and Razor does not import this namespace
+   for you — that is why this line is here rather than in _ViewImports. *@
 @inject Matibari.Web.Data.AppDbContext Db
 @{
     Layout = null;
