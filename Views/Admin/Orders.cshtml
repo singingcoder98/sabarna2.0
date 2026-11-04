@@ -1,0 +1,97 @@
+@model List<Matibari.Web.Models.Order>
+@{
+    Layout = "_AdminLayout";
+    var filter = ViewData["Status"] as string ?? "All";
+    var filters = new List<string> { "All" };
+    filters.AddRange(OrderStatuses.All);
+    // Route value for the filter pill: null (i.e. no query string) means "All".
+    string statusRoute = filter == "All" ? null : filter;
+}
+<div class="mb-admin-head">
+    <div>
+        <h1 class="mb-admin-title">Orders</h1>
+        <p class="mb-admin-sub">Advance a parcel one step at a time. The customer sees the same status.</p>
+    </div>
+    <div class="mb-admin-head-actions">
+        <a class="btn btn-ghost btn-sm" asp-controller="Admin" asp-action="Dashboard">Back to dashboard</a>
+    </div>
+</div>
+
+<div class="mb-admin-panel">
+    <div class="mb-filter mb-filter-admin" role="group" aria-label="Filter orders by status">
+        @foreach (var status in filters)
+        {
+            <a class="mb-pill @(filter == status ? "is-active" : string.Empty)"
+               asp-controller="Admin" asp-action="Orders" asp-route-status="@statusRoute">@status</a>
+        }
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <p class="mb-admin-empty">No orders in this state right now.</p>
+    }
+    else
+    {
+        <div class="mb-table-wrap">
+            <table class="table mb-table mb-table-admin align-middle">
+                <caption class="visually-hidden">Orders, newest first</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Order</th>
+                        <th scope="col">Customer</th>
+                        <th scope="col">Items</th>
+                        <th scope="col">Total</th>
+                        <th scope="col">Payment</th>
+                        <th scope="col">Status</th>
+                        <th scope="col" class="text-end">Next step</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model)
+                    {
+                        <tr>
+                            <td>
+                                <span class="mb-table-strong">@order.OrderNumber</span>
+                                <span class="mb-table-sub">@order.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, h:mm tt")</span>
+                            </td>
+                            <td>
+                                <span class="mb-table-strong">@order.Customer</span>
+                                <span class="mb-table-sub">@order.Email</span>
+                                <span class="mb-table-sub mb-table-sub-quiet">@order.ProductName</span>
+                            </td>
+                            <td class="mb-table-num">@order.ItemCount</td>
+                            <td class="mb-table-num">&#8377;@order.Total.ToString("#,##0")</td>
+                            <td>
+                                <span class="pill pill-green">@order.Payment</span>
+                                <span class="mb-table-sub">@order.PaymentMethod</span>
+                            </td>
+                            <td><span class="pill @OrderStatuses.PillClass(order.Status)">@order.Status</span></td>
+                            <td class="text-end">
+                                @if (order.Status == OrderStatuses.Delivered)
+                                {
+                                    <span class="mb-table-sub">Completed</span>
+                                }
+                                else
+                                {
+                                    <form method="post" asp-controller="Admin" asp-action="AdvanceOrder" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@order.Id" />
+                                        <input type="hidden" name="filter" value="@filter" />
+                                        <button type="submit" class="btn btn-outline-brand btn-sm">
+                                            Mark @OrderStatuses.Next(order.Status)
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<p class="mb-admin-fine">
+    <strong>Note:</strong> the customer is not emailed when the status changes yet — that is on the
+    deferred list, together with the payment gateway. Today the change is visible in the admin only.
+</p>

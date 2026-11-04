@@ -1,0 +1,231 @@
+@inject Matibari.Web.Data.AppDbContext Db
+@inject Matibari.Web.Services.CartService Cart
+@*
+    The public shell: sticky navbar, page body, dark green footer, floating WhatsApp button,
+    toast container and the JSON-LD block that tells Google this is an online store.
+*@
+@{
+    var store = Db.Settings.AsNoTracking().FirstOrDefault();
+    if (store == null)
+    {
+        // Only happens if the database was emptied by hand — never render a blank brand.
+        store = new SiteSetting
+        {
+            BrandName = "Matibari",
+            Tagline = "Small-batch ghee, honey & pickles",
+            Email = "hello@matibari.in",
+            Phone = "+91 98000 12345",
+            Whatsapp = "919800012345",
+            Address = "Matibari Farm, Village Matibari, P.O. Kharagpur, West Bengal 721301"
+        };
+    }
+
+    var logoPath = string.IsNullOrWhiteSpace(store.Logo) ? "/images/logo.png" : store.Logo;
+    var cartCount = Cart.Count();
+    var toastMessage = TempData["Toast"] as string;
+    var errorMessage = TempData["Error"] as string;
+
+    var currentController = ViewContext.RouteData.Values["controller"] as string ?? string.Empty;
+    var currentAction = ViewContext.RouteData.Values["action"] as string ?? string.Empty;
+
+    var isHome = currentController == "Home" && currentAction == "Index";
+    var isShop = currentController == "Shop" && currentAction == "Index";
+    var isCombos = currentController == "Shop" && currentAction == "Combos";
+    var isAbout = currentController == "Home" && currentAction == "About";
+    var isContact = currentController == "Contact";
+    var isCart = currentController == "Cart";
+}
+<!DOCTYPE html>
+<html lang="en-IN">
+<head>
+    <partial name="_Head" model="store" />
+</head>
+<body class="mb-body">
+<a class="mb-skip" href="#main-content">Skip to main content</a>
+
+<header class="mb-header">
+    <nav class="navbar navbar-expand-lg mb-navbar" aria-label="Main">
+        <div class="container">
+            <a class="navbar-brand mb-brand" asp-controller="Home" asp-action="Index">
+                @* Decorative: the brand name is written right next to it, so alt stays empty. *@
+                <img src="@logoPath" alt="" class="mb-brand-logo" width="44" height="44" aria-hidden="true" />
+                <span class="mb-brand-copy">
+                    <span class="mb-brand-name">@store.BrandName</span>
+                    <span class="mb-brand-tag">@store.Tagline</span>
+                </span>
+            </a>
+
+            <button class="navbar-toggler mb-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false"
+                    aria-label="Open the menu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav ms-auto mb-nav-links">
+                    <li class="nav-item">
+                        <a class="nav-link @(isHome ? "active" : string.Empty)" asp-controller="Home" asp-action="Index">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(isShop ? "active" : string.Empty)" asp-controller="Shop" asp-action="Index">Shop</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(isCombos ? "active" : string.Empty)" asp-controller="Shop" asp-action="Combos">Combos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(isAbout ? "active" : string.Empty)" asp-controller="Home" asp-action="About">Our story</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(isContact ? "active" : string.Empty)" asp-controller="Contact" asp-action="Index">Contact</a>
+                    </li>
+                </ul>
+
+                <div class="mb-nav-actions">
+                    <a class="btn btn-ghost btn-sm mb-nav-phone" href="@store.PhoneLink">
+                        <span aria-hidden="true">☎</span> @store.Phone
+                    </a>
+                    <a class="btn btn-brand btn-sm mb-basket-link @(isCart ? "is-current" : string.Empty)"
+                       asp-controller="Cart" asp-action="Index">
+                        Basket
+                        <span class="mb-basket-count">@cartCount</span>
+                        <span class="visually-hidden">items in your basket</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<main id="main-content" class="mb-main">
+    @RenderBody()
+</main>
+
+<footer class="mb-footer">
+    <div class="container">
+        <div class="row g-4 g-lg-5">
+            <div class="col-lg-4">
+                <div class="mb-footer-brand">
+                    <img src="@logoPath" alt="" class="mb-footer-logo" width="48" height="48" aria-hidden="true" />
+                    <span class="mb-footer-name">@store.BrandName</span>
+                </div>
+                <p class="mb-footer-text">
+                    @(store.Tagline). Small batches, honest labels and a parcel that smells of the kitchen
+                    it came from. Made in Midnapore, shipped across India.
+                </p>
+                <p class="mb-footer-note">
+                    Online payment only — UPI, cards and netbanking. We do not offer cash on delivery.
+                </p>
+            </div>
+
+            <div class="col-6 col-lg-2">
+                <h2 class="mb-footer-title">Shop</h2>
+                <ul class="mb-footer-list">
+                    <li><a asp-controller="Shop" asp-action="Index">Everything</a></li>
+                    <li><a asp-controller="Shop" asp-action="Combos">Combos</a></li>
+                    <li><a asp-controller="Shop" asp-action="Index" asp-route-category="Ghee &amp; Dairy">Ghee &amp; dairy</a></li>
+                    <li><a asp-controller="Shop" asp-action="Index" asp-route-category="Pickles">Pickles</a></li>
+                    <li><a asp-controller="Shop" asp-action="Index" asp-route-category="Honey">Honey</a></li>
+                </ul>
+            </div>
+
+            <div class="col-6 col-lg-2">
+                <h2 class="mb-footer-title">The shop</h2>
+                <ul class="mb-footer-list">
+                    <li><a asp-controller="Home" asp-action="About">Our story</a></li>
+                    <li><a asp-controller="Home" asp-action="Policies">Policies</a></li>
+                    <li><a asp-controller="Home" asp-action="Shipping">Shipping &amp; refunds</a></li>
+                    <li><a asp-controller="Home" asp-action="Privacy">Privacy</a></li>
+                    <li><a asp-controller="Home" asp-action="Terms">Terms</a></li>
+                </ul>
+            </div>
+
+            <div class="col-lg-4">
+                <h2 class="mb-footer-title">Come say hello</h2>
+                <ul class="mb-footer-list">
+                    <li>@store.Address</li>
+                    <li><a href="@store.PhoneLink">@store.Phone</a></li>
+                    <li><a href="mailto:@store.Email">@store.Email</a></li>
+                    <li>Packing days: Monday to Saturday, 8am – 6pm IST</li>
+                </ul>
+                @if (!string.IsNullOrWhiteSpace(store.WhatsappLink))
+                {
+                    <a class="btn btn-gold btn-sm mt-2" href="@store.WhatsappLink" target="_blank" rel="noopener">
+                        WhatsApp the farm
+                    </a>
+                }
+            </div>
+        </div>
+
+        <div class="mb-footer-bottom">
+            <p class="mb-footer-copy">© @DateTime.Now.Year @store.BrandName. All rights reserved.</p>
+            <p class="mb-footer-copy">
+                <a asp-controller="Home" asp-action="Privacy">Privacy</a>
+                <span aria-hidden="true">·</span>
+                <a asp-controller="Home" asp-action="Terms">Terms</a>
+                <span aria-hidden="true">·</span>
+                <a asp-controller="Home" asp-action="Shipping">Shipping</a>
+            </p>
+        </div>
+    </div>
+</footer>
+
+@if (!string.IsNullOrWhiteSpace(store.WhatsappLink))
+{
+    <a class="mb-wa-float" href="@store.WhatsappLink" target="_blank" rel="noopener"
+       aria-label="Chat with us on WhatsApp">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+            <path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.3A10 10 0 1 0 12 2Zm0 2a8 8 0 1 1-4.2 14.8l-.4-.2-2.6.6.7-2.5-.2-.4A8 8 0 0 1 12 4Z" />
+            <path d="M9 8.5c.3 0 .5.2.6.5l.6 1.4c.1.2 0 .5-.2.7l-.4.4a5 5 0 0 0 2.9 2.7l.4-.5c.2-.2.4-.3.6-.2l1.5.6c.3.1.4.3.4.5 0 .9-.7 1.7-1.6 1.8-2.6.4-6.3-2.8-6.3-5.5 0-.9.7-1.8 1.5-1.9H9Z" />
+        </svg>
+    </a>
+}
+
+@* Toasts are rendered server-side from TempData and shown by a few lines of JS in _Scripts. *@
+<div class="toast-container position-fixed bottom-0 end-0 p-3 mb-toast-stack" aria-live="polite" aria-atomic="true">
+    @if (!string.IsNullOrWhiteSpace(toastMessage))
+    {
+        <div class="toast mb-toast mb-toast-success" role="status" aria-live="polite" aria-atomic="true" data-autoshow="true">
+            <div class="d-flex">
+                <div class="toast-body">@toastMessage</div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    }
+    @if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <div class="toast mb-toast mb-toast-error" role="alert" aria-live="assertive" aria-atomic="true" data-autoshow="true">
+            <div class="d-flex">
+                <div class="toast-body">@errorMessage</div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    }
+</div>
+
+@{
+    // Structured data: helps Google show the shop name, address and accepted payments.
+    var jsonLd = new Dictionary<string, object>
+    {
+        ["@context"] = "https://schema.org",
+        ["@type"] = "OnlineStore",
+        ["name"] = store.BrandName,
+        ["description"] = store.Tagline,
+        ["url"] = $"{Context.Request.Scheme}://{Context.Request.Host}",
+        ["email"] = store.Email,
+        ["telephone"] = store.Phone,
+        ["currenciesAccepted"] = "INR",
+        ["paymentAccepted"] = "UPI, Credit Card, Debit Card, Netbanking",
+        ["address"] = new Dictionary<string, object>
+        {
+            ["@type"] = "PostalAddress",
+            ["streetAddress"] = store.Address,
+            ["addressCountry"] = "IN"
+        }
+    };
+    var jsonLdText = System.Text.Json.JsonSerializer.Serialize(jsonLd);
+}
+<script type="application/ld+json">@Html.Raw(jsonLdText)</script>
+
+<partial name="_Scripts" />
+</body>
+</html>

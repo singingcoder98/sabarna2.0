@@ -1,0 +1,51 @@
+@model Matibari.Web.Models.Order
+<section class="mb-section mb-section-cream">
+    <div class="container">
+        <div class="mb-success">
+            <span class="mb-success-mark" aria-hidden="true">&#10003;</span>
+            <p class="mb-kicker mb-kicker-dark">Order confirmed</p>
+            <h1 class="mb-success-title">Thank you, @(Model.Customer.Split(' ')[0])</h1>
+            <p class="mb-success-text">
+                Your parcel is being packed by hand. We will email the tracking link to
+                <strong>@Model.Email</strong> the evening it leaves the farm.
+            </p>
+
+            <div class="mb-success-card">
+                <div class="mb-success-row">
+                    <span>Order number</span>
+                    <strong>@Model.OrderNumber</strong>
+                </div>
+                <div class="mb-success-row">
+                    <span>Placed on</span>
+                    <strong>@Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, h:mm tt")</strong>
+                </div>
+                <div class="mb-success-row">
+                    <span>What's coming</span>
+                    <strong>@Model.ProductName</strong>
+                </div>
+                <div class="mb-success-row">
+                    <span>Jars</span>
+                    <strong>@Model.ItemCount</strong>
+                </div>
+                <div class="mb-success-row">
+                    <span>Paid by</span>
+                    <strong>@Model.PaymentMethod</strong>
+                </div>
+                <div class="mb-success-row mb-success-row-total">
+                    <span>Total paid</span>
+                    <strong>&#8377;@Model.Total.ToString("0")</strong>
+                </div>
+            </div>
+
+            <div class="mb-success-actions">
+                <a class="btn btn-brand" asp-controller="Shop" asp-action="Index">Continue shopping</a>
+                <a class="btn btn-ghost" asp-controller="Home" asp-action="Shipping">Shipping &amp; refunds</a>
+            </div>
+
+            <p class="mb-success-note">
+                Keep this order number handy — quote it in any call, WhatsApp message or email and we can
+                find your parcel straight away.
+            </p>
+        </div>
+    </div>
+</section>

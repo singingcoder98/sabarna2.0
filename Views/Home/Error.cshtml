@@ -1,0 +1,51 @@
+@{
+    var statusCode = ViewData["StatusCode"] as int? ?? 500;
+
+    var heading = "Something went wrong at our end";
+    var explanation = "A page failed to load properly. Nothing was charged and nothing was lost — "
+                    + "your basket is still exactly where you left it.";
+    var hint = "Try again";
+
+    if (statusCode == 404)
+    {
+        heading = "We cannot find that page";
+        explanation = "The link may be old, or the jar may have sold out and been taken off the shelf.";
+        hint = "It is most likely one of these";
+    }
+    else if (statusCode == 403)
+    {
+        heading = "You are not allowed in there";
+        explanation = "That page is for shop staff. If you are staff, your session may have expired — sign in again.";
+        hint = "What you can do";
+    }
+    else if (statusCode == 400)
+    {
+        heading = "That request did not make sense";
+        explanation = "The form could have expired while the page was open. Reloading the page and trying "
+                    + "again almost always fixes it.";
+        hint = "What you can do";
+    }
+
+    ViewData["Title"] = heading;
+}
+<section class="mb-section mb-section-cream">
+    <div class="container">
+        <div class="mb-error">
+            <p class="mb-error-code" aria-hidden="true">@statusCode</p>
+            <h1 class="mb-error-title">@heading</h1>
+            <p class="mb-error-text">@explanation</p>
+
+            <p class="mb-error-hint">@hint</p>
+            <div class="mb-error-links">
+                <a class="btn btn-brand" asp-controller="Home" asp-action="Index">Back to the home page</a>
+                <a class="btn btn-ghost" asp-controller="Shop" asp-action="Index">Browse the shop</a>
+                <a class="btn btn-ghost" asp-controller="Contact" asp-action="Index">Tell us what happened</a>
+            </div>
+
+            <p class="mb-error-fine">
+                If you were in the middle of paying, check your email before ordering again — we may already
+                have your parcel. Quoting the order number makes it quick to check.
+            </p>
+        </div>
+    </div>
+</section>

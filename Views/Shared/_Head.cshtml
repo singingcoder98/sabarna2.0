@@ -1,0 +1,58 @@
+@model Matibari.Web.Models.SiteSetting
+@*
+    Everything that lives inside <head>:
+      • page title + meta description (set per page with ViewData["Title"] / ViewData["Description"])
+      • Open Graph / Twitter cards so pasted links look good on WhatsApp
+      • favicon, Google Fonts, then the locally vendored Bootstrap and our single site.css
+*@
+@{
+    var brandName = string.IsNullOrWhiteSpace(Model.BrandName) ? "Matibari" : Model.BrandName;
+    var pageTitle = ViewData["Title"] as string;
+
+    var fullTitle = string.IsNullOrWhiteSpace(pageTitle)
+        ? (string.IsNullOrWhiteSpace(Model.Tagline) ? brandName : $"{brandName} — {Model.Tagline}")
+        : $"{pageTitle} · {brandName}";
+
+    var description = ViewData["Description"] as string;
+    if (string.IsNullOrWhiteSpace(description))
+    {
+        description = string.IsNullOrWhiteSpace(Model.Tagline)
+            ? brandName
+            : $"{brandName} — {Model.Tagline}";
+    }
+
+    var origin = $"{Context.Request.Scheme}://{Context.Request.Host}";
+    var canonical = origin + Context.Request.Path;
+    var ogImage = origin + "/images/og-cover.jpg";
+}
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>@fullTitle</title>
+<meta name="description" content="@description" />
+<meta name="theme-color" content="#1e2a14" />
+<link rel="canonical" href="@canonical" />
+
+@* Open Graph — used by WhatsApp, Facebook, LinkedIn when a link is shared. *@
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="@brandName" />
+<meta property="og:title" content="@fullTitle" />
+<meta property="og:description" content="@description" />
+<meta property="og:url" content="@canonical" />
+<meta property="og:image" content="@ogImage" />
+<meta property="og:locale" content="en_IN" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="@fullTitle" />
+<meta name="twitter:description" content="@description" />
+<meta name="twitter:image" content="@ogImage" />
+
+<link rel="icon" href="~/images/favicon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="~/images/logo.png" />
+
+@* Typography only — Fraunces for headings, Poppins for body copy. Fallbacks are in site.css. *@
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght%409..144,400;9..144,600;9..144,700&family=Poppins:wght%40300;400;500;600&display=swap" rel="stylesheet" />
+
+@* Bootstrap 5.3.3 is vendored in wwwroot/lib/bootstrap — no CDN, works offline. *@
+<link rel="stylesheet" href="~/lib/bootstrap/css/bootstrap.min.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />

@@ -1,0 +1,91 @@
+@inject Matibari.Web.Data.AppDbContext Db
+@*
+    The admin shell: a fixed sidebar on desktop, which becomes an offcanvas drawer below 992px,
+    plus a slim top bar with the signed-in name and a sign-out button.
+*@
+@{
+    var store = Db.Settings.AsNoTracking().FirstOrDefault();
+    if (store == null)
+    {
+        store = new SiteSetting { BrandName = "Matibari", Tagline = "Small-batch ghee, honey & pickles" };
+    }
+
+    var adminName = User != null && User.Identity != null && User.Identity.IsAuthenticated
+        ? User.Identity.Name
+        : "Shop owner";
+    var toastMessage = TempData["Toast"] as string;
+    var errorMessage = TempData["Error"] as string;
+}
+<!DOCTYPE html>
+<html lang="en-IN">
+<head>
+    <partial name="_Head" model="store" />
+</head>
+<body class="mb-admin-body">
+<div class="mb-admin">
+    @* Desktop sidebar *@
+    <aside class="mb-admin-sidebar">
+        <partial name="_AdminNav" />
+    </aside>
+
+    @* Mobile drawer (Bootstrap offcanvas) *@
+    <div class="offcanvas offcanvas-start mb-admin-offcanvas" tabindex="-1" id="adminMenu" aria-labelledby="adminMenuLabel">
+        <div class="offcanvas-header">
+            <h2 class="offcanvas-title" id="adminMenuLabel">Admin menu</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close the menu"></button>
+        </div>
+        <div class="offcanvas-body">
+            <partial name="_AdminNav" />
+        </div>
+    </div>
+
+    <div class="mb-admin-main">
+        <header class="mb-admin-topbar">
+            <button class="btn btn-ghost btn-sm mb-admin-burger" type="button"
+                    data-bs-toggle="offcanvas" data-bs-target="#adminMenu" aria-controls="adminMenu"
+                    aria-label="Open the admin menu">
+                <span aria-hidden="true">&#9776;</span> Menu
+            </button>
+
+            <div class="mb-admin-topbar-right">
+                <a class="btn btn-ghost btn-sm" asp-controller="Home" asp-action="Index" target="_blank" rel="noopener">
+                    View shop <span aria-hidden="true">&#8599;</span>
+                </a>
+                <span class="mb-admin-user">@adminName</span>
+                <form method="post" asp-controller="Admin" asp-action="Logout">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-brand btn-sm">Sign out</button>
+                </form>
+            </div>
+        </header>
+
+        <div class="mb-admin-content">
+            @RenderBody()
+        </div>
+    </div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3 mb-toast-stack" aria-live="polite" aria-atomic="true">
+    @if (!string.IsNullOrWhiteSpace(toastMessage))
+    {
+        <div class="toast mb-toast mb-toast-success" role="status" aria-live="polite" aria-atomic="true" data-autoshow="true">
+            <div class="d-flex">
+                <div class="toast-body">@toastMessage</div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    }
+    @if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <div class="toast mb-toast mb-toast-error" role="alert" aria-live="assertive" aria-atomic="true" data-autoshow="true">
+            <div class="d-flex">
+                <div class="toast-body">@errorMessage</div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    }
+</div>
+
+<partial name="_Scripts" />
+</body>
+</html>

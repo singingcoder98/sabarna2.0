@@ -1,0 +1,109 @@
+@model Matibari.Web.Models.AdminLoginViewModel
+@inject Matibari.Web.Data.AppDbContext Db
+@{
+    Layout = null;
+    var store = Db.Settings.AsNoTracking().FirstOrDefault()
+                ?? new SiteSetting { BrandName = "Matibari", Tagline = "Small-batch ghee, honey & pickles" };
+}
+<!DOCTYPE html>
+<html lang="en-IN">
+<head>
+    <partial name="_Head" model="store" />
+</head>
+<body class="mb-auth-body">
+<div class="mb-auth">
+    <section class="mb-auth-visual" aria-labelledby="authHeading">
+        <div class="mb-auth-visual-inner">
+            <a class="mb-auth-brand" asp-controller="Home" asp-action="Index">
+                <img src="/images/logo.png" alt="" width="44" height="44" aria-hidden="true" />
+                <span>@store.BrandName</span>
+            </a>
+            <h1 class="mb-auth-visual-title" id="authHeading">
+                The back office,<br />step 1 of 2
+            </h1>
+            <p class="mb-auth-visual-text">
+                Orders, products and the words on the home page — all in one place. Signing in takes two
+                steps: your password, then a six-digit code.
+            </p>
+            <ul class="mb-auth-list">
+                <li>Advance an order from Processing to Delivered in one click.</li>
+                <li>Hide a jar from the shop without deleting it.</li>
+                <li>Change the hero headline and see it live instantly.</li>
+            </ul>
+        </div>
+    </section>
+
+    <section class="mb-auth-form-side" aria-label="Admin sign in">
+        <div class="mb-auth-card">
+            <a class="mb-auth-back" asp-controller="Home" asp-action="Index">&larr; Back to the shop</a>
+
+            <h2 class="mb-auth-title">Sign in</h2>
+            <p class="mb-auth-step">Step 1 of 2 — email and password</p>
+
+            <form method="post" asp-controller="Admin" asp-action="Login" class="mb-form">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="mb-form-errors"></div>
+
+                <div class="mb-field">
+                    <label class="form-label" asp-for="Email">Email</label>
+                    <input class="form-control" asp-for="Email" type="email" autocomplete="username"
+                           placeholder="you&#64;matibari.in" autofocus />
+                    <span class="mb-field-error" asp-validation-for="Email"></span>
+                </div>
+
+                <div class="mb-field">
+                    <label class="form-label" asp-for="Password">Password</label>
+                    <input class="form-control" asp-for="Password" type="password" autocomplete="current-password"
+                           placeholder="Your password" />
+                    <span class="mb-field-error" asp-validation-for="Password"></span>
+                </div>
+
+                <button type="submit" class="btn btn-brand btn-lg w-100">Continue</button>
+            </form>
+
+            <div class="mb-auth-demo">
+                <p class="mb-auth-demo-title">Demo account</p>
+                <p class="mb-auth-demo-text">
+                    <strong>admin&#64;matibari.in</strong> &nbsp;/&nbsp; <strong>Matibari&#64;2024</strong><br />
+                    The six-digit code is shown on the next screen in development.
+                    Change both before the shop goes live — see the README.
+                </p>
+            </div>
+
+            <p class="mb-auth-fine">
+                Staff only. Every attempt is checked against a hashed password, and the one-time code
+                expires in five minutes.
+            </p>
+        </div>
+    </section>
+</div>
+
+@{
+    // The auth screens are standalone pages, so they need their own toast container.
+    var authToast = TempData["Toast"] as string;
+    var authError = TempData["Error"] as string;
+}
+<div class="toast-container position-fixed bottom-0 end-0 p-3 mb-toast-stack" aria-live="polite" aria-atomic="true">
+    @if (!string.IsNullOrWhiteSpace(authToast))
+    {
+        <div class="toast mb-toast mb-toast-success" role="status" aria-live="polite" aria-atomic="true" data-autoshow="true">
+            <div class="d-flex">
+                <div class="toast-body">@authToast</div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    }
+    @if (!string.IsNullOrWhiteSpace(authError))
+    {
+        <div class="toast mb-toast mb-toast-error" role="alert" aria-live="assertive" aria-atomic="true" data-autoshow="true">
+            <div class="d-flex">
+                <div class="toast-body">@authError</div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    }
+</div>
+
+<partial name="_Scripts" />
+</body>
+</html>

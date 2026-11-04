@@ -1,0 +1,65 @@
+@model Matibari.Web.Models.Product
+@*
+    Reusable combo (bundle) card. The "what's inside" chips are read from ComboItemsJson so the
+    owner can change a bundle in the admin panel without touching any code.
+*@
+@{
+    var items = CartService.GetComboItems(Model);
+    var image = string.IsNullOrWhiteSpace(Model.Image) ? "/images/placeholder.svg" : Model.Image;
+    var returnUrl = Context.Request.Path + Context.Request.QueryString;
+    var saving = Model.Mrp - Model.Price;
+}
+<article class="mb-combo-card h-100">
+    <div class="mb-combo-media">
+        <a asp-controller="Shop" asp-action="Details" asp-route-id="@Model.Id" tabindex="-1" aria-hidden="true">
+            <img src="@image" alt="@Model.Name" loading="lazy" width="700" height="480" />
+        </a>
+        @if (Model.OnSale && saving > 0)
+        {
+            <span class="mb-combo-save">Save &#8377;@saving.ToString("0")</span>
+        }
+    </div>
+
+    <div class="mb-combo-body">
+        <p class="mb-combo-kicker">@items.Count jars, one box</p>
+        <h3 class="mb-combo-title">
+            <a asp-controller="Shop" asp-action="Details" asp-route-id="@Model.Id">@Model.Name</a>
+        </h3>
+        <p class="mb-combo-text">@Model.Description</p>
+
+        @if (items.Count > 0)
+        {
+            <ul class="mb-combo-chips">
+                @foreach (var item in items)
+                {
+                    <li class="mb-chip">
+                        @if (!string.IsNullOrWhiteSpace(item.Image))
+                        {
+                            <img src="@item.Image" alt="" width="26" height="26" loading="lazy" />
+                        }
+                        <span>@item.Name@(string.IsNullOrWhiteSpace(item.Qty) ? string.Empty : " · " + item.Qty)</span>
+                    </li>
+                }
+            </ul>
+        }
+
+        <div class="mb-combo-foot">
+            <div class="mb-combo-price">
+                <span class="mb-price mb-price-light">&#8377;@Model.Price.ToString("0")</span>
+                @if (Model.OnSale)
+                {
+                    <span class="mb-price-mrp mb-price-mrp-light">&#8377;@Model.Mrp.ToString("0")</span>
+                }
+            </div>
+            <form method="post" asp-controller="Cart" asp-action="Add">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <input type="hidden" name="qty" value="1" />
+                <input type="hidden" name="returnUrl" value="@returnUrl" />
+                <button type="submit" class="btn btn-gold btn-sm" disabled="@(Model.InStock ? null : "disabled")">
+                    @(Model.InStock ? "Add the box" : "Out of stock")
+                </button>
+            </form>
+        </div>
+    </div>
+</article>

@@ -1,0 +1,58 @@
+@model Matibari.Web.Models.ShopViewModel
+@{
+    var hasFilter = !string.IsNullOrWhiteSpace(Model.Category);
+}
+<section class="mb-page-head">
+    <div class="container">
+        <nav aria-label="Breadcrumb" class="mb-crumbs">
+            <a asp-controller="Home" asp-action="Index">Home</a>
+            <span aria-hidden="true">/</span>
+            <span aria-current="page">Shop</span>
+        </nav>
+        <h1 class="mb-page-title">@(hasFilter ? Model.Category : "Every jar on the shelf")</h1>
+        <p class="mb-page-text">
+            @Model.Products.Count of @Model.TotalCount jars shown. Prices include GST; shipping is free
+            over &#8377;999 and a flat &#8377;49 below that.
+        </p>
+    </div>
+</section>
+
+<section class="mb-section mb-section-cream-2">
+    <div class="container">
+        @* Category filter pills — plain links, so they work without JavaScript. *@
+        <div class="mb-filter" role="group" aria-label="Filter by category">
+            <a class="mb-pill @(hasFilter ? string.Empty : "is-active")"
+               asp-controller="Shop" asp-action="Index">All jars</a>
+            @foreach (var category in Model.Categories)
+            {
+                <a class="mb-pill @(Model.Category == category ? "is-active" : string.Empty)"
+                   asp-controller="Shop" asp-action="Index" asp-route-category="@category">@category</a>
+            }
+            <a class="mb-pill @(Model.Category == "Combos" ? "is-active" : string.Empty)"
+               asp-controller="Shop" asp-action="Combos">Combos</a>
+        </div>
+
+        @if (Model.Products.Count == 0)
+        {
+            <div class="mb-empty">
+                <p class="mb-empty-title">Nothing here yet</p>
+                <p class="mb-empty-text">
+                    We have not filled any jars in this category this season.
+                    Have a look at everything else instead.
+                </p>
+                <a class="btn btn-brand mt-3" asp-controller="Shop" asp-action="Index">Show all jars</a>
+            </div>
+        }
+        else
+        {
+            <div class="row g-4">
+                @foreach (var product in Model.Products)
+                {
+                    <div class="col-6 col-md-4 col-xl-3">
+                        <partial name="_ProductCard" model="product" />
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</section>

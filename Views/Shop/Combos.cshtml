@@ -1,0 +1,110 @@
+@model List<Matibari.Web.Models.Product>
+<section class="mb-page-head mb-page-head-dark">
+    <div class="container">
+        <nav aria-label="Breadcrumb" class="mb-crumbs mb-crumbs-light">
+            <a asp-controller="Home" asp-action="Index">Home</a>
+            <span aria-hidden="true">/</span>
+            <span aria-current="page">Combos</span>
+        </nav>
+        <h1 class="mb-page-title">Special combos</h1>
+        <p class="mb-page-text">
+            Two or three of our jars wrapped in a cotton-padded box, priced below what they cost separately.
+            The gift we send most often — and the one people open first.
+        </p>
+    </div>
+</section>
+
+<section class="mb-section mb-section-dark">
+    <div class="container">
+        @if (Model.Count == 0)
+        {
+            <div class="mb-empty mb-empty-dark">
+                <p class="mb-empty-title">No combos are boxed up right now</p>
+                <p class="mb-empty-text">We are putting the next gift boxes together. The single jars are all in the shop.</p>
+                <a class="btn btn-gold mt-3" asp-controller="Shop" asp-action="Index">Shop single jars</a>
+            </div>
+        }
+        else
+        {
+            var featured = Model.FirstOrDefault(combo => combo.Featured) ?? Model[0];
+            var rest = Model.Where(combo => combo.Id != featured.Id).ToList();
+
+            <div class="mb-combo-feature">
+                <div class="row g-0 align-items-stretch">
+                    <div class="col-lg-6">
+                        <div class="mb-combo-feature-media">
+                            <img src="@(featured.HasImage ? featured.Image : "/images/placeholder.svg")"
+                                 alt="@featured.Name" width="900" height="700" />
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="mb-combo-feature-body">
+                            <p class="mb-kicker">Most gifted</p>
+                            <h2 class="mb-combo-feature-title">@featured.Name</h2>
+                            <p class="mb-combo-text mb-combo-text-light">@featured.Description</p>
+
+                            <ul class="mb-combo-chips">
+                                @foreach (var item in Matibari.Web.Services.CartService.GetComboItems(featured))
+                                {
+                                    <li class="mb-chip">@item.Name · @item.Qty</li>
+                                }
+                            </ul>
+
+                            <div class="mb-combo-feature-foot">
+                                <div class="mb-combo-price">
+                                    <span class="mb-price mb-price-light mb-price-lg">&#8377;@featured.Price.ToString("0")</span>
+                                    @if (featured.OnSale)
+                                    {
+                                        <span class="mb-price-mrp mb-price-mrp-light">&#8377;@featured.Mrp.ToString("0")</span>
+                                        <span class="mb-price-save">save &#8377;@((featured.Mrp - featured.Price).ToString("0"))</span>
+                                    }
+                                </div>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <a class="btn btn-gold" asp-controller="Shop" asp-action="Details" asp-route-id="@featured.Id">
+                                        See what's inside
+                                    </a>
+                                    <form method="post" asp-controller="Cart" asp-action="Add">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@featured.Id" />
+                                        <input type="hidden" name="qty" value="1" />
+                                        <input type="hidden" name="returnUrl" value="@(Context.Request.Path)" />
+                                        <button type="submit" class="btn btn-ghost-light" disabled="@(featured.InStock ? null : "disabled")">
+                                            @(featured.InStock ? "Add the box" : "Out of stock")
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            if (rest.Count > 0)
+            {
+                <div class="row g-4 mt-2">
+                    @foreach (var combo in rest)
+                    {
+                        <div class="col-md-6 col-lg-4">
+                            <partial name="_ComboCard" model="combo" />
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+</section>
+
+<section class="mb-section mb-section-cream">
+    <div class="container">
+        <div class="mb-banner">
+            <div>
+                <h2 class="mb-banner-title">Sending it as a gift?</h2>
+                <p class="mb-banner-text">
+                    Add a note in the checkout box and we will write it by hand on a card and tuck it
+                    into the parcel. No extra charge.
+                </p>
+            </div>
+            <a class="btn btn-brand" asp-controller="Shop" asp-action="Index">Back to the shop</a>
+        </div>
+    </div>
+</section>

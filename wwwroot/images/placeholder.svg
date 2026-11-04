@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 450" role="img" aria-label="Image coming soon">
+  <rect width="600" height="450" fill="#f4edd8"/>
+  <g fill="none" stroke="#b6bdab" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="228" y="168" width="144" height="170" rx="18"/>
+    <path d="M228 205h144"/>
+    <path d="M258 168v-16h84v16"/>
+    <path d="M258 300h84"/>
+  </g>
+  <circle cx="300" cy="112" r="36" fill="none" stroke="#cfae63" stroke-width="5"/>
+  <path d="M300 92c12 6 16 16 14 30-11 2-20-4-24-13 1-8 5-13 10-17z" fill="#cfae63"/>
+  <text x="300" y="392" text-anchor="middle" font-family="Georgia, serif" font-size="22" fill="#5c6a50">
+    Photograph coming soon
+  </text>
+</svg>

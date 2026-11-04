@@ -1,0 +1,118 @@
+<section class="mb-page-head">
+    <div class="container">
+        <nav aria-label="Breadcrumb" class="mb-crumbs">
+            <a asp-controller="Home" asp-action="Index">Home</a>
+            <span aria-hidden="true">/</span>
+            <a asp-controller="Home" asp-action="Policies">Policies</a>
+            <span aria-hidden="true">/</span>
+            <span aria-current="page">Shipping &amp; refunds</span>
+        </nav>
+        <h1 class="mb-page-title">Shipping, cancellations &amp; refunds</h1>
+        <p class="mb-page-text">Last updated 1 November 2026. Everything about getting a jar to you — and back.</p>
+    </div>
+</section>
+
+<section class="mb-section mb-section-cream-2">
+    <div class="container">
+        <div class="row g-4 g-lg-5">
+            <div class="col-lg-8">
+                <div class="mb-prose">
+                    <h2>Dispatch days</h2>
+                    <p>
+                        We pack on Mondays and Thursdays. An order paid before 10am on a packing day leaves
+                        the same afternoon; anything later goes in the next one. There is no dispatch on
+                        Sundays or public holidays in West Bengal.
+                    </p>
+
+                    <h2>How long it takes</h2>
+                    <div class="mb-table-wrap">
+                        <table class="table mb-table">
+                            <caption class="visually-hidden">Delivery timelines by destination</caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Where</th>
+                                    <th scope="col">Working days</th>
+                                    <th scope="col">Courier</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Kolkata, Howrah, Kharagpur</td>
+                                    <td>1 – 2</td>
+                                    <td>Own delivery + Delhivery</td>
+                                </tr>
+                                <tr>
+                                    <td>Rest of West Bengal</td>
+                                    <td>2 – 4</td>
+                                    <td>Delhivery</td>
+                                </tr>
+                                <tr>
+                                    <td>Metro cities (Delhi, Mumbai, Bengaluru, Chennai, Hyderabad, Pune)</td>
+                                    <td>3 – 5</td>
+                                    <td>Delhivery / India Post</td>
+                                </tr>
+                                <tr>
+                                    <td>Rest of India</td>
+                                    <td>5 – 7</td>
+                                    <td>India Post (Speed Post)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h2>What shipping costs</h2>
+                    <ul>
+                        <li>Free on orders of ₹999 and above.</li>
+                        <li>A flat ₹49 below that, anywhere in India.</li>
+                        <li>No hidden handling or packaging charge — the box and padding are on us.</li>
+                    </ul>
+
+                    <h2 id="refund">Cancellations</h2>
+                    <p>
+                        You can cancel any order before it is packed, free of charge. Write to us or WhatsApp
+                        with the order number; the refund goes back to the same account within five working
+                        days. Once a parcel is with the courier we cannot recall it, so a cancellation then
+                        becomes a return.
+                    </p>
+
+                    <h2 id="returns">Returns and refunds</h2>
+                    <ul>
+                        <li><strong>Damaged in transit:</strong> send a photograph within 48 hours of delivery. We ship a replacement in the next dispatch — you do not need to return the broken jar.</li>
+                        <li><strong>Wrong item sent:</strong> tell us within 48 hours; we send the correct jar and collect the wrong one.</li>
+                        <li><strong>Opened food:</strong> for hygiene reasons we cannot take back a jar that has been opened, unless it is spoiled.</li>
+                        <li><strong>Spoiled produce:</strong> send a photo of the jar and the batch date; a full refund is issued, no argument.</li>
+                    </ul>
+                    <p>
+                        Refunds are returned to the original payment method — UPI, card or netbanking account.
+                        Banks usually take three to five working days to show the credit. We do not issue
+                        store credit unless you ask for it.
+                    </p>
+
+                    <h2>If a parcel goes missing</h2>
+                    <p>
+                        If the tracking has not moved for five working days, tell us and we will chase the
+                        courier. If it is declared lost we either re-ship or refund you — your choice.
+                    </p>
+
+                    <h2>Cash on delivery</h2>
+                    <p>
+                        Not offered. All orders must be paid online before dispatch, which is also why every
+                        parcel is insured.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <aside class="mb-note-card mb-note-card-sticky">
+                    <h2 class="mb-note-title">Need to change an order?</h2>
+                    <p class="mb-note-text">
+                        Message us with the order number. Before packing, changes are free; after packing,
+                        a return starts.
+                    </p>
+                    <a class="btn btn-brand btn-sm mt-2" asp-controller="Contact" asp-action="Index">Contact the farm</a>
+                    <p class="mb-note-fine">Replies within one working day, usually much sooner.</p>
+                </aside>
+            </div>
+        </div>
+    </div>
+</section>

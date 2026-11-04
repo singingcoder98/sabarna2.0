@@ -1,0 +1,382 @@
+@model Matibari.Web.Models.HomeViewModel
+@{
+    var heroPick = Model.Featured.Count > 0 ? Model.Featured[0] : null;
+    var heroImage = heroPick != null && heroPick.HasImage ? heroPick.Image : "/images/hero-farm.jpg";
+}
+@* ============================== 1. HERO ============================== *@
+<section class="mb-hero">
+    <div class="mb-hero-media" aria-hidden="true"></div>
+    <div class="container mb-hero-inner">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-7">
+                <p class="mb-kicker">@Model.Settings.HeroKicker</p>
+                <h1 class="mb-hero-title">
+                    @Model.Settings.HeroTitle1
+                    <span class="mb-hero-accent">@Model.Settings.HeroTitle2</span>
+                </h1>
+                <p class="mb-hero-text">@Model.Settings.HeroText</p>
+
+                <div class="d-flex flex-wrap gap-3 mb-hero-actions">
+                    <a class="btn btn-gold btn-lg" asp-controller="Shop" asp-action="Index">Shop the jars</a>
+                    <a class="btn btn-ghost-light btn-lg" asp-controller="Home" asp-action="About">How we make it</a>
+                </div>
+
+                <dl class="mb-stats">
+                    <div class="mb-stat">
+                        <dt>@Model.ProductsOnline</dt>
+                        <dd>jars on the shelf today</dd>
+                    </div>
+                    <div class="mb-stat">
+                        <dt>@(Model.OrdersDelivered + 1200)</dt>
+                        <dd>parcels sent home</dd>
+                    </div>
+                    <div class="mb-stat">
+                        <dt>4.8<span class="mb-stat-of">/5</span></dt>
+                        <dd>from 900+ reviews</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <div class="col-lg-5">
+                @if (heroPick != null)
+                {
+                    <aside class="mb-hero-pick">
+                        <p class="mb-hero-pick-kicker">This week's pick</p>
+                        <img src="@heroImage" alt="@heroPick.Name" width="640" height="420" class="mb-hero-pick-img" />
+                        <h2 class="mb-hero-pick-title">@heroPick.Name</h2>
+                        <p class="mb-hero-pick-unit">@heroPick.Unit · &#8377;@heroPick.Price.ToString("0")</p>
+                        <a class="btn btn-brand btn-sm w-100" asp-controller="Shop" asp-action="Details" asp-route-id="@heroPick.Id">
+                            Have a look
+                        </a>
+                    </aside>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+@* ============================== 2. TRUST MARQUEE ============================== *@
+<div class="mb-marquee" aria-hidden="true">
+    <div class="mb-marquee-track">
+        @for (var pass = 0; pass < 2; pass++)
+        {
+            <span class="mb-marquee-item">No palm oil</span>
+            <span class="mb-marquee-dot">&#9679;</span>
+            <span class="mb-marquee-item">No preservatives</span>
+            <span class="mb-marquee-dot">&#9679;</span>
+            <span class="mb-marquee-item">Made in small batches</span>
+            <span class="mb-marquee-dot">&#9679;</span>
+            <span class="mb-marquee-item">Lab-tested every batch</span>
+            <span class="mb-marquee-dot">&#9679;</span>
+            <span class="mb-marquee-item">Free shipping over &#8377;999</span>
+            <span class="mb-marquee-dot">&#9679;</span>
+            <span class="mb-marquee-item">Glass jars, paper packaging</span>
+            <span class="mb-marquee-dot">&#9679;</span>
+        }
+    </div>
+</div>
+<p class="visually-hidden">
+    No palm oil. No preservatives. Made in small batches. Lab-tested every batch.
+    Free shipping over ₹999. Glass jars and paper packaging.
+</p>
+
+@* ============================== 3. ABOUT BLOCK ============================== *@
+<section class="mb-section mb-section-cream reveal">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <div class="mb-about-media">
+                    <img src="/images/about-farm.jpg"
+                         alt="The Matibari kitchen courtyard, with milk simmering on the wood fire and mangoes drying on the roof"
+                         width="900" height="700" loading="lazy" />
+                    <span class="mb-about-stamp">Since 2016</span>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <p class="mb-kicker mb-kicker-dark">Our kitchen</p>
+                <h2 class="mb-section-title">Eleven people, four cows and one very old wood fire</h2>
+                <p class="mb-section-text">
+                    Our grandfather sold milk in Kharagpur. We still keep the same four Gir cows and still
+                    churn the butter by hand, because a machine heats the cream and takes the smell away
+                    with it. Whatever we cannot make honestly, we do not sell.
+                </p>
+                <div class="row g-3 mt-3">
+                    <div class="col-sm-4">
+                        <div class="mb-value-card">
+                            <span class="mb-value-icon" aria-hidden="true">&#127793;</span>
+                            <h3 class="mb-value-title">From our own milk</h3>
+                            <p class="mb-value-text">Ghee starts with our cows, not a supplier's tanker.</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="mb-value-card">
+                            <span class="mb-value-icon" aria-hidden="true">&#128293;</span>
+                            <h3 class="mb-value-title">Slow, on wood</h3>
+                            <p class="mb-value-text">Six hours of simmering. Nothing is hurried.</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="mb-value-card">
+                            <span class="mb-value-icon" aria-hidden="true">&#129351;</span>
+                            <h3 class="mb-value-title">Named batches</h3>
+                            <p class="mb-value-text">Every jar carries the date it was filled.</p>
+                        </div>
+                    </div>
+                </div>
+                <a class="btn btn-outline-brand mt-4" asp-controller="Home" asp-action="About">Read the full story</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+@* ============================== 4. PRODUCT GRID ============================== *@
+<section class="mb-section mb-section-cream-2 reveal" id="shop">
+    <div class="container">
+        <div class="mb-section-head">
+            <div>
+                <p class="mb-kicker mb-kicker-dark">Straight from the farm</p>
+                <h2 class="mb-section-title">Everything on the shelf this week</h2>
+            </div>
+            <a class="btn btn-ghost" asp-controller="Shop" asp-action="Index">See the whole shop</a>
+        </div>
+
+        @if (Model.Products.Count == 0)
+        {
+            <div class="mb-empty">
+                <p class="mb-empty-title">The shelf is empty right now</p>
+                <p class="mb-empty-text">We are bottling the next batch. Do check back in a day or two.</p>
+            </div>
+        }
+        else
+        {
+            <div class="row g-4">
+                @foreach (var product in Model.Products)
+                {
+                    <div class="col-6 col-lg-3">
+                        <partial name="_ProductCard" model="product" />
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+@* ============================== 5. SPECIAL COMBOS ============================== *@
+@if (Model.Combos.Count > 0)
+{
+    <section class="mb-section mb-section-dark reveal">
+        <div class="container">
+            <div class="mb-section-head mb-section-head-dark">
+                <div>
+                    <p class="mb-kicker">Special combos</p>
+                    <h2 class="mb-section-title mb-section-title-light">Two or three jars, one cotton-wrapped box</h2>
+                </div>
+                <a class="btn btn-gold" asp-controller="Shop" asp-action="Combos">All combos</a>
+            </div>
+
+            <div class="row g-4">
+                @foreach (var combo in Model.Combos)
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <partial name="_ComboCard" model="combo" />
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+@* ============================== 6. WHY US ============================== *@
+<section class="mb-section mb-section-cream reveal">
+    <div class="container">
+        <div class="mb-section-head">
+            <div>
+                <p class="mb-kicker mb-kicker-dark">Why people come back</p>
+                <h2 class="mb-section-title">Four things we refuse to change</h2>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-sm-6 col-lg-3">
+                <div class="mb-why-card">
+                    <span class="mb-why-icon" aria-hidden="true">&#129472;</span>
+                    <h3 class="mb-why-title">Bilona, not a centrifuge</h3>
+                    <p class="mb-why-text">Hand-churned curd butter, clarified slowly. Grainy, never greasy.</p>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="mb-why-card">
+                    <span class="mb-why-icon" aria-hidden="true">&#9878;</span>
+                    <h3 class="mb-why-title">Label you can read</h3>
+                    <p class="mb-why-text">One ingredient per jar. If you need a decoder, we did it wrong.</p>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="mb-why-card">
+                    <span class="mb-why-icon" aria-hidden="true">&#128666;</span>
+                    <h3 class="mb-why-title">Packed the day it ships</h3>
+                    <p class="mb-why-text">No warehouse in between. Glass jars in a paper-padded box.</p>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="mb-why-card">
+                    <span class="mb-why-icon" aria-hidden="true">&#128176;</span>
+                    <h3 class="mb-why-title">Online payment only</h3>
+                    <p class="mb-why-text">UPI, cards or netbanking. No cash on delivery, no surprises.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@* ============================== 7. PROCESS ============================== *@
+<section class="mb-section mb-section-cream-2 reveal">
+    <div class="container">
+        <div class="mb-section-head">
+            <div>
+                <p class="mb-kicker mb-kicker-dark">From cow to courier</p>
+                <h2 class="mb-section-title">How a jar reaches you</h2>
+            </div>
+        </div>
+        <ol class="mb-process">
+            <li class="mb-process-step">
+                <span class="mb-process-num">01</span>
+                <h3 class="mb-process-title">Morning milk</h3>
+                <p class="mb-process-text">Milked at 5am, set to curd in clay pots by 9.</p>
+            </li>
+            <li class="mb-process-step">
+                <span class="mb-process-num">02</span>
+                <h3 class="mb-process-title">Hand churn</h3>
+                <p class="mb-process-text">Curd is churned with a wooden bilona until the butter floats free.</p>
+            </li>
+            <li class="mb-process-step">
+                <span class="mb-process-num">03</span>
+                <h3 class="mb-process-title">Wood fire</h3>
+                <p class="mb-process-text">The butter simmers six hours until it turns golden and smells of toast.</p>
+            </li>
+            <li class="mb-process-step">
+                <span class="mb-process-num">04</span>
+                <h3 class="mb-process-title">Bottle &amp; send</h3>
+                <p class="mb-process-text">Filled into glass, dated by hand, couriered within 48 hours.</p>
+            </li>
+        </ol>
+    </div>
+</section>
+
+@* ============================== 8. FAQ ============================== *@
+<section class="mb-section mb-section-cream reveal">
+    <div class="container">
+        <div class="row g-5">
+            <div class="col-lg-4">
+                <p class="mb-kicker mb-kicker-dark">Before you ask</p>
+                <h2 class="mb-section-title">Questions we get every week</h2>
+                <p class="mb-section-text">
+                    Still unsure about something? WhatsApp us — a person from the farm replies,
+                    usually within a few hours.
+                </p>
+                <a class="btn btn-outline-brand mt-2" asp-controller="Contact" asp-action="Index">Ask us directly</a>
+            </div>
+            <div class="col-lg-8">
+                <div class="accordion mb-faq" id="faqAccordion">
+                    <div class="accordion-item">
+                        <h3 class="accordion-header" id="faqHeadOne">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#faqOne" aria-expanded="true" aria-controls="faqOne">
+                                How long does the ghee keep without a fridge?
+                            </button>
+                        </h3>
+                        <div id="faqOne" class="accordion-collapse collapse show" aria-labelledby="faqHeadOne" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Nine months from the filling date written on the jar, and up to a year if you keep it
+                                in a cool cupboard. Always use a dry spoon — water is the only thing that spoils ghee.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h3 class="accordion-header" id="faqHeadTwo">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#faqTwo" aria-expanded="false" aria-controls="faqTwo">
+                                My honey has turned solid. Is it spoiled?
+                            </button>
+                        </h3>
+                        <div id="faqTwo" class="accordion-collapse collapse" aria-labelledby="faqHeadTwo" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                No — that is what raw honey does in winter. Crystallisation is proof it was never heated
+                                or blended with syrup. Stand the jar in warm water for ten minutes and it turns liquid again.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h3 class="accordion-header" id="faqHeadThree">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#faqThree" aria-expanded="false" aria-controls="faqThree">
+                                Do you offer cash on delivery?
+                            </button>
+                        </h3>
+                        <div id="faqThree" class="accordion-collapse collapse" aria-labelledby="faqHeadThree" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                No. We accept UPI, cards and netbanking only. Parcels are insured and every jar is padded,
+                                but cash handling at the courier end costs us more than it is worth — so we skip it entirely.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h3 class="accordion-header" id="faqHeadFour">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#faqFour" aria-expanded="false" aria-controls="faqFour">
+                                How quickly will my parcel arrive?
+                            </button>
+                        </h3>
+                        <div id="faqFour" class="accordion-collapse collapse" aria-labelledby="faqHeadFour" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                We pack on Mondays and Thursdays. Kolkata and Howrah usually get it in two days; the rest of
+                                India takes four to six working days. You will get the tracking link by email.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h3 class="accordion-header" id="faqHeadFive">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#faqFive" aria-expanded="false" aria-controls="faqFive">
+                                A jar arrived broken. What now?
+                            </button>
+                        </h3>
+                        <div id="faqHeadFive" class="accordion-collapse collapse" aria-labelledby="faqHeadFive" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Send us a photo within 48 hours and we replace it in the next dispatch — no return needed.
+                                The full policy is on our <a asp-controller="Home" asp-action="Shipping">shipping page</a>.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@* ============================== 9. NEWSLETTER ============================== *@
+<section class="mb-newsletter" id="newsletter">
+    <div class="container">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-6">
+                <p class="mb-kicker mb-kicker-on-orange">Batch notes</p>
+                <h2 class="mb-newsletter-title">One short letter when a batch is ready</h2>
+                <p class="mb-newsletter-text">
+                    Ghee is made twice a month and pickles once a season. Leave your email and we will write
+                    when the jars are actually filled — not before.
+                </p>
+            </div>
+            <div class="col-lg-6">
+                <form method="post" asp-controller="Home" asp-action="Index" class="mb-newsletter-form">
+                    @Html.AntiForgeryToken()
+                    <label class="visually-hidden" for="newsletterEmail">Email address</label>
+                    <input class="form-control" type="email" id="newsletterEmail" name="email"
+                           placeholder="name&#64;example.com" maxlength="160" autocomplete="email" required />
+                    <button class="btn btn-brand" type="submit">Join the list</button>
+                </form>
+                <p class="mb-newsletter-note">
+                    One email a fortnight at most. No sharing, no selling, unsubscribe in one click.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>

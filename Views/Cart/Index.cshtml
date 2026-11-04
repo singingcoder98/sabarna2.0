@@ -1,0 +1,153 @@
+@model List<Matibari.Web.Models.CartLine>
+@{
+    var subtotal = Model.Sum(line => line.LineTotal);
+    var shipping = Matibari.Web.Services.CartService.ShippingFor(subtotal);
+    var total = subtotal + shipping;
+    var returnUrl = Context.Request.Path + Context.Request.QueryString;
+    var freeGap = Matibari.Web.Services.CartService.FreeShippingThreshold - subtotal;
+}
+<section class="mb-page-head">
+    <div class="container">
+        <nav aria-label="Breadcrumb" class="mb-crumbs">
+            <a asp-controller="Home" asp-action="Index">Home</a>
+            <span aria-hidden="true">/</span>
+            <span aria-current="page">Basket</span>
+        </nav>
+        <h1 class="mb-page-title">Your basket</h1>
+
+        @* The two-step checkout, made visible so nobody wonders what comes next. *@
+        <ol class="mb-steps">
+            <li class="mb-step is-current">
+                <span class="mb-step-num">1</span>
+                <span class="mb-step-label">Basket</span>
+            </li>
+            <li class="mb-step">
+                <span class="mb-step-num">2</span>
+                <span class="mb-step-label">Delivery &amp; payment</span>
+            </li>
+            <li class="mb-step">
+                <span class="mb-step-num">3</span>
+                <span class="mb-step-label">Confirmed</span>
+            </li>
+        </ol>
+    </div>
+</section>
+
+<section class="mb-section mb-section-cream-2">
+    <div class="container">
+        @if (Model.Count == 0)
+        {
+            <div class="mb-empty">
+                <p class="mb-empty-title">Your basket is empty</p>
+                <p class="mb-empty-text">
+                    Nothing in here yet. The ghee is bottled on Tuesdays and the pickles are done curing —
+                    both are on the shelf now.
+                </p>
+                <a class="btn btn-brand mt-3" asp-controller="Shop" asp-action="Index">Start shopping</a>
+            </div>
+        }
+        else
+        {
+            <div class="row g-4 g-lg-5">
+                <div class="col-lg-8">
+                    <div class="mb-panel">
+                        <div class="mb-panel-head">
+                            <h2 class="mb-panel-title">@(Model.Sum(line => line.Qty)) jars</h2>
+                            <a class="mb-link" asp-controller="Shop" asp-action="Index">Keep shopping</a>
+                        </div>
+
+                        <ul class="mb-line-list">
+                            @foreach (var line in Model)
+                            {
+                                <li class="mb-line">
+                                    <a class="mb-line-media" asp-controller="Shop" asp-action="Details" asp-route-id="@line.ProductId" tabindex="-1" aria-hidden="true">
+                                        <img src="@(string.IsNullOrWhiteSpace(line.Image) ? "/images/placeholder.svg" : line.Image)"
+                                             alt="@line.Name" width="160" height="160" loading="lazy" />
+                                    </a>
+
+                                    <div class="mb-line-body">
+                                        <h3 class="mb-line-title">
+                                            <a asp-controller="Shop" asp-action="Details" asp-route-id="@line.ProductId">@line.Name</a>
+                                        </h3>
+                                        <p class="mb-line-unit">@line.Unit</p>
+                                        <p class="mb-line-price">&#8377;@line.Price.ToString("0") each</p>
+
+                                        <form method="post" asp-controller="Cart" asp-action="Update" class="mb-stepper">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="productId" value="@line.ProductId" />
+                                            <input type="hidden" name="returnUrl" value="@returnUrl" />
+                                            <button type="submit" class="mb-stepper-btn" name="qty" value="@(line.Qty - 1)"
+                                                    aria-label="Decrease quantity of @line.Name">
+                                                &minus;
+                                            </button>
+                                            <span class="mb-stepper-qty" aria-label="Quantity">@line.Qty</span>
+                                            <button type="submit" class="mb-stepper-btn" name="qty" value="@(line.Qty + 1)"
+                                                    aria-label="Increase quantity of @line.Name">
+                                                +
+                                            </button>
+                                            <button type="submit" class="mb-stepper-remove" name="qty" value="0">
+                                                Remove
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <div class="mb-line-total">
+                                        <span>&#8377;@line.LineTotal.ToString("0")</span>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="mb-summary">
+                        <h2 class="mb-summary-title">Order summary</h2>
+                        <dl class="mb-summary-list">
+                            <div class="mb-summary-row">
+                                <dt>Subtotal</dt>
+                                <dd>&#8377;@subtotal.ToString("0")</dd>
+                            </div>
+                            <div class="mb-summary-row">
+                                <dt>Shipping</dt>
+                                <dd>
+                                    @if (shipping == 0)
+                                    {
+                                        <span class="mb-summary-free">Free</span>
+                                    }
+                                    else
+                                    {
+                                        <span>&#8377;@shipping.ToString("0")</span>
+                                    }
+                                </dd>
+                            </div>
+                            <div class="mb-summary-row mb-summary-row-total">
+                                <dt>Total to pay</dt>
+                                <dd>&#8377;@total.ToString("0")</dd>
+                            </div>
+                        </dl>
+
+                        @if (shipping > 0 && freeGap > 0)
+                        {
+                            <p class="mb-summary-note">
+                                Add &#8377;@freeGap.ToString("0") more and shipping is on us.
+                            </p>
+                        }
+                        else
+                        {
+                            <p class="mb-summary-note">Shipping is on us — this one qualifies for free delivery.</p>
+                        }
+
+                        <a class="btn btn-brand btn-lg w-100" asp-controller="Cart" asp-action="Checkout">
+                            Proceed to checkout
+                        </a>
+
+                        <p class="mb-summary-fine">
+                            UPI, cards and netbanking only. We do not offer cash on delivery.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</section>

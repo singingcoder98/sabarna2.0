@@ -1,0 +1,145 @@
+@model Matibari.Web.Models.AdminDashboardViewModel
+@{
+    Layout = "_AdminLayout";
+}
+<div class="mb-admin-head">
+    <div>
+        <h1 class="mb-admin-title">Dashboard</h1>
+        <p class="mb-admin-sub">What sold, what is running low, and what still needs packing.</p>
+    </div>
+    <div class="mb-admin-head-actions">
+        <a class="btn btn-ghost btn-sm" asp-controller="Admin" asp-action="Orders">All orders</a>
+        <a class="btn btn-brand btn-sm" asp-controller="Admin" asp-action="Products">Manage products</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-admin-stats">
+    <div class="col-sm-6 col-xl-3">
+        <div class="mb-stat-card">
+            <p class="mb-stat-card-label">Revenue collected</p>
+            <p class="mb-stat-card-value">&#8377;@Model.Revenue.ToString("#,##0")</p>
+            <p class="mb-stat-card-note">All paid orders, since the shop opened</p>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="mb-stat-card">
+            <p class="mb-stat-card-label">Orders</p>
+            <p class="mb-stat-card-value">@Model.OrderCount</p>
+            <p class="mb-stat-card-note">@Model.OpenOrders still to pack or deliver</p>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="mb-stat-card">
+            <p class="mb-stat-card-label">Products live</p>
+            <p class="mb-stat-card-value">@Model.ProductsLive<span class="mb-stat-card-of">/@Model.ProductsTotal</span></p>
+            <p class="mb-stat-card-note">Hidden products do not appear in the shop</p>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="mb-stat-card @(Model.LowStockCount > 0 ? "mb-stat-card-warn" : string.Empty)">
+            <p class="mb-stat-card-label">Running low</p>
+            <p class="mb-stat-card-value">@Model.LowStockCount</p>
+            <p class="mb-stat-card-note">10 jars or fewer left on the shelf</p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-xl-7">
+        <div class="mb-admin-panel">
+            <div class="mb-admin-panel-head">
+                <h2 class="mb-admin-panel-title">Recent orders</h2>
+                <a class="mb-link" asp-controller="Admin" asp-action="Orders">See all</a>
+            </div>
+
+            @if (Model.RecentOrders.Count == 0)
+            {
+                <p class="mb-admin-empty">No orders yet. They will appear here the moment someone checks out.</p>
+            }
+            else
+            {
+                <div class="mb-table-wrap">
+                    <table class="table mb-table mb-table-admin align-middle">
+                        <caption class="visually-hidden">The eight most recent orders</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Order</th>
+                                <th scope="col">Customer</th>
+                                <th scope="col">Total</th>
+                                <th scope="col">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model.RecentOrders)
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="mb-table-strong">@order.OrderNumber</span>
+                                        <span class="mb-table-sub">@order.CreatedAt.ToLocalTime().ToString("dd MMM, h:mm tt")</span>
+                                    </td>
+                                    <td>
+                                        <span class="mb-table-strong">@order.Customer</span>
+                                        <span class="mb-table-sub">@order.ItemCount jars · @order.PaymentMethod</span>
+                                    </td>
+                                    <td class="mb-table-num">&#8377;@order.Total.ToString("#,##0")</td>
+                                    <td>
+                                        <span class="pill @OrderStatuses.PillClass(order.Status)">@order.Status</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-xl-5">
+        <div class="mb-admin-panel">
+            <div class="mb-admin-panel-head">
+                <h2 class="mb-admin-panel-title">Running low</h2>
+                <a class="mb-link" asp-controller="Admin" asp-action="Products">Restock</a>
+            </div>
+
+            @if (Model.LowStockProducts.Count == 0)
+            {
+                <p class="mb-admin-empty">Every jar has a healthy stock level. Nothing to do here.</p>
+            }
+            else
+            {
+                <ul class="mb-stock-list">
+                    @foreach (var product in Model.LowStockProducts)
+                    {
+                        <li class="mb-stock-item">
+                            <img src="@(product.HasImage ? product.Image : "/images/placeholder.svg")"
+                                 alt="" width="44" height="44" loading="lazy" />
+                            <div class="mb-stock-body">
+                                <p class="mb-stock-name">@product.Name</p>
+                                <p class="mb-stock-meta">@product.Category</p>
+                            </div>
+                            @if (product.Stock == 0)
+                            {
+                                <span class="pill pill-red">Out</span>
+                            }
+                            else
+                            {
+                                <span class="pill pill-amber">@product.Stock left</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+
+        <div class="mb-admin-panel mt-4">
+            <div class="mb-admin-panel-head">
+                <h2 class="mb-admin-panel-title">Worth knowing</h2>
+            </div>
+            <ul class="mb-admin-notes">
+                <li>Orders move Processing &rarr; Packed &rarr; Shipped &rarr; Delivered from the Orders screen.</li>
+                <li>Payment is recorded as paid by the site today; the Razorpay step is still marked as a TODO in <code>CartController.Checkout</code>.</li>
+                <li>Hiding a product keeps it in the database and in past orders — it just leaves the shop.</li>
+            </ul>
+        </div>
+    </div>
+</div>

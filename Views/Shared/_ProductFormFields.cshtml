@@ -1,0 +1,99 @@
+@model Matibari.Web.Models.Product
+@*
+    The input fields shared by the "add product" modal and every per-row "edit" modal, so the two
+    can never drift apart. Plain name="..." attributes are used (instead of asp-for) because this
+    partial is rendered inside a loop of throw-away Product objects rather than the page model.
+*@
+<div class="row g-3">
+    <div class="col-md-8 mb-field">
+        <label class="form-label" for="Name-@Model.Id">Product name</label>
+        <input class="form-control" id="Name-@Model.Id" name="Name" value="@Model.Name"
+               maxlength="160" required placeholder="A2 Bilona Cow Ghee — 500 ml" />
+    </div>
+    <div class="col-md-4 mb-field">
+        <label class="form-label" for="Category-@Model.Id">Category</label>
+        <input class="form-control" id="Category-@Model.Id" name="Category" value="@Model.Category"
+               maxlength="60" required list="categoryOptions" placeholder="Ghee &amp; Dairy" />
+    </div>
+
+    <div class="col-6 col-md-3 mb-field">
+        <label class="form-label" for="Price-@Model.Id">Selling price (₹)</label>
+        <input class="form-control" id="Price-@Model.Id" name="Price" type="number" step="1" min="1"
+               value="@Model.Price.ToString("0.##")" required />
+    </div>
+    <div class="col-6 col-md-3 mb-field">
+        <label class="form-label" for="Mrp-@Model.Id">MRP (₹)</label>
+        <input class="form-control" id="Mrp-@Model.Id" name="Mrp" type="number" step="1" min="0"
+               value="@Model.Mrp.ToString("0.##")" />
+    </div>
+    <div class="col-6 col-md-3 mb-field">
+        <label class="form-label" for="Stock-@Model.Id">Stock</label>
+        <input class="form-control" id="Stock-@Model.Id" name="Stock" type="number" step="1" min="0"
+               value="@Model.Stock" required />
+    </div>
+    <div class="col-6 col-md-3 mb-field">
+        <label class="form-label" for="Unit-@Model.Id">Unit</label>
+        <input class="form-control" id="Unit-@Model.Id" name="Unit" value="@Model.Unit"
+               maxlength="40" placeholder="500 ml glass jar" />
+    </div>
+
+    <div class="col-md-4 mb-field">
+        <label class="form-label" for="Tag-@Model.Id">Corner tag</label>
+        <input class="form-control" id="Tag-@Model.Id" name="Tag" value="@Model.Tag"
+               maxlength="60" placeholder="Best seller" />
+    </div>
+    <div class="col-md-8 mb-field">
+        <label class="form-label" for="Image-@Model.Id">Image path</label>
+        <input class="form-control" id="Image-@Model.Id" name="Image" value="@Model.Image"
+               maxlength="300" placeholder="/images/products/ghee-500.jpg" />
+        <p class="mb-field-hint">A path inside wwwroot. Image upload is on the deferred list.</p>
+    </div>
+
+    <div class="col-6 col-md-3 mb-field">
+        <label class="form-label" for="Rating-@Model.Id">Rating (0–5)</label>
+        <input class="form-control" id="Rating-@Model.Id" name="Rating" type="number" step="0.1"
+               min="0" max="5" value="@Model.Rating.ToString("0.#")" />
+    </div>
+    <div class="col-6 col-md-3 mb-field">
+        <label class="form-label" for="Reviews-@Model.Id">Reviews</label>
+        <input class="form-control" id="Reviews-@Model.Id" name="Reviews" type="number" step="1"
+               min="0" value="@Model.Reviews" />
+    </div>
+    <div class="col-6 col-md-3 mb-field">
+        <label class="form-label" for="IsCombo-@Model.Id">Type</label>
+        <select class="form-select" id="IsCombo-@Model.Id" name="IsCombo">
+            <option value="false" selected="@(Model.IsCombo ? null : "selected")">Single jar</option>
+            <option value="true" selected="@(Model.IsCombo ? "selected" : null)">Combo bundle</option>
+        </select>
+    </div>
+    <div class="col-6 col-md-3 mb-field">
+        <label class="form-label" for="Active-@Model.Id">Visibility</label>
+        <select class="form-select" id="Active-@Model.Id" name="Active">
+            <option value="true" selected="@(Model.Active ? "selected" : null)">Live in the shop</option>
+            <option value="false" selected="@(Model.Active ? null : "selected")">Hidden</option>
+        </select>
+    </div>
+
+    <div class="col-md-4 mb-field">
+        <label class="form-label" for="Featured-@Model.Id">On the home page</label>
+        <select class="form-select" id="Featured-@Model.Id" name="Featured">
+            <option value="false" selected="@(Model.Featured ? null : "selected")">Not featured</option>
+            <option value="true" selected="@(Model.Featured ? "selected" : null)">Featured</option>
+        </select>
+    </div>
+
+    <div class="col-12 mb-field">
+        <label class="form-label" for="Description-@Model.Id">Description</label>
+        <textarea class="form-control" id="Description-@Model.Id" name="Description" rows="3"
+                  maxlength="2000" placeholder="What it tastes like, and how it was made.">@Model.Description</textarea>
+    </div>
+
+    <div class="col-12 mb-field">
+        <label class="form-label" for="ComboItems-@Model.Id">What's inside (combos only)</label>
+        <textarea class="form-control mb-mono" id="ComboItems-@Model.Id" name="ComboItemsJson" rows="3">@Model.ComboItemsJson</textarea>
+        <p class="mb-field-hint">
+            A JSON list, used only when the type is "Combo bundle":
+            <code>[{"name":"Wild Forest Honey","qty":"500 g","image":"/images/products/honey-500.jpg"}]</code>
+        </p>
+    </div>
+</div>

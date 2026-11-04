@@ -1,0 +1,129 @@
+@model Matibari.Web.Models.ContactPageModel
+@{
+    var store = Model.Settings;
+}
+<section class="mb-page-head">
+    <div class="container">
+        <nav aria-label="Breadcrumb" class="mb-crumbs">
+            <a asp-controller="Home" asp-action="Index">Home</a>
+            <span aria-hidden="true">/</span>
+            <span aria-current="page">Contact</span>
+        </nav>
+        <h1 class="mb-page-title">Talk to us</h1>
+        <p class="mb-page-text">
+            A person from the farm reads every message. For anything urgent — a parcel that has gone
+            quiet, a jar that arrived broken — WhatsApp is the fastest way to reach us.
+        </p>
+    </div>
+</section>
+
+<section class="mb-section mb-section-cream-2">
+    <div class="container">
+        <div class="row g-4 g-lg-5">
+            <div class="col-lg-7">
+                <form method="post" asp-controller="Contact" asp-action="Index" class="mb-panel mb-form">
+                    @Html.AntiForgeryToken()
+
+                    <h2 class="mb-panel-title">Send us a note</h2>
+                    <p class="mb-form-hint">We reply within one working day, usually the same day.</p>
+
+                    <div asp-validation-summary="ModelOnly" class="mb-form-errors"></div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6 mb-field">
+                            <label class="form-label" asp-for="Form.Name">Your name</label>
+                            <input class="form-control" asp-for="Form.Name" autocomplete="name" placeholder="Ananya Ghosh" />
+                            <span class="mb-field-error" asp-validation-for="Form.Name"></span>
+                        </div>
+                        <div class="col-md-6 mb-field">
+                            <label class="form-label" asp-for="Form.Email">Email</label>
+                            <input class="form-control" asp-for="Form.Email" type="email" autocomplete="email" placeholder="name&#64;example.com" />
+                            <span class="mb-field-error" asp-validation-for="Form.Email"></span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6 mb-field">
+                            <label class="form-label" asp-for="Form.Phone">
+                                Mobile number <span class="mb-optional">(optional)</span>
+                            </label>
+                            <input class="form-control" asp-for="Form.Phone" type="tel" autocomplete="tel"
+                                   inputmode="numeric" placeholder="9800012345" />
+                            <span class="mb-field-error" asp-validation-for="Form.Phone"></span>
+                        </div>
+                        <div class="col-md-6 mb-field">
+                            <label class="form-label" asp-for="Form.Subject">Subject</label>
+                            <select class="form-select" asp-for="Form.Subject">
+                                <option value="">Choose one…</option>
+                                <option value="Question about an order">Question about an order</option>
+                                <option value="Bulk or corporate order">Bulk or corporate order</option>
+                                <option value="Something arrived damaged">Something arrived damaged</option>
+                                <option value="Wholesale enquiry">Wholesale enquiry</option>
+                                <option value="Something else">Something else</option>
+                            </select>
+                            <span class="mb-field-error" asp-validation-for="Form.Subject"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-field">
+                        <label class="form-label" asp-for="Form.Message">Message</label>
+                        <textarea class="form-control" asp-for="Form.Message" rows="6"
+                                  placeholder="Tell us what you need — the more detail, the better our answer."></textarea>
+                        <span class="mb-field-error" asp-validation-for="Form.Message"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-brand btn-lg w-100">Send the message</button>
+                    <p class="mb-form-fine">
+                        We use your details only to answer this message. See our
+                        <a asp-controller="Home" asp-action="Privacy">privacy policy</a>.
+                    </p>
+                </form>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="mb-contact-panel">
+                    <h2 class="mb-contact-title">The farm</h2>
+
+                    <dl class="mb-contact-list">
+                        <div class="mb-contact-row">
+                            <dt>Address</dt>
+                            <dd>@store.Address</dd>
+                        </div>
+                        <div class="mb-contact-row">
+                            <dt>Phone</dt>
+                            <dd><a href="@store.PhoneLink">@store.Phone</a></dd>
+                        </div>
+                        <div class="mb-contact-row">
+                            <dt>Email</dt>
+                            <dd><a href="mailto:@store.Email">@store.Email</a></dd>
+                        </div>
+                        <div class="mb-contact-row">
+                            <dt>Packing days</dt>
+                            <dd>Monday to Saturday, 8am – 6pm IST</dd>
+                        </div>
+                        <div class="mb-contact-row">
+                            <dt>Visits</dt>
+                            <dd>Welcome on packing days — please call ahead so we can put the kettle on.</dd>
+                        </div>
+                    </dl>
+
+                    @if (!string.IsNullOrWhiteSpace(store.WhatsappLink))
+                    {
+                        <a class="btn btn-gold w-100" href="@store.WhatsappLink" target="_blank" rel="noopener">
+                            WhatsApp us
+                        </a>
+                        <p class="mb-contact-fine">Fastest for a parcel that has gone quiet.</p>
+                    }
+                </div>
+
+                <div class="mb-note-card mt-4">
+                    <h2 class="mb-note-title">Order status?</h2>
+                    <p class="mb-note-text">
+                        Keep your order number handy — it looks like MB-2026-1042 and is in the confirmation
+                        email. With it we can find your parcel in seconds.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

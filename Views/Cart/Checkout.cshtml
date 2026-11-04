@@ -1,0 +1,173 @@
+@model Matibari.Web.Models.CheckoutViewModel
+<section class="mb-page-head">
+    <div class="container">
+        <nav aria-label="Breadcrumb" class="mb-crumbs">
+            <a asp-controller="Home" asp-action="Index">Home</a>
+            <span aria-hidden="true">/</span>
+            <a asp-controller="Cart" asp-action="Index">Basket</a>
+            <span aria-hidden="true">/</span>
+            <span aria-current="page">Checkout</span>
+        </nav>
+        <h1 class="mb-page-title">Delivery &amp; payment</h1>
+
+        <ol class="mb-steps">
+            <li class="mb-step is-done">
+                <span class="mb-step-num">1</span>
+                <span class="mb-step-label">Basket</span>
+            </li>
+            <li class="mb-step is-current">
+                <span class="mb-step-num">2</span>
+                <span class="mb-step-label">Delivery &amp; payment</span>
+            </li>
+            <li class="mb-step">
+                <span class="mb-step-num">3</span>
+                <span class="mb-step-label">Confirmed</span>
+            </li>
+        </ol>
+    </div>
+</section>
+
+<section class="mb-section mb-section-cream-2">
+    <div class="container">
+        <div class="row g-4 g-lg-5">
+            <div class="col-lg-7">
+                <form method="post" asp-controller="Cart" asp-action="Checkout" class="mb-panel mb-form">
+                    @Html.AntiForgeryToken()
+
+                    <h2 class="mb-panel-title">Where should we send it?</h2>
+                    <p class="mb-form-hint">All fields are required unless marked optional.</p>
+
+                    @* Model-level errors: stock changes, unavailable products, payment method. *@
+                    <div asp-validation-summary="ModelOnly" class="mb-form-errors"></div>
+
+                    <div class="mb-field">
+                        <label class="form-label" asp-for="Name">Full name</label>
+                        <input class="form-control" asp-for="Name" autocomplete="name" placeholder="Ananya Ghosh" />
+                        <span class="mb-field-error" asp-validation-for="Name"></span>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6 mb-field">
+                            <label class="form-label" asp-for="Email">Email address</label>
+                            <input class="form-control" asp-for="Email" type="email" autocomplete="email"
+                                   placeholder="name&#64;example.com" />
+                            <span class="mb-field-error" asp-validation-for="Email"></span>
+                        </div>
+                        <div class="col-md-6 mb-field">
+                            <label class="form-label" asp-for="Phone">Mobile number</label>
+                            <input class="form-control" asp-for="Phone" type="tel" autocomplete="tel"
+                                   placeholder="9800012345" inputmode="numeric" />
+                            <span class="mb-field-error" asp-validation-for="Phone"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-field">
+                        <label class="form-label" asp-for="Address">Delivery address</label>
+                        <textarea class="form-control" asp-for="Address" rows="3"
+                                  placeholder="Flat 3B, 12 Dover Lane, Kolkata 700029"></textarea>
+                        <span class="mb-field-error" asp-validation-for="Address"></span>
+                    </div>
+
+                    <fieldset class="mb-field mb-payment">
+                        <legend class="form-label">How would you like to pay?</legend>
+
+                        <label class="mb-pay-option">
+                            <input class="form-check-input" type="radio" asp-for="PaymentMethod" value="UPI" />
+                            <span class="mb-pay-body">
+                                <span class="mb-pay-name">UPI</span>
+                                <span class="mb-pay-note">GPay, PhonePe, Paytm or any UPI app</span>
+                            </span>
+                        </label>
+
+                        <label class="mb-pay-option">
+                            <input class="form-check-input" type="radio" asp-for="PaymentMethod" value="Card" />
+                            <span class="mb-pay-body">
+                                <span class="mb-pay-name">Credit / debit card</span>
+                                <span class="mb-pay-note">Visa, Mastercard, RuPay — 3-D Secure</span>
+                            </span>
+                        </label>
+
+                        <label class="mb-pay-option">
+                            <input class="form-check-input" type="radio" asp-for="PaymentMethod" value="Netbanking" />
+                            <span class="mb-pay-body">
+                                <span class="mb-pay-name">Netbanking</span>
+                                <span class="mb-pay-note">All major Indian banks</span>
+                            </span>
+                        </label>
+
+                        <p class="mb-pay-rule">
+                            Online payment only. We do not offer cash on delivery.
+                        </p>
+                        <span class="mb-field-error" asp-validation-for="PaymentMethod"></span>
+                    </fieldset>
+
+                    <div class="mb-field">
+                        <label class="form-label" asp-for="Note">
+                            Delivery note <span class="mb-optional">(optional)</span>
+                        </label>
+                        <input class="form-control" asp-for="Note" maxlength="300"
+                               placeholder="Ring the bell twice — it is old" />
+                    </div>
+
+                    <button type="submit" class="btn btn-brand btn-lg w-100">
+                        Place order &amp; pay &#8377;@Model.Total.ToString("0")
+                    </button>
+                    <p class="mb-form-fine">
+                        By placing this order you accept our
+                        <a asp-controller="Home" asp-action="Terms">terms</a> and
+                        <a asp-controller="Home" asp-action="Shipping">shipping policy</a>.
+                    </p>
+                </form>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="mb-summary mb-summary-sticky">
+                    <h2 class="mb-summary-title">In this parcel</h2>
+
+                    <ul class="mb-summary-lines">
+                        @foreach (var line in Model.Lines)
+                        {
+                            <li class="mb-summary-line">
+                                <img src="@(string.IsNullOrWhiteSpace(line.Image) ? "/images/placeholder.svg" : line.Image)"
+                                     alt="@line.Name" width="64" height="64" loading="lazy" />
+                                <div>
+                                    <p class="mb-summary-line-name">@line.Name</p>
+                                    <p class="mb-summary-line-qty">@line.Qty &times; &#8377;@line.Price.ToString("0")</p>
+                                </div>
+                                <span class="mb-summary-line-total">&#8377;@line.LineTotal.ToString("0")</span>
+                            </li>
+                        }
+                    </ul>
+
+                    <dl class="mb-summary-list">
+                        <div class="mb-summary-row">
+                            <dt>Subtotal</dt>
+                            <dd>&#8377;@Model.Subtotal.ToString("0")</dd>
+                        </div>
+                        <div class="mb-summary-row">
+                            <dt>Shipping</dt>
+                            <dd>
+                                @if (Model.Shipping == 0)
+                                {
+                                    <span class="mb-summary-free">Free</span>
+                                }
+                                else
+                                {
+                                    <span>&#8377;@Model.Shipping.ToString("0")</span>
+                                }
+                            </dd>
+                        </div>
+                        <div class="mb-summary-row mb-summary-row-total">
+                            <dt>Total to pay</dt>
+                            <dd>&#8377;@Model.Total.ToString("0")</dd>
+                        </div>
+                    </dl>
+
+                    <p class="mb-summary-fine">
+                        Prices include GST. A tax invoice is emailed with the tracking link.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
