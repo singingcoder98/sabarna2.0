@@ -1,0 +1,123 @@
+@model Matibari.Web.Models.SiteSetting
+@{
+    Layout = "_AdminLayout";
+}
+<div class="mb-admin-head">
+    <div>
+        <h1 class="mb-admin-title">Shop settings</h1>
+        <p class="mb-admin-sub">
+            The brand name, the hero headline and the contact details. Everything here is used
+            site-wide — save and refresh the shop to see it.
+        </p>
+    </div>
+    <div class="mb-admin-head-actions">
+        <a class="btn btn-ghost btn-sm" asp-controller="Home" asp-action="Index" target="_blank" rel="noopener">
+            Open the shop
+        </a>
+    </div>
+</div>
+
+<form method="post" asp-controller="Admin" asp-action="Settings">
+    @Html.AntiForgeryToken()
+
+    <div class="row g-4">
+        <div class="col-xl-7">
+            <div class="mb-admin-panel mb-form">
+                <h2 class="mb-admin-panel-title">Brand</h2>
+                <div asp-validation-summary="ModelOnly" class="mb-form-errors"></div>
+
+                <div class="row g-3">
+                    <div class="col-md-6 mb-field">
+                        <label class="form-label" asp-for="BrandName">Brand name</label>
+                        <input class="form-control" asp-for="BrandName" maxlength="80" required />
+                        <span class="mb-field-error" asp-validation-for="BrandName"></span>
+                    </div>
+                    <div class="col-md-6 mb-field">
+                        <label class="form-label" asp-for="Tagline">Tagline</label>
+                        <input class="form-control" asp-for="Tagline" maxlength="120" />
+                        <span class="mb-field-error" asp-validation-for="Tagline"></span>
+                    </div>
+                    <div class="col-12 mb-field">
+                        <label class="form-label" asp-for="Logo">Logo path</label>
+                        <input class="form-control" asp-for="Logo" maxlength="300" placeholder="/images/logo.png" />
+                        <p class="mb-field-hint">A path inside wwwroot. Image upload is on the deferred list.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-admin-panel mb-form">
+                <h2 class="mb-admin-panel-title">Home page hero</h2>
+
+                <div class="mb-field">
+                    <label class="form-label" asp-for="HeroKicker">Kicker (small line above the headline)</label>
+                    <input class="form-control" asp-for="HeroKicker" maxlength="120"
+                           placeholder="Farm to home · since 2016" />
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6 mb-field">
+                        <label class="form-label" asp-for="HeroTitle1">Headline — first line</label>
+                        <input class="form-control" asp-for="HeroTitle1" maxlength="160" placeholder="Ghee that still" />
+                    </div>
+                    <div class="col-md-6 mb-field">
+                        <label class="form-label" asp-for="HeroTitle2">Headline — second line (gold)</label>
+                        <input class="form-control" asp-for="HeroTitle2" maxlength="160" placeholder="smells of the farm" />
+                    </div>
+                </div>
+
+                <div class="mb-field">
+                    <label class="form-label" asp-for="HeroText">Introduction</label>
+                    <textarea class="form-control" asp-for="HeroText" rows="4" maxlength="600"></textarea>
+                    <p class="mb-field-hint">Two or three sentences. Long enough to be honest, short enough to read.</p>
+                </div>
+            </div>
+
+            <div class="mb-admin-panel mb-form">
+                <h2 class="mb-admin-panel-title">Contact details</h2>
+
+                <div class="row g-3">
+                    <div class="col-md-6 mb-field">
+                        <label class="form-label" asp-for="Email">Public email</label>
+                        <input class="form-control" asp-for="Email" type="email" maxlength="160" />
+                    </div>
+                    <div class="col-md-6 mb-field">
+                        <label class="form-label" asp-for="Phone">Phone number</label>
+                        <input class="form-control" asp-for="Phone" maxlength="40" placeholder="+91 98000 12345" />
+                    </div>
+                    <div class="col-md-6 mb-field">
+                        <label class="form-label" asp-for="Whatsapp">WhatsApp number</label>
+                        <input class="form-control" asp-for="Whatsapp" maxlength="20" placeholder="919800012345" />
+                        <p class="mb-field-hint">Digits only, with the country code. Powers the floating button.</p>
+                    </div>
+                    <div class="col-md-6 mb-field">
+                        <label class="form-label" asp-for="Address">Address</label>
+                        <input class="form-control" asp-for="Address" maxlength="300" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-5">
+            <div class="mb-admin-panel mb-admin-panel-sticky">
+                <h2 class="mb-admin-panel-title">Save</h2>
+                <p class="mb-admin-sub">
+                    The storefront reads these values on every page render, so there is nothing to rebuild
+                    and no cache to clear.
+                </p>
+                <button type="submit" class="btn btn-brand w-100">Save settings</button>
+
+                <hr class="mb-admin-rule" />
+
+                <h3 class="mb-admin-mini-title">Last saved</h3>
+                <p class="mb-admin-fine">@Model.UpdatedAt.ToLocalTime().ToString("dd MMM yyyy, h:mm tt")</p>
+
+                <h3 class="mb-admin-mini-title">Security reminders</h3>
+                <ul class="mb-admin-notes">
+                    <li>The admin password is stored as a salted hash — change it from the database seed before going live.</li>
+                    <li>The one-time code expires after five minutes and allows five attempts.</li>
+                    <li>Sessions last eight hours; sign out on a shared computer.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</form>

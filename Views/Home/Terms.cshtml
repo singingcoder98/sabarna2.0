@@ -1,0 +1,91 @@
+<section class="mb-page-head">
+    <div class="container">
+        <nav aria-label="Breadcrumb" class="mb-crumbs">
+            <a asp-controller="Home" asp-action="Index">Home</a>
+            <span aria-hidden="true">/</span>
+            <a asp-controller="Home" asp-action="Policies">Policies</a>
+            <span aria-hidden="true">/</span>
+            <span aria-current="page">Terms</span>
+        </nav>
+        <h1 class="mb-page-title">Terms &amp; conditions</h1>
+        <p class="mb-page-text">Last updated 1 November 2026. These are the rules of the shop.</p>
+    </div>
+</section>
+
+<section class="mb-section mb-section-cream-2">
+    <div class="container">
+        <div class="row g-4 g-lg-5">
+            <div class="col-lg-8">
+                <div class="mb-prose">
+                    <h2>Who we are</h2>
+                    <p>
+                        Matibari is a small food business registered in West Bengal, India, operating from
+                        Village Matibari, P.O. Kharagpur 721301. "We" and "us" below mean that business.
+                    </p>
+
+                    <h2>Prices and payment</h2>
+                    <ul>
+                        <li>All prices are in Indian Rupees (₹) and include GST where it applies.</li>
+                        <li>We accept UPI, credit cards, debit cards and netbanking. <strong>We do not accept cash on delivery.</strong></li>
+                        <li>An order is confirmed only after the payment is authorised. A parcel is never dispatched on a promise to pay.</li>
+                        <li>We may correct an obvious pricing error before dispatch and refund you in full if you do not accept the corrected price.</li>
+                    </ul>
+
+                    <h2>Stock and batches</h2>
+                    <p>
+                        Everything is made in small batches, so a product can go out of stock without notice.
+                        Adding a jar to your basket does not reserve it; the stock is taken when the order is paid.
+                        If two people pay for the last jar at once, the first payment wins and the second is
+                        refunded immediately with an apology.
+                    </p>
+
+                    <h2>Delivery</h2>
+                    <p>
+                        Timelines, courier partners and the free-shipping threshold are described on our
+                        <a asp-controller="Home" asp-action="Shipping">shipping page</a>, which forms part of
+                        these terms. Address details are your responsibility — a parcel returned for a wrong
+                        address is re-shipped at cost.
+                    </p>
+
+                    <h2>Food, allergens and shelf life</h2>
+                    <p>
+                        Our products are made in a home-style kitchen that also handles milk, mustard, chilli
+                        and peanuts. If you have a severe allergy, please write to us before ordering and we
+                        will tell you exactly what shares the kitchen that week.
+                    </p>
+
+                    <h2>Reviews and content</h2>
+                    <p>
+                        Photographs on this site are of our own jars and kitchen. Descriptive words such as
+                        "grainy" or "smoky" describe what we taste — they are not a guarantee that every palate
+                        will agree.
+                    </p>
+
+                    <h2>Using this website</h2>
+                    <p>
+                        Please do not attempt to break, scrape or overload this website. The admin area is for
+                        staff only. We may refuse or cancel an order where we believe there has been fraud or abuse.
+                    </p>
+
+                    <h2>Governing law</h2>
+                    <p>
+                        These terms are governed by Indian law, and any dispute will be heard by the courts
+                        of Kolkata, West Bengal.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <aside class="mb-note-card mb-note-card-sticky">
+                    <h2 class="mb-note-title">Three things worth knowing</h2>
+                    <ul class="mb-note-list">
+                        <li>Prices include GST.</li>
+                        <li>Online payment only — no cash on delivery.</li>
+                        <li>Stock is taken when the payment succeeds, not when you add to basket.</li>
+                    </ul>
+                    <a class="btn btn-outline-brand btn-sm mt-2" asp-controller="Contact" asp-action="Index">Ask about these terms</a>
+                </aside>
+            </div>
+        </div>
+    </div>
+</section>

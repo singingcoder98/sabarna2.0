@@ -1,0 +1,145 @@
+@model Matibari.Web.Models.ProductDetailsViewModel
+@{
+    var product = Model.Product;
+    var image = product.HasImage ? product.Image : "/images/placeholder.svg";
+    var returnUrl = Context.Request.Path + Context.Request.QueryString;
+    var rounded = (int)Math.Round(product.Rating, MidpointRounding.AwayFromZero);
+    var maxQty = Math.Min(product.Stock, CartService.MaxQty);
+    if (maxQty < 1)
+    {
+        maxQty = 1;
+    }
+}
+<section class="mb-product">
+    <div class="container">
+        <nav aria-label="Breadcrumb" class="mb-crumbs">
+            <a asp-controller="Home" asp-action="Index">Home</a>
+            <span aria-hidden="true">/</span>
+            <a asp-controller="Shop" asp-action="Index">Shop</a>
+            <span aria-hidden="true">/</span>
+            <a asp-controller="Shop" asp-action="Index" asp-route-category="@product.Category">@product.Category</a>
+            <span aria-hidden="true">/</span>
+            <span aria-current="page">@product.Name</span>
+        </nav>
+
+        <div class="row g-5 align-items-start">
+            <div class="col-lg-6">
+                <div class="mb-product-media">
+                    <img src="@image" alt="@product.Name" width="900" height="900" />
+                    @if (!string.IsNullOrWhiteSpace(product.Tag))
+                    {
+                        <span class="mb-product-tag">@product.Tag</span>
+                    }
+                </div>
+                <div class="mb-product-trust">
+                    <span>&#128666; Free shipping over &#8377;999</span>
+                    <span>&#128230; Padded glass jars</span>
+                    <span>&#129530; No preservatives</span>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <p class="mb-kicker mb-kicker-dark">@product.Category</p>
+                <h1 class="mb-product-title">@product.Name</h1>
+                <p class="mb-product-unit">@product.Unit</p>
+
+                <div class="mb-stars mb-stars-lg" aria-label="@($"{product.Rating:0.0} out of 5 stars from {product.Reviews} reviews")">
+                    @for (var star = 1; star <= 5; star++)
+                    {
+                        <span class="mb-star @(star <= rounded ? "is-on" : string.Empty)" aria-hidden="true">&#9733;</span>
+                    }
+                    <span class="mb-stars-value">@product.Rating.ToString("0.0") · @product.Reviews reviews</span>
+                </div>
+
+                <div class="mb-product-price">
+                    <span class="mb-price mb-price-lg">&#8377;@product.Price.ToString("0")</span>
+                    @if (product.OnSale)
+                    {
+                        <span class="mb-price-mrp">MRP &#8377;@product.Mrp.ToString("0")</span>
+                        <span class="mb-price-save">save @product.SavePercent%</span>
+                    }
+                </div>
+
+                @if (product.InStock)
+                {
+                    <span class="pill pill-green">In stock — @product.Stock jars left</span>
+                }
+                else
+                {
+                    <span class="pill pill-red">Out of stock — restocking soon</span>
+                }
+
+                <p class="mb-product-desc">@product.Description</p>
+
+                @if (product.IsCombo && Model.ComboItems.Count > 0)
+                {
+                    <div class="mb-product-inside">
+                        <h2 class="mb-product-inside-title">What's inside the box</h2>
+                        <ul class="mb-combo-chips mb-combo-chips-light">
+                            @foreach (var item in Model.ComboItems)
+                            {
+                                <li class="mb-chip mb-chip-light">
+                                    @if (!string.IsNullOrWhiteSpace(item.Image))
+                                    {
+                                        <img src="@item.Image" alt="" width="26" height="26" loading="lazy" />
+                                    }
+                                    <span>@item.Name@(string.IsNullOrWhiteSpace(item.Qty) ? string.Empty : " · " + item.Qty)</span>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                @* Quantity + add to basket *@
+                <form method="post" asp-controller="Cart" asp-action="Add" class="mb-buy-form">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@product.Id" />
+                    <input type="hidden" name="returnUrl" value="@returnUrl" />
+
+                    <div class="mb-qty">
+                        <label class="mb-qty-label" for="qty">Quantity</label>
+                        <input class="form-control mb-qty-input" type="number" id="qty" name="qty"
+                               value="1" min="1" max="@maxQty" step="1" inputmode="numeric"
+                               disabled="@(product.InStock ? null : "disabled")" />
+                    </div>
+
+                    <button type="submit" class="btn btn-brand btn-lg mb-buy-btn" disabled="@(product.InStock ? null : "disabled")">
+                        @(product.InStock ? "Add to basket" : "Out of stock")
+                    </button>
+                    <a class="btn btn-ghost btn-lg" asp-controller="Cart" asp-action="Index">Go to basket</a>
+                </form>
+
+                <ul class="mb-buy-notes">
+                    <li>Online payment only — UPI, cards and netbanking. No cash on delivery.</li>
+                    <li>Packed on Mondays and Thursdays; tracking link emailed the same evening.</li>
+                    <li>Damaged in transit? Photo within 48 hours and we replace the jar.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+@if (Model.Related.Count > 0)
+{
+    <section class="mb-section mb-section-cream">
+        <div class="container">
+            <div class="mb-section-head">
+                <div>
+                    <p class="mb-kicker mb-kicker-dark">Pairs well with</p>
+                    <h2 class="mb-section-title">You may also like</h2>
+                </div>
+                <a class="btn btn-ghost" asp-controller="Shop" asp-action="Index" asp-route-category="@product.Category">
+                    More @product.Category
+                </a>
+            </div>
+            <div class="row g-4">
+                @foreach (var related in Model.Related)
+                {
+                    <div class="col-6 col-lg-4">
+                        <partial name="_ProductCard" model="related" />
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}

@@ -1,0 +1,65 @@
+@model Matibari.Web.Models.Product
+@*
+    Reusable product card. Used on the home page, the shop grid and "you may also like".
+    The "add to basket" form posts to Cart/Add and remembers which page the visitor came from,
+    so they land back exactly where they were.
+*@
+@{
+    var image = string.IsNullOrWhiteSpace(Model.Image) ? "/images/placeholder.svg" : Model.Image;
+    var returnUrl = Context.Request.Path + Context.Request.QueryString;
+    var rounded = (int)Math.Round(Model.Rating, MidpointRounding.AwayFromZero);
+}
+<article class="card mb-card h-100">
+    <div class="mb-card-media">
+        <a asp-controller="Shop" asp-action="Details" asp-route-id="@Model.Id" tabindex="-1" aria-hidden="true">
+            <img src="@image" alt="@Model.Name" loading="lazy" width="600" height="450" />
+        </a>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Tag))
+        {
+            <span class="mb-card-tag">@Model.Tag</span>
+        }
+
+        @if (!Model.InStock)
+        {
+            <span class="mb-card-flag">Out of stock</span>
+        }
+    </div>
+
+    <div class="card-body mb-card-body">
+        <p class="mb-card-category">@Model.Category</p>
+        <h3 class="mb-card-title">
+            <a asp-controller="Shop" asp-action="Details" asp-route-id="@Model.Id">@Model.Name</a>
+        </h3>
+        <p class="mb-card-unit">@Model.Unit</p>
+
+        <div class="mb-stars" aria-label="@($"{Model.Rating:0.0} out of 5 stars from {Model.Reviews} reviews")">
+            @for (var star = 1; star <= 5; star++)
+            {
+                <span class="mb-star @(star <= rounded ? "is-on" : string.Empty)" aria-hidden="true">&#9733;</span>
+            }
+            <span class="mb-stars-value">@Model.Rating.ToString("0.0") (@Model.Reviews)</span>
+        </div>
+
+        <div class="mb-card-price">
+            <span class="mb-price">&#8377;@Model.Price.ToString("0")</span>
+            @if (Model.OnSale)
+            {
+                <span class="mb-price-mrp">&#8377;@Model.Mrp.ToString("0")</span>
+                <span class="mb-price-save">@Model.SavePercent% off</span>
+            }
+        </div>
+    </div>
+
+    <div class="mb-card-foot">
+        <form method="post" asp-controller="Cart" asp-action="Add" class="mb-card-form">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+            <input type="hidden" name="qty" value="1" />
+            <input type="hidden" name="returnUrl" value="@returnUrl" />
+            <button type="submit" class="btn btn-brand btn-sm w-100" disabled="@(Model.InStock ? null : "disabled")">
+                @(Model.InStock ? "Add to basket" : "Out of stock")
+            </button>
+        </form>
+    </div>
+</article>

@@ -1,0 +1,31 @@
+# ---------- Build output ----------
+bin/
+obj/
+out/
+publish/
+
+# ---------- Local database ----------
+# app.db is created by DbSeeder on first run. It is demo data, never committed.
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# ---------- IDE / editor ----------
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ---------- OS noise ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------- Logs ----------
+*.log
+logs/

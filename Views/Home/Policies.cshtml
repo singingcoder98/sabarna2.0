@@ -1,0 +1,71 @@
+@* An index of the four policies. Each card links to the full text. *@
+<section class="mb-page-head">
+    <div class="container">
+        <nav aria-label="Breadcrumb" class="mb-crumbs">
+            <a asp-controller="Home" asp-action="Index">Home</a>
+            <span aria-hidden="true">/</span>
+            <span aria-current="page">Policies</span>
+        </nav>
+        <h1 class="mb-page-title">Our policies, in plain language</h1>
+        <p class="mb-page-text">
+            No asterisks and no legal fog. If something here is unclear, write to us and we will
+            fix the wording — not just answer your question.
+        </p>
+    </div>
+</section>
+
+<section class="mb-section mb-section-cream-2">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <a class="mb-policy-card" asp-controller="Home" asp-action="Shipping">
+                    <span class="mb-policy-icon" aria-hidden="true">&#128666;</span>
+                    <h2 class="mb-policy-title">Shipping</h2>
+                    <p class="mb-policy-text">
+                        Dispatch days, courier partners, timelines by state and what free shipping covers.
+                    </p>
+                    <span class="mb-policy-link">Read the shipping policy</span>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a class="mb-policy-card" asp-controller="Home" asp-action="Shipping" asp-fragment="refund">
+                    <span class="mb-policy-icon" aria-hidden="true">&#8617;</span>
+                    <h2 class="mb-policy-title">Returns &amp; refunds</h2>
+                    <p class="mb-policy-text">
+                        Cancellations before dispatch, refund timelines and what happens to a broken jar.
+                    </p>
+                    <span class="mb-policy-link">Read the refund policy</span>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a class="mb-policy-card" asp-controller="Home" asp-action="Privacy">
+                    <span class="mb-policy-icon" aria-hidden="true">&#128274;</span>
+                    <h2 class="mb-policy-title">Privacy</h2>
+                    <p class="mb-policy-text">
+                        What we store when you order, who sees it, and the one thing we never do with it.
+                    </p>
+                    <span class="mb-policy-link">Read the privacy policy</span>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <a class="mb-policy-card" asp-controller="Home" asp-action="Terms">
+                    <span class="mb-policy-icon" aria-hidden="true">&#128220;</span>
+                    <h2 class="mb-policy-title">Terms</h2>
+                    <p class="mb-policy-text">
+                        The rules of the shop: pricing, payment methods, stock and acceptable use.
+                    </p>
+                    <span class="mb-policy-link">Read the terms</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="mb-note-card mt-5">
+            <h2 class="mb-note-title">The one rule that matters most</h2>
+            <p class="mb-note-text">
+                We accept online payment only — UPI, credit or debit cards, and netbanking.
+                Cash on delivery is not offered, anywhere, ever. Parcels that we cannot confirm
+                as paid are not dispatched.
+            </p>
+        </div>
+    </div>
+</section>

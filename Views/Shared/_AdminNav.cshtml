@@ -1,0 +1,47 @@
+@*
+    The admin navigation. Used twice: inside the desktop sidebar and inside the mobile offcanvas,
+    so the two can never drift apart.
+*@
+@{
+    var controller = ViewContext.RouteData.Values["controller"] as string ?? string.Empty;
+    var action = ViewContext.RouteData.Values["action"] as string ?? string.Empty;
+
+    var onDashboard = controller == "Admin" && (action == "Dashboard" || action == "Index");
+    var onOrders = controller == "Admin" && action == "Orders";
+    var onProducts = controller == "Admin" && action == "Products";
+    var onSettings = controller == "Admin" && action == "Settings";
+}
+<nav class="mb-admin-nav" aria-label="Admin">
+    <a class="mb-admin-brand" asp-controller="Admin" asp-action="Dashboard">
+        <img src="/images/logo.png" alt="" width="36" height="36" aria-hidden="true" />
+        <span>Matibari admin</span>
+    </a>
+
+    <ul class="mb-admin-nav-list">
+        <li>
+            <a class="mb-admin-nav-link @(onDashboard ? "is-active" : string.Empty)"
+               asp-controller="Admin" asp-action="Dashboard">Dashboard</a>
+        </li>
+        <li>
+            <a class="mb-admin-nav-link @(onOrders ? "is-active" : string.Empty)"
+               asp-controller="Admin" asp-action="Orders">Orders</a>
+        </li>
+        <li>
+            <a class="mb-admin-nav-link @(onProducts ? "is-active" : string.Empty)"
+               asp-controller="Admin" asp-action="Products">Products</a>
+        </li>
+        <li>
+            <a class="mb-admin-nav-link @(onSettings ? "is-active" : string.Empty)"
+               asp-controller="Admin" asp-action="Settings">Settings</a>
+        </li>
+    </ul>
+
+    <div class="mb-admin-nav-foot">
+        <a class="mb-admin-nav-link mb-admin-nav-link-quiet" asp-controller="Home" asp-action="Index">
+            &larr; Back to the shop
+        </a>
+        <p class="mb-admin-nav-note">
+            Signed in as staff. Payment is recorded by the site; the gateway is still to be connected.
+        </p>
+    </div>
+</nav>
