@@ -3,8 +3,6 @@ using System.Text;
 using Sabarna.Web.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using Sabarna.Web.Services;
 
 namespace Sabarna.Web.Controllers;
 
@@ -19,12 +17,10 @@ namespace Sabarna.Web.Controllers;
 public class SeoController : Controller
 {
     private readonly AppDbContext _db;
-    private readonly PreviewOptions _preview;
 
-    public SeoController(AppDbContext db, IOptions<PreviewOptions> preview)
+    public SeoController(AppDbContext db)
     {
         _db = db;
-        _preview = preview.Value;
     }
 
     [HttpGet]
@@ -102,20 +98,6 @@ public class SeoController : Controller
         var origin = $"{Request.Scheme}://{Request.Host}";
 
         var text = new StringBuilder();
-
-        // A preview shop hands out a link to a handful of people. Until it opens, crawlers are
-        // told to stay away entirely — otherwise the temporary address ends up in a search index
-        // and competes with the real domain later.
-        if (_preview.Enabled)
-        {
-            text.AppendLine("# Sabarna — robots.txt");
-            text.AppendLine("# Private preview: this shop is not launched yet and must not be indexed.");
-            text.AppendLine();
-            text.AppendLine("User-agent: *");
-            text.AppendLine("Disallow: /");
-            return Content(text.ToString(), "text/plain", Encoding.UTF8);
-        }
-
         text.AppendLine("# Sabarna — robots.txt");
         text.AppendLine("# Everything public may be crawled. The admin panel, the basket and the error page may not.");
         text.AppendLine();
