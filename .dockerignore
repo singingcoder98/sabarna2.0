@@ -1,0 +1,14 @@
+# Nothing that is produced locally, nothing that is secret, nothing that lives on the host.
+bin/
+obj/
+.vs/
+.git/
+.gitignore
+app.db
+app.db-shm
+app.db-wal
+*.user
+*.suo
+Dockerfile
+.dockerignore
+README.md

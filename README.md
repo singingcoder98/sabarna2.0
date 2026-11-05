@@ -117,6 +117,8 @@ Sabarna.Web.csproj              net8.0 web SDK, EF Core 8 + SQLite
 Program.cs                       DI, DbContext, session, cookie auth, "AdminOnly" policy, pipeline
 appsettings.json                 ConnectionStrings:Default = "Data Source=app.db", Preview switches
 Properties/launchSettings.json   http://localhost:5080, ASPNETCORE_ENVIRONMENT=Development
+Dockerfile                       .NET 8 build + runtime image, port 8080, database at /data
+.dockerignore                    keeps bin/, obj/ and app.db out of the image
 
 Controllers/
   HomeController.cs              Index (GET + newsletter POST), About, Policies, Privacy, Terms,
@@ -367,7 +369,74 @@ that switch goes off.
 
 ---
 
-## 10. Before launch checklist
+## 10. Deploying it somewhere permanent
+
+### Vercel will not run this
+
+Vercel runs static files plus serverless functions in Node, Python, Go and Ruby. There is no .NET
+runtime, and even a hand-written function would not help:
+
+| What the shop needs | What Vercel gives you |
+| --- | --- |
+| A long-running ASP.NET Core process (Kestrel) | short-lived serverless invocations |
+| A writable disk — SQLite is a file, written by every order | a read-only bundle plus `/tmp` that is wiped |
+| A session store that survives between requests | a new, empty process for most requests (the cart would empty itself) |
+
+The failure would be loud on the first checkout, not subtle: `EnsureCreated`/`SaveChanges` throws on
+a read-only filesystem. Pulling this project into Vercel will build nothing. (If you ever want the
+Vercel dashboard to look busy, that is exactly what it is for — Next.js, not ASP.NET.)
+
+### The three routes that do work
+
+**1. A link today, no domain, no card** — the tunnel in §9. Free, and the shop runs on your own PC.
+
+**2. Free or near-free .NET hosting** — nothing to containerise:
+
+* **Azure App Service** (F1 free tier, or B1 ≈ ₹1,000/month). Publish from Visual Studio
+  (*right-click the project → Publish → Azure*) or from GitHub Actions with
+  `azure/webapps-deploy`. Set `ASPNETCORE_ENVIRONMENT=Production` and, so the database survives a
+  restart, point the connection string at the persistent area:
+  `ConnectionStrings__Default = Data Source=D:\home\data\app.db` on Windows,
+  `Data Source=/home/data/app.db` on Linux.
+* **MonsterASP.NET** — free ASP.NET Core hosting with SQLite support; upload the published folder.
+* Avoid the ancient free hosts that force `net4.x` or add banner ads.
+
+**3. Any Docker host** — Fly.io, Railway, Render, or a ₹400/month VPS (DigitalOcean, Hetzner). The
+repository ships a `Dockerfile` for exactly this:
+
+```bash
+docker build -t sabarna .
+docker run -p 8080:8080 -v sabarna-data:/data sabarna
+```
+
+The image listens on **8080**, runs as the non-root `app` user, keeps the database at
+`/data/app.db` and sets `ASPNETCORE_ENVIRONMENT=Production`. On Fly/Railway/Render, attach a volume
+at `/data` — without it every redeploy starts the shop empty, because a container's own filesystem
+is discarded.
+
+### Settings every host understands
+
+Configuration is read from environment variables, so nothing has to be edited in the image:
+
+| Variable | Why |
+| --- | --- |
+| `ASPNETCORE_ENVIRONMENT` | `Production` — HSTS on, the dev OTP box hidden, the error page instead of a stack trace |
+| `ConnectionStrings__Default` | where `app.db` lives (the only path that must be persistent) |
+| `Preview__Enabled` | `true` while unlaunched (noindex), `false` on launch day |
+| `Preview__RequireCode` / `Preview__AccessCode` | the optional shared code |
+| `ASPNETCORE_URLS` | already `http://+:8080` in the image; set it if you bind the app yourself |
+
+Two things people forget: behind any proxy or tunnel `UseForwardedHeaders` is already wired up (so
+`https` and the public host are correct), and `AllowedHosts` is `*` in `appsettings.json`, so a new
+host name is served rather than rejected.
+
+> **Back up `app.db`.** It is the entire shop — products, orders, settings. On a VPS that is
+> `cp app.db backup/`; on a managed host, download the file now and then. Moving to Azure SQL or
+> Postgres later is a change of one package and one connection string, not a rewrite.
+
+---
+
+## 11. Before launch checklist
 
 * [ ] Change the admin password and remove the demo hint from `Views/Admin/Login.cshtml`.
 * [ ] Run in Production (`ASPNETCORE_ENVIRONMENT=Production`) so the OTP is no longer shown on screen.
@@ -381,7 +450,7 @@ that switch goes off.
 
 ---
 
-## 11. Content notes
+## 12. Content notes
 
 Everything the shop says about itself is placeholder copy that reads like a real small business:
 the farm story, the batch sizes, the "nine months of shelf life", the courier timelines. Replace it
@@ -399,7 +468,7 @@ with the owner's own words — the home page hero and contact details are editab
 
 ---
 
-## 12. Hands-on with the running site (a 3-minute tour)
+## 13. Hands-on with the running site (a 3-minute tour)
 
 1. `/` — hero, trust marquee, product grid, combos, FAQ, newsletter.
 2. Add two jars to the basket, open `/Cart`, use the +/− steppers, then *Proceed to checkout*.
