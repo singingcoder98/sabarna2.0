@@ -115,7 +115,7 @@ byte-order mark so Excel opens ₹ amounts as numbers rather than mojibake.
 ```
 Sabarna.Web.csproj              net8.0 web SDK, EF Core 8 + SQLite
 Program.cs                       DI, DbContext, session, cookie auth, "AdminOnly" policy, pipeline
-appsettings.json                 ConnectionStrings:Default = "Data Source=app.db"
+appsettings.json                 ConnectionStrings:Default = "Data Source=app.db", Preview switches
 Properties/launchSettings.json   http://localhost:5080, ASPNETCORE_ENVIRONMENT=Development
 
 Controllers/
@@ -128,6 +128,7 @@ Controllers/
                                  CSV), Customers, Products, SaveProduct, UpdateStock, ToggleProduct,
                                  DeleteProduct, Settings
   SeoController.cs               /sitemap.xml and /robots.txt, generated from the database
+  PreviewController.cs           /Preview/Gate — the door in front of an unlaunched shop
 
 Models/
   Entities.cs                    Product, SiteSetting, AdminUser, OtpChallenge, Order, OrderStatuses,
@@ -145,6 +146,8 @@ Services/
   CartService.cs                 session JSON cart + combo helpers + shipping rules
   AuthService.cs                 password hash check, OTP create/verify, SHA-256
   StructuredData.cs              the JSON-LD blocks (Product, BreadcrumbList, ItemList)
+  PreviewOptions.cs              the "Preview" section of appsettings, bound to a class
+  PreviewGateMiddleware.cs       noindex while unlaunched, optional shared access code
 
 Views/
   _ViewImports.cshtml            namespaces + tag helpers
@@ -161,6 +164,7 @@ Views/
   Shop/                          Index, Details, Combos
   Cart/                          Index, Checkout, Success
   Contact/                       Index
+  Preview/                       Gate
   Admin/                         Login, VerifyOtp, Dashboard, Orders, Customers, Products, Settings
 
 wwwroot/
@@ -307,7 +311,63 @@ Everything below is already wired up; the only thing left for launch day is the 
 * The "In the kitchen" band animates with a CSS transform on the compositor — no video, no GIF,
   and it is switched off entirely under `prefers-reduced-motion`.
 
-## 9. Before launch checklist
+## 9. Showing it to people before launch (no domain yet)
+
+The shop can live at a temporary address for as long as you need, without buying a domain and
+without it ever appearing in Google.
+
+**A link, in one command.** On the machine running the shop, with `dotnet run` already going:
+
+```bash
+# Cloudflare's quick tunnel — free, no account, prints a public https link
+winget install --id Cloudflare.cloudflared     # Windows, once
+cloudflared tunnel --url http://localhost:5080
+# → https://something-random.trycloudflare.com
+```
+
+Send that link to whoever needs to see it. `ngrok http 5080` does the same job if you prefer ngrok
+(free account required). The link works **only while your PC, the app and the tunnel are running**,
+and a quick tunnel gets a new name each time it starts — which is fine for "look at this and tell
+me what you think", and the reason nothing must be indexed under it.
+
+**It cannot end up in Google.** `Preview:Enabled` is `true` in `appsettings.json`, which makes the
+shop do all of this:
+
+* send `X-Robots-Tag: noindex, nofollow` on every response,
+* write `<meta name="robots" content="noindex, nofollow">` into every page,
+* serve a `robots.txt` that disallows everything,
+* and leave the sitemap unsubmitted (there is nothing to submit until launch).
+
+**Only the people you send it to** — if you want the link to ask for a code as well, flip one
+switch:
+
+```json
+  "Preview": {
+    "Enabled": true,
+    "RequireCode": true,
+    "AccessCode": "choose-something-only-your-people-know"
+  }
+```
+
+Visitors then land on `/Preview/Gate`, type the code once, and get a cookie for 30 days. Changing
+`AccessCode` invalidates every cookie already handed out. The admin panel keeps its own two-step
+login and is not affected.
+
+**Two details that make the link behave properly**
+
+* Requests come in through the tunnel as plain HTTP on localhost. `UseForwardedHeaders` is wired up
+  first in the pipeline, so `https`, the public host name, canonical URLs, the sitemap and the
+  preview cookie's `Secure` flag all reflect what the visitor actually sees.
+* `AllowedHosts` is `*` in `appsettings.json`, so a random tunnel host name is served rather than
+  being rejected by Kestrel.
+
+**On launch day**, three things: point the domain at the host, set `"Enabled": false`, and only
+then submit `/sitemap.xml` in Google Search Console. Everything in §8 starts working the moment
+that switch goes off.
+
+---
+
+## 10. Before launch checklist
 
 * [ ] Change the admin password and remove the demo hint from `Views/Admin/Login.cshtml`.
 * [ ] Run in Production (`ASPNETCORE_ENVIRONMENT=Production`) so the OTP is no longer shown on screen.
@@ -321,7 +381,7 @@ Everything below is already wired up; the only thing left for launch day is the 
 
 ---
 
-## 10. Content notes
+## 11. Content notes
 
 Everything the shop says about itself is placeholder copy that reads like a real small business:
 the farm story, the batch sizes, the "nine months of shelf life", the courier timelines. Replace it
@@ -339,7 +399,7 @@ with the owner's own words — the home page hero and contact details are editab
 
 ---
 
-## 11. Hands-on with the running site (a 3-minute tour)
+## 12. Hands-on with the running site (a 3-minute tour)
 
 1. `/` — hero, trust marquee, product grid, combos, FAQ, newsletter.
 2. Add two jars to the basket, open `/Cart`, use the +/− steppers, then *Proceed to checkout*.

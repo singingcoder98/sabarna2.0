@@ -3752,3 +3752,32 @@ code {
         scroll-behavior: auto;
     }
 }
+
+/* ------------------------------- 33. Preview gate ---------------------------------- */
+
+/* The door in front of an unlaunched shop: one card, one field, nothing else competing. */
+.mb-gate {
+    background-color: var(--mb-white);
+    border: 1px solid var(--mb-line);
+    border-radius: 1.25rem;
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    box-shadow: var(--mb-shadow-sm);
+}
+
+.mb-gate-title {
+    font-family: var(--mb-font-heading);
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    line-height: 1.15;
+    margin: 0.35rem 0 0.75rem;
+    color: var(--mb-green-900);
+}
+
+.mb-gate .mb-section-text {
+    margin-bottom: 1.5rem;
+}
+
+.mb-gate-note {
+    font-size: 0.8rem;
+    color: var(--mb-muted);
+    margin: 1.25rem 0 0;
+}
