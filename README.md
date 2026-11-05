@@ -486,6 +486,12 @@ screen and pick `Properties/PublishProfiles/MonsterASP.pubxml`. Doing it by hand
 Then **Settings**: Configuration `Release`, Target framework `net8.0`, and **untick "Remove
 additional files at destination"**.
 
+*If Web Deploy answers 401* — reachable server, rejected credentials, and an imported profile gives
+you no field to type the password into. Do not wrestle with it; publish over FTP, which is one dialog
+and uses the same credentials the panel already shows: **New profile → FTP/FTPS Server** with server
+`site105177.siteasp.net`, port `21`, path `/wwwroot`, passive mode on, user `site105177`, and the
+password from the panel (`Show`, or `Change` to set a fresh one).
+
 *Third route, no Web Deploy at all:* publish to a **Folder** (say `C:\sabarna-publish`), then upload
 that folder's contents to `/wwwroot` with FileZilla (server `site105177.siteasp.net`, port 21, user
 `site105177`) or the panel's **Files → File manager**.
@@ -545,6 +551,8 @@ wired up (README §7), otherwise anyone who reaches `/Admin` with your password 
 | `unable to open database file` | `App_Data` was not published, or is not writable — create it with the file manager |
 | **404 on every page** | Files landed in a subfolder (`publish`, `wwwroot`) instead of the site root |
 | Login works, no code on screen | The `Otp__ShowOnScreen` line is missing from `web.config` |
+| **401 Unauthorized** on `msdeploy.axd` | Web Deploy credentials are missing or wrong. `Attention required` on an *imported* profile is a status, not a field — switch to the FTP profile (below) instead of fighting it |
+| Publish connects but nothing appears | The FTP path was `/` instead of `/wwwroot` |
 
 **Free tier caveats.** These plans are for showing the shop to people, not for taking money: the
 first request after a quiet spell can be slow, disk quotas are small, and the only backup of
