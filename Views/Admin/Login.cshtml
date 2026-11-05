@@ -1,4 +1,5 @@
 @model Sabarna.Web.Models.AdminLoginViewModel
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostEnvironment
 @using Microsoft.EntityFrameworkCore
 @* AsNoTracking() is an EF Core extension method, and Razor does not import this namespace
    for you — that is why this line is here rather than in _ViewImports. *@
@@ -67,14 +68,21 @@
                 <button type="submit" class="btn btn-brand btn-lg w-100">Continue</button>
             </form>
 
-            <div class="mb-auth-demo">
-                <p class="mb-auth-demo-title">Demo account</p>
-                <p class="mb-auth-demo-text">
-                    <strong>admin&#64;sabarna.in</strong> &nbsp;/&nbsp; <strong>Sabarna&#64;2024</strong><br />
-                    The six-digit code is shown on the next screen in development.
-                    Change both before the shop goes live — see the README.
-                </p>
-            </div>
+            @* Printed credentials on a public URL are exactly how a shop gets its orders edited by
+               strangers, so this box is drawn only when the app runs locally (Development). The
+               seeded password is in the README, where only the owner looks. *@
+            @{ var isLocalRun = string.Equals(HostEnvironment.EnvironmentName, "Development", StringComparison.OrdinalIgnoreCase); }
+            @if (isLocalRun)
+            {
+                <div class="mb-auth-demo">
+                    <p class="mb-auth-demo-title">Demo account — local run only</p>
+                    <p class="mb-auth-demo-text">
+                        <strong>admin&#64;sabarna.in</strong> &nbsp;/&nbsp; <strong>Sabarna&#64;2024</strong><br />
+                        The six-digit code is shown on the next screen. Change the password once the
+                        shop is on a real address — README §3.
+                    </p>
+                </div>
+            }
 
             <p class="mb-auth-fine">
                 Staff only. Every attempt is checked against a hashed password, and the one-time code

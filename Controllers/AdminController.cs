@@ -757,6 +757,65 @@ public class AdminController : Controller
         return RedirectToAction(nameof(Settings));
     }
 
+    /// <summary>
+    /// Changes the signed-in admin's password. A separate POST from the settings form on purpose:
+    /// a typo in one cannot silently throw away the other, and the browser's password manager
+    /// recognises the three password fields.
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ChangePassword(ChangePasswordViewModel form)
+    {
+        var email = User.FindFirst(ClaimTypes.Email)?.Value;
+        var admin = string.IsNullOrWhiteSpace(email) ? null : await _auth.FindActiveAdminAsync(email);
+
+        if (admin == null)
+        {
+            return RedirectToAction(nameof(Login));
+        }
+
+        // Length and the two-fields-match rule come from the view model's annotations.
+        if (!ModelState.IsValid)
+        {
+            var first = ModelState.Values
+                .SelectMany(value => value.Errors)
+                .Select(error => error.ErrorMessage)
+                .FirstOrDefault(message => !string.IsNullOrWhiteSpace(message));
+
+            TempData["Error"] = string.IsNullOrWhiteSpace(first)
+                ? "Please check the password fields and try again."
+                : first;
+
+            return RedirectToAction(nameof(Settings));
+        }
+
+        if (!_auth.VerifyPassword(admin, form.CurrentPassword ?? string.Empty))
+        {
+            TempData["Error"] = "That is not the current password — nothing was changed.";
+            return RedirectToAction(nameof(Settings));
+        }
+
+        var newPassword = (form.NewPassword ?? string.Empty).Trim();
+
+        // A short password on a public URL is how shops get their orders edited by strangers.
+        if (newPassword.Length < 8 || !newPassword.Any(char.IsLetter) || !newPassword.Any(char.IsDigit))
+        {
+            TempData["Error"] = "Use at least 8 characters, including one letter and one number.";
+            return RedirectToAction(nameof(Settings));
+        }
+
+        if (newPassword == form.CurrentPassword)
+        {
+            TempData["Error"] = "The new password is the same as the old one — pick something else.";
+            return RedirectToAction(nameof(Settings));
+        }
+
+        await _auth.ChangePasswordAsync(admin, newPassword);
+
+        TempData["Toast"] = "Password changed. Use the new one the next time you sign in.";
+        return RedirectToAction(nameof(Settings));
+    }
+
     // =============================================================================================
     // Helpers
     // =============================================================================================

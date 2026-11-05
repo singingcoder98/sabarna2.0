@@ -117,7 +117,7 @@
 
                 <h3 class="mb-admin-mini-title">Security reminders</h3>
                 <ul class="mb-admin-notes">
-                    <li>The admin password is stored as a salted hash — change it from the database seed before going live.</li>
+                    <li>The password is stored as a salted hash. Change it below before the address is shared with anyone.</li>
                     <li>The one-time code expires after five minutes and allows five attempts.</li>
                     <li>Sessions last eight hours; sign out on a shared computer.</li>
                 </ul>
@@ -125,3 +125,51 @@
         </div>
     </div>
 </form>
+
+@* ---------------------------------------------------------------------------------------------
+   The password form sits outside the settings form above. Nested forms are invalid HTML, and two
+   submit buttons is exactly how people change their password by accident.
+   --------------------------------------------------------------------------------------------- *@
+<div class="row g-4 mt-1">
+    <div class="col-xl-7">
+        <div class="mb-admin-panel mb-form">
+            <h2 class="mb-admin-panel-title">Admin password</h2>
+            <p class="mb-admin-sub">
+                The password the shop was seeded with is printed in the README, so change it before
+                you share this address. Eight characters or more, with at least one number.
+            </p>
+
+            <form method="post" asp-controller="Admin" asp-action="ChangePassword">
+                @Html.AntiForgeryToken()
+
+                <div class="row g-3">
+                    <div class="col-12 mb-field">
+                        <label class="form-label" for="currentPassword">Current password</label>
+                        <input class="form-control" id="currentPassword" name="CurrentPassword"
+                               type="password" autocomplete="current-password" required />
+                    </div>
+
+                    <div class="col-md-6 mb-field">
+                        <label class="form-label" for="newPassword">New password</label>
+                        <input class="form-control" id="newPassword" name="NewPassword"
+                               type="password" autocomplete="new-password" minlength="8" required />
+                        <p class="mb-field-hint">One letter and one number, 8 characters minimum.</p>
+                    </div>
+
+                    <div class="col-md-6 mb-field">
+                        <label class="form-label" for="confirmPassword">Repeat the new password</label>
+                        <input class="form-control" id="confirmPassword" name="ConfirmPassword"
+                               type="password" autocomplete="new-password" minlength="8" required />
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-terra">Change password</button>
+                <p class="mb-field-hint mt-3 mb-0">
+                    You stay signed in on this device. Everywhere else, sign out and back in with the
+                    new password.
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
+

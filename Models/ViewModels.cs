@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Sabarna.Web.Models;
 
 // =============================================================================================
@@ -218,4 +220,25 @@ public class ContactPageModel
     public SiteSetting Settings { get; set; } = new();
 
     public ContactViewModel Form { get; set; } = new();
+}
+
+/// <summary>The "change the admin password" form on /Admin/Settings.</summary>
+public class ChangePasswordViewModel
+{
+    [Required(ErrorMessage = "Type your current password.")]
+    [DataType(DataType.Password)]
+    [Display(Name = "Current password")]
+    public string CurrentPassword { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Choose a new password.")]
+    [StringLength(100, MinimumLength = 8, ErrorMessage = "Use at least 8 characters.")]
+    [DataType(DataType.Password)]
+    [Display(Name = "New password")]
+    public string NewPassword { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Type the new password again.")]
+    [DataType(DataType.Password)]
+    [Compare(nameof(NewPassword), ErrorMessage = "The two new passwords do not match.")]
+    [Display(Name = "Repeat new password")]
+    public string ConfirmPassword { get; set; } = string.Empty;
 }

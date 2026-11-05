@@ -96,7 +96,8 @@ Close the app before editing rows there — SQLite gives one writer at a time.
 | URL | <http://localhost:5080/Admin> |
 | Email | `admin@sabarna.in` |
 | Password | `Sabarna@2024` |
-| One-time code | **shown on screen** at `/Admin/VerifyOtp` while running in Development |
+| One-time code | **shown on screen** at `/Admin/VerifyOtp` while running in Development (or when `Otp:ShowOnScreen` is on) |
+| Change the password | `/Admin/Settings` → *Admin password* card: current password, new password twice |
 
 > **If you already ran the site before the rename:** the first start afterwards cleans the old
 > brand out of your existing `app.db` — brand name, email, logo path, the address (which had the
@@ -112,7 +113,13 @@ Close the app before editing rows there — SQLite gives one writer at a time.
 
 The code is valid for **5 minutes**, works **once**, and is burnt after 5 wrong attempts.
 Only a SHA-256 hash of it is stored. In Development the code is displayed in a yellow
-"Development mode" box because no mail provider is connected yet — see §7.
+"No email is sent yet" box because no mail provider is connected yet — see §7.
+
+> **The seeded credentials above are never printed by a hosted site.** The yellow box on
+> `/Admin/Login` that shows them is drawn only when the app runs locally (Development), so a
+> visitor on your public address sees a plain sign-in form. The password is in this README, which
+> is where only the owner looks — change it anyway (`/Admin/Settings`), and see
+> `DEPLOY-CHECKLIST.md` §2.
 
 > **Before going live:** change the password (re-seed with a new hash in `Data/DbSeeder.cs`, or
 > update the row in `app.db`) and run with `ASPNETCORE_ENVIRONMENT=Production` so the on-screen code
@@ -152,6 +159,7 @@ appsettings.json                 ConnectionStrings:Default = "Data Source=app.db
 Properties/launchSettings.json   http://localhost:5080, ASPNETCORE_ENVIRONMENT=Development
 Dockerfile                       .NET 8 build + runtime image, port 8080, database at /data
 web.config                       IIS entry point + env vars for shared hosting (MonsterASP, Azure)
+DEPLOY-CHECKLIST.md              everything to do after hosting: first checks, security, launch day
 App_Data/                        where SQLite writes app.db on IIS; published, never served
 .dockerignore                    keeps bin/, obj/ and app.db out of the image
 
@@ -535,19 +543,32 @@ host name is served rather than rejected.
 > `cp app.db backup/`; on a managed host, download the file now and then. Moving to Azure SQL or
 > Postgres later is a change of one package and one connection string, not a rewrite.
 
+**After the deploy, switch to `DEPLOY-CHECKLIST.md`.** It is the list for the days after hosting —
+the ten-minute smoke test, the security switch-flip before you share the link, launch day, backups,
+and the five features that are still TODO comments in the code.
+
 ---
 
 ## 11. Before launch checklist
 
-* [ ] Change the admin password and remove the demo hint from `Views/Admin/Login.cshtml`.
-* [ ] Run in Production (`ASPNETCORE_ENVIRONMENT=Production`) so the OTP is no longer shown on screen.
-* [ ] Put the app behind HTTPS (reverse proxy or hosting platform) — the app itself listens on HTTP.
-* [ ] Update the domain in `wwwroot/robots.txt` and `wwwroot/sitemap.xml` (`https://sabarna.in`).
-* [ ] Replace the demo photos in `wwwroot/images/` with real ones (keep the file names, or update the
-      paths in `/Admin/Products`).
-* [ ] Double-check the policies in `Views/Home/{Privacy,Terms,Shipping}.cshtml` with the owner — they
-      are written in plain language on purpose and should match reality.
-* [ ] Back up `app.db` (or move to a hosted database) — the SQLite file holds every order.
+The full version, with reasons and order, is in **`DEPLOY-CHECKLIST.md`**. The short version:
+
+* [ ] **Change the admin password** — `/Admin/Settings` → *Admin password*. The seeded
+      `Sabarna@2024` is in this README and in every clone of the repository.
+* [ ] **Decide on the preview gate** — `Preview:RequireCode` (see §9), then leave the link open or
+      put the shared code in front of it.
+* [ ] **Turn preview off on launch day** — `Preview:Enabled: false`. That single switch removes the
+      `noindex` header and lets `robots.txt` and `sitemap.xml` be crawled.
+* [ ] **HTTPS** — any real host or tunnel provides it; the app itself listens on plain HTTP behind it
+      and trusts the `X-Forwarded-*` headers (`UseForwardedHeaders`).
+* [ ] **Real photographs** in `wwwroot/images/` and `wwwroot/images/products/` (keep the file names,
+      or update the paths in `/Admin/Products`).
+* [ ] **Real contact details and address** in `/Admin/Settings` — no redeploy needed.
+* [ ] **Read the three policies** in `Views/Home/{Privacy,Terms,Shipping}.cshtml` with the owner —
+      they are plain language on purpose and must match what the shop actually does.
+* [ ] **Back up `App_Data/app.db`** on a schedule — that file holds every order.
+* [ ] **Do not take real money yet** — the payment gateway is still a TODO (`CartController`), so
+      every order is recorded as paid without a payment. See `DEPLOY-CHECKLIST.md` §4.
 
 ---
 

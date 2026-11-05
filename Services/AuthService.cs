@@ -141,6 +141,16 @@ public class AuthService
         return true;
     }
 
+    /// <summary>
+    /// Replaces the admin's password with a freshly salted hash. The old hash is gone the moment
+    /// this saves, so an old password stops working immediately — no cache to clear.
+    /// </summary>
+    public async Task ChangePasswordAsync(AdminUser admin, string newPassword)
+    {
+        admin.PasswordHash = _hasher.HashPassword(admin, newPassword);
+        await _db.SaveChangesAsync();
+    }
+
     /// <summary>SHA-256 of the code, lowercase hex. Used for both create and verify.</summary>
     public static string HashCode(string value)
     {
