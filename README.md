@@ -463,6 +463,19 @@ From Visual Studio (easiest):
    and that file is the entire shop.
 5. **Publish.**
 
+*Faster: use the checked-in publish profile.* The repository already contains
+`Properties/PublishProfiles/MonsterASP.pubxml`, filled in with the site's Web Deploy address, site
+name and user name (password blank — Visual Studio asks once and stores it encrypted on your
+machine). Right-click the project → **Publish** → pick **MonsterASP**, or *Import profile* if it is
+not listed. It already sets Release, keeps remote files (`DeleteExistingFiles=False`, so
+`App_Data/app.db` survives), and excludes the local demo database.
+
+> **The physical root is `\wwwroot` on the host.** Whatever route you use, `Sabarna.Web.dll`,
+> `web.config` and `App_Data` must end up directly in that folder — not in a `publish` subfolder and
+> not inside `wwwroot\wwwroot`. The project's own `wwwroot` (the one with `css/`, `images/`) travels
+> as a subfolder inside the published output, which is correct: the site's content root is the folder
+> the DLL sits in.
+
 From the command line or the panel's file manager:
 
 ```bash
