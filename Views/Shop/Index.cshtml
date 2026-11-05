@@ -1,4 +1,4 @@
-@model Matibari.Web.Models.ShopViewModel
+@model Sabarna.Web.Models.ShopViewModel
 @{
     var hasFilter = !string.IsNullOrWhiteSpace(Model.Category);
 }
@@ -61,7 +61,7 @@
     // ItemList tells Google this page is a list of products, in the order they are shown, with
     // one URL per jar — useful when it decides which page to load for "buy ghee online india".
     var shelfOrigin = $"{Context.Request.Scheme}://{Context.Request.Host}";
-    var listName = hasFilter ? $"{Model.Category} at Matibari" : "Everything on the shelf at Matibari";
+    var listName = hasFilter ? $"{Model.Category} at Sabarna" : "Everything on the shelf at Sabarna";
 }
 @if (Model.Products.Count > 0)
 {

@@ -1,10 +1,10 @@
-@model List<Matibari.Web.Models.CartLine>
+@model List<Sabarna.Web.Models.CartLine>
 @{
     var subtotal = Model.Sum(line => line.LineTotal);
-    var shipping = Matibari.Web.Services.CartService.ShippingFor(subtotal);
+    var shipping = Sabarna.Web.Services.CartService.ShippingFor(subtotal);
     var total = subtotal + shipping;
     var returnUrl = Context.Request.Path + Context.Request.QueryString;
-    var freeGap = Matibari.Web.Services.CartService.FreeShippingThreshold - subtotal;
+    var freeGap = Sabarna.Web.Services.CartService.FreeShippingThreshold - subtotal;
 }
 <section class="mb-page-head">
     <div class="container">

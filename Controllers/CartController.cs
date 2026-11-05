@@ -1,11 +1,11 @@
 using System.Security.Cryptography;
-using Matibari.Web.Data;
-using Matibari.Web.Models;
-using Matibari.Web.Services;
+using Sabarna.Web.Data;
+using Sabarna.Web.Models;
+using Sabarna.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace Matibari.Web.Controllers;
+namespace Sabarna.Web.Controllers;
 
 /// <summary>
 /// The two-step checkout: basket -> delivery details -> confirmation.
@@ -235,7 +235,7 @@ public class CartController : Controller
     }
 
     // ---------------------------------------------------------------------------------------------
-    // GET /Cart/Success?orderNumber=MB-2026-1047
+    // GET /Cart/Success?orderNumber=SB-2026-1047
     // ---------------------------------------------------------------------------------------------
     [HttpGet]
     public async Task<IActionResult> Success(string orderNumber)
@@ -256,7 +256,7 @@ public class CartController : Controller
 
         ViewData["Robots"] = "noindex, follow";   // transactional pages are not content
         ViewData["Title"] = "Order confirmed";
-        ViewData["Description"] = "Your Matibari parcel is being packed.";
+        ViewData["Description"] = "Your Sabarna parcel is being packed.";
         return View(order);
     }
 
@@ -298,7 +298,7 @@ public class CartController : Controller
 
         for (var attempt = 0; attempt < 20; attempt++)
         {
-            var candidate = $"MB-{year}-{RandomNumberGenerator.GetInt32(1000, 10000)}";
+            var candidate = $"SB-{year}-{RandomNumberGenerator.GetInt32(1000, 10000)}";
             var taken = await _db.Orders.AsNoTracking().AnyAsync(o => o.OrderNumber == candidate);
             if (!taken)
             {
@@ -307,6 +307,6 @@ public class CartController : Controller
         }
 
         // Extremely unlikely fallback: ticks-based suffix.
-        return $"MB-{year}-{DateTime.UtcNow.Ticks % 1000000}";
+        return $"SB-{year}-{DateTime.UtcNow.Ticks % 1000000}";
     }
 }

@@ -1,10 +1,10 @@
-# Matibari — farm-fresh ghee, honey & pickles
+# Sabarna — farm-fresh ghee, honey & pickles
 
 A complete, production-shaped e-commerce site for a small Indian farm food business, built with
 **ASP.NET Core 8 MVC + Razor views + Bootstrap 5.3.3**. Server-rendered, no JavaScript framework,
 no CDN, no payment-gateway dependency to run it locally.
 
-* **Brand:** Matibari (ghee, honey, pickles, cold-pressed oil)
+* **Brand:** Sabarna (ghee, honey, pickles, cold-pressed oil)
 * **Market:** India — all prices in ₹ (INR), GST included
 * **Payments:** online only — UPI, cards, netbanking. **Cash on delivery is not offered anywhere.**
 * **Cart:** session based, no login needed
@@ -28,14 +28,14 @@ The database file `app.db` is created *and seeded* automatically on the first ru
 ## 2. Run it
 
 ```bash
-# from the folder that contains Matibari.Web.csproj / Matibari.sln
+# from the folder that contains Sabarna.Web.csproj / Sabarna.sln
 dotnet restore
 dotnet run
 ```
 
-`Matibari.sln` (classic format) is included, so `dotnet build Matibari.sln`, `dotnet run
---project Matibari.Web.csproj` and "Open project/solution" in Visual Studio or Rider all work.
-Do not keep a `Matibari.slnx` in the same folder as well — two solution files make `dotnet build`
+`Sabarna.sln` (classic format) is included, so `dotnet build Sabarna.sln`, `dotnet run
+--project Sabarna.Web.csproj` and "Open project/solution" in Visual Studio or Rider all work.
+Do not keep a `Sabarna.slnx` in the same folder as well — two solution files make `dotnet build`
 fail with `MSB1011`.
 
 Then open **<http://localhost:5080>** (the port is set in `Properties/launchSettings.json`).
@@ -61,9 +61,14 @@ if present), and run it again. Nothing else needs to be reset.
 | | |
 | --- | --- |
 | URL | <http://localhost:5080/Admin> |
-| Email | `admin@matibari.in` |
-| Password | `Matibari@2024` |
+| Email | `admin@sabarna.in` |
+| Password | `Sabarna@2024` |
 | One-time code | **shown on screen** at `/Admin/VerifyOtp` while running in Development |
+
+> **If you already ran the site as "Matibari":** the first start after this rename moves the
+> settings row across (brand name, email, logo path) and renames the demo admin to
+> `admin@sabarna.in` with the password above, so the old brand does not linger in your `app.db`.
+> Nothing else in the database is touched — orders, products and stock stay exactly as they were.
 
 The code is valid for **5 minutes**, works **once**, and is burnt after 5 wrong attempts.
 Only a SHA-256 hash of it is stored. In Development the code is displayed in a yellow
@@ -101,7 +106,7 @@ byte-order mark so Excel opens ₹ amounts as numbers rather than mojibake.
 ## 4. Project map
 
 ```
-Matibari.Web.csproj              net8.0 web SDK, EF Core 8 + SQLite
+Sabarna.Web.csproj              net8.0 web SDK, EF Core 8 + SQLite
 Program.cs                       DI, DbContext, session, cookie auth, "AdminOnly" policy, pipeline
 appsettings.json                 ConnectionStrings:Default = "Data Source=app.db"
 Properties/launchSettings.json   http://localhost:5080, ASPNETCORE_ENVIRONMENT=Development
@@ -154,8 +159,9 @@ Views/
 wwwroot/
   css/site.css                   the whole brand layer (~1 of 1 stylesheets)
   lib/bootstrap/                 bootstrap.min.css, bootstrap.bundle.min.js, LICENSE (v5.3.3)
-  images/                        logo, hero, farmer photo, product photography (incl. jaggery),
-                                 og-cover, favicon
+  images/                        logo.png (full lockup, transparent), logo-mark.png (tree only,
+                                 for the 36-44px slots), favicon.png, apple-touch-icon.png, hero,
+                                 farmer photo, product photography (incl. jaggery), og-cover
   (robots.txt and sitemap.xml are no longer files — SeoController serves both)
 ```
 
@@ -168,7 +174,7 @@ rendered twice (desktop sidebar + mobile offcanvas). Both are internal helpers, 
 ## 5. How the shop works
 
 **Cart.** `CartService` keeps a JSON array of `CartLine` in the visitor's session
-(`.matibari.session`, 7-day idle timeout). Quantities are clamped to **1–20** and never exceed the
+(`.sabarna.session`, 7-day idle timeout). Quantities are clamped to **1–20** and never exceed the
 stock on hand; out-of-stock products cannot be added. Totals are always recomputed from the live
 product price. Shipping is **free at ₹999 and above, a flat ₹49 below**, computed in exactly one
 place (`CartService.ShippingFor`) so the basket, the checkout and the order always agree.
@@ -220,6 +226,21 @@ All brand tokens are CSS custom properties at the top of `wwwroot/css/site.css`:
   name sits next to it), and every animation is disabled under `prefers-reduced-motion`.
 
 Changing the palette means editing those nine values — nothing else.
+
+---
+
+**The logo.** The supplied artwork is a stacked lockup: a tree, the word SABARNA, and PURE. Two
+files come out of it, because one size cannot do both jobs:
+
+| File | What it is | Where it is used |
+| --- | --- | --- |
+| `images/logo-mark.png` | the tree on its own, transparent | the 36–44 px slots: navbar, footer, admin sidebar, sign-in screens |
+| `images/logo.png` | the full lockup, transparent | structured data (`Organization.logo`), the settings placeholder, anywhere large |
+| `images/favicon.png`, `images/apple-touch-icon.png` | the tree on the cream colour | browser tab, iOS home screen |
+
+The cream paper of the original was knocked out to transparency, so the mark sits cleanly on both
+the cream navbar and the dark green footer. `SiteSetting.Logo` points at the **mark**; change it in
+`/Admin/Settings` if you ever want a different image in those small slots.
 
 ---
 
@@ -284,7 +305,7 @@ Everything below is already wired up; the only thing left for launch day is the 
 * [ ] Change the admin password and remove the demo hint from `Views/Admin/Login.cshtml`.
 * [ ] Run in Production (`ASPNETCORE_ENVIRONMENT=Production`) so the OTP is no longer shown on screen.
 * [ ] Put the app behind HTTPS (reverse proxy or hosting platform) — the app itself listens on HTTP.
-* [ ] Update the domain in `wwwroot/robots.txt` and `wwwroot/sitemap.xml` (`https://matibari.in`).
+* [ ] Update the domain in `wwwroot/robots.txt` and `wwwroot/sitemap.xml` (`https://sabarna.in`).
 * [ ] Replace the demo photos in `wwwroot/images/` with real ones (keep the file names, or update the
       paths in `/Admin/Products`).
 * [ ] Double-check the policies in `Views/Home/{Privacy,Terms,Shipping}.cshtml` with the owner — they
@@ -304,9 +325,9 @@ with the owner's own words — the home page hero and contact details are editab
 
 | | |
 | --- | --- |
-| Address | Matibari Farm, Village Matibari, P.O. Kharagpur, West Bengal 721301 |
+| Address | Sabarna Farm, Village Sabarna, P.O. Kharagpur, West Bengal 721301 |
 | Phone | +91 98000 12345 |
-| Email | hello@matibari.in |
+| Email | hello@sabarna.in |
 | WhatsApp | 919800012345 (digits only, with country code) |
 
 ---

@@ -1,9 +1,9 @@
-using Matibari.Web.Data;
-using Matibari.Web.Models;
+using Sabarna.Web.Data;
+using Sabarna.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace Matibari.Web.Controllers;
+namespace Sabarna.Web.Controllers;
 
 /// <summary>
 /// The public "shop front" pages: home, story, the four policy pages and the error page.
@@ -125,7 +125,7 @@ public class HomeController : Controller
     {
         ViewData["Title"] = "Our story";
         ViewData["Description"] = "Eleven people, four cows, one wood fire and a rooftop full of drying "
-                                + "mangoes — how Matibari makes its ghee, honey and pickles.";
+                                + "mangoes — how Sabarna makes its ghee, honey and pickles.";
         return View(await GetSettingsAsync());
     }
 
@@ -149,7 +149,7 @@ public class HomeController : Controller
     public IActionResult Terms()
     {
         ViewData["Title"] = "Terms & conditions";
-        ViewData["Description"] = "The plain-language terms that apply when you order from Matibari.";
+        ViewData["Description"] = "The plain-language terms that apply when you order from Sabarna.";
         return View();
     }
 
@@ -182,12 +182,12 @@ public class HomeController : Controller
         var settings = await _db.Settings.AsNoTracking().FirstOrDefaultAsync();
         return settings ?? new SiteSetting
         {
-            BrandName = "Matibari",
+            BrandName = "Sabarna",
             Tagline = "Small-batch ghee, honey & pickles",
-            Email = "hello@matibari.in",
+            Email = "hello@sabarna.in",
             Phone = "+91 98000 12345",
             Whatsapp = "919800012345",
-            Address = "Matibari Farm, Village Matibari, P.O. Kharagpur, West Bengal 721301",
+            Address = "Sabarna Farm, Village Sabarna, P.O. Kharagpur, West Bengal 721301",
             HeroKicker = "Farm to home",
             HeroTitle1 = "Ghee that still",
             HeroTitle2 = "smells of the farm",

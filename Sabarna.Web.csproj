@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <!--
-    Matibari.Web
+    Sabarna.Web
     ============
     ASP.NET Core 8 MVC. One project, no client-side framework.
     Razor views are compiled at build time, so a typo in a .cshtml file
@@ -9,8 +9,8 @@
   -->
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <RootNamespace>Matibari.Web</RootNamespace>
-    <AssemblyName>Matibari.Web</AssemblyName>
+    <RootNamespace>Sabarna.Web</RootNamespace>
+    <AssemblyName>Sabarna.Web</AssemblyName>
     <ImplicitUsings>enable</ImplicitUsings>
 
     <!--

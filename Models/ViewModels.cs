@@ -1,4 +1,4 @@
-namespace Matibari.Web.Models;
+namespace Sabarna.Web.Models;
 
 // =============================================================================================
 // VIEW MODELS — the exact shape each screen needs. Controllers fill these in and pass them to

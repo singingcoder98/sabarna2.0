@@ -1,15 +1,15 @@
-@model Matibari.Web.Models.AdminLoginViewModel
+@model Sabarna.Web.Models.AdminLoginViewModel
 @using Microsoft.EntityFrameworkCore
 @* AsNoTracking() is an EF Core extension method, and Razor does not import this namespace
    for you — that is why this line is here rather than in _ViewImports. *@
-@inject Matibari.Web.Data.AppDbContext Db
+@inject Sabarna.Web.Data.AppDbContext Db
 @{
     Layout = null;
 
     // A sign-in screen has no business in a search index.
     ViewData["Robots"] = "noindex, nofollow";
     var store = Db.Settings.AsNoTracking().FirstOrDefault()
-                ?? new SiteSetting { BrandName = "Matibari", Tagline = "Small-batch ghee, honey & pickles" };
+                ?? new SiteSetting { BrandName = "Sabarna", Tagline = "Small-batch ghee, honey & pickles" };
 }
 <!DOCTYPE html>
 <html lang="en-IN">
@@ -21,7 +21,7 @@
     <section class="mb-auth-visual" aria-labelledby="authHeading">
         <div class="mb-auth-visual-inner">
             <a class="mb-auth-brand" asp-controller="Home" asp-action="Index">
-                <img src="/images/logo.png" alt="" width="44" height="44" aria-hidden="true" />
+                <img src="/images/logo-mark.png" alt="" width="44" height="44" aria-hidden="true" />
                 <span>@store.BrandName</span>
             </a>
             <h1 class="mb-auth-visual-title" id="authHeading">
@@ -53,7 +53,7 @@
                 <div class="mb-field">
                     <label class="form-label" asp-for="Email">Email</label>
                     <input class="form-control" asp-for="Email" type="email" autocomplete="username"
-                           placeholder="you&#64;matibari.in" autofocus />
+                           placeholder="you&#64;sabarna.in" autofocus />
                     <span class="mb-field-error" asp-validation-for="Email"></span>
                 </div>
 
@@ -70,7 +70,7 @@
             <div class="mb-auth-demo">
                 <p class="mb-auth-demo-title">Demo account</p>
                 <p class="mb-auth-demo-text">
-                    <strong>admin&#64;matibari.in</strong> &nbsp;/&nbsp; <strong>Matibari&#64;2024</strong><br />
+                    <strong>admin&#64;sabarna.in</strong> &nbsp;/&nbsp; <strong>Sabarna&#64;2024</strong><br />
                     The six-digit code is shown on the next screen in development.
                     Change both before the shop goes live — see the README.
                 </p>

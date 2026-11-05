@@ -1,12 +1,12 @@
-using Matibari.Web.Data;
-using Matibari.Web.Models;
-using Matibari.Web.Services;
+using Sabarna.Web.Data;
+using Sabarna.Web.Models;
+using Sabarna.Web.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 // ---------------------------------------------------------------------------------------------
-// Matibari.Web — application entry point.
+// Sabarna.Web — application entry point.
 //
 // This file wires together the four building blocks of the site:
 //   1. the database (SQLite file, created and seeded on first run)
@@ -33,7 +33,7 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(connect
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
-    options.Cookie.Name = ".matibari.session";
+    options.Cookie.Name = ".sabarna.session";
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;   // required, so it may be set before cookie consent
     options.IdleTimeout = TimeSpan.FromDays(7);
@@ -51,7 +51,7 @@ builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.Cookie.Name = ".matibari.admin";
+        options.Cookie.Name = ".sabarna.admin";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
         options.LoginPath = "/Admin/Login";

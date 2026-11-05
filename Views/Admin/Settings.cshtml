@@ -1,4 +1,4 @@
-@model Matibari.Web.Models.SiteSetting
+@model Sabarna.Web.Models.SiteSetting
 @{
     Layout = "_AdminLayout";
 }
@@ -39,8 +39,12 @@
                     </div>
                     <div class="col-12 mb-field">
                         <label class="form-label" asp-for="Logo">Logo path</label>
-                        <input class="form-control" asp-for="Logo" maxlength="300" placeholder="/images/logo.png" />
-                        <p class="mb-field-hint">A path inside wwwroot. Image upload is on the deferred list.</p>
+                        <input class="form-control" asp-for="Logo" maxlength="300" placeholder="/images/logo-mark.png" />
+                        <p class="mb-field-hint">
+                            A path inside wwwroot. This image is drawn at 36&ndash;48 px, so the tree
+                            mark (<code>/images/logo-mark.png</code>) reads better there than the full
+                            logo lockup. Image upload is on the deferred list.
+                        </p>
                     </div>
                 </div>
             </div>

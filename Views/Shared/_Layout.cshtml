@@ -1,8 +1,8 @@
 @using Microsoft.EntityFrameworkCore
 @* AsNoTracking() is an EF Core extension method, and Razor does not import this namespace
    for you — that is why this line is here rather than in _ViewImports. *@
-@inject Matibari.Web.Data.AppDbContext Db
-@inject Matibari.Web.Services.CartService Cart
+@inject Sabarna.Web.Data.AppDbContext Db
+@inject Sabarna.Web.Services.CartService Cart
 @*
     The public shell: sticky navbar, page body, dark green footer, floating WhatsApp button,
     toast container and the JSON-LD block that tells Google this is an online store.
@@ -14,16 +14,18 @@
         // Only happens if the database was emptied by hand — never render a blank brand.
         store = new SiteSetting
         {
-            BrandName = "Matibari",
+            BrandName = "Sabarna",
             Tagline = "Small-batch ghee, honey & pickles",
-            Email = "hello@matibari.in",
+            Email = "hello@sabarna.in",
             Phone = "+91 98000 12345",
             Whatsapp = "919800012345",
-            Address = "Matibari Farm, Village Matibari, P.O. Kharagpur, West Bengal 721301"
+            Address = "Sabarna Farm, Village Sabarna, P.O. Kharagpur, West Bengal 721301"
         };
     }
 
-    var logoPath = string.IsNullOrWhiteSpace(store.Logo) ? "/images/logo.png" : store.Logo;
+    // The stacked logo is unreadable at 44px, so the navbar and footer show the tree mark;
+    // the full lockup is still what /images/logo.png points at (structured data, sharing).
+    var logoPath = string.IsNullOrWhiteSpace(store.Logo) ? "/images/logo-mark.png" : store.Logo;
     var cartCount = Cart.Count();
     var toastMessage = TempData["Toast"] as string;
     var errorMessage = TempData["Error"] as string;

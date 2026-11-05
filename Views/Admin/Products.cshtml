@@ -1,4 +1,4 @@
-@model Matibari.Web.Models.AdminProductsViewModel
+@model Sabarna.Web.Models.AdminProductsViewModel
 @{
     Layout = "_AdminLayout";
 
@@ -15,7 +15,7 @@
     var searchTerm = string.IsNullOrWhiteSpace(Model.Search) ? null : Model.Search;
 
     // A blank product for the "add" modal: Active defaults to true, ComboItemsJson defaults to "[]".
-    var blankProduct = new Matibari.Web.Models.Product();
+    var blankProduct = new Sabarna.Web.Models.Product();
 }
 <div class="mb-admin-head">
     <div>

@@ -1,4 +1,4 @@
-@model Matibari.Web.Models.HomeViewModel
+@model Sabarna.Web.Models.HomeViewModel
 @{
     var heroPick = Model.Featured.Count > 0 ? Model.Featured[0] : null;
     var heroImage = heroPick != null && heroPick.HasImage ? heroPick.Image : "/images/hero-farm.jpg";
@@ -87,7 +87,7 @@
             <div class="col-lg-6">
                 <div class="mb-about-media">
                     <img src="/images/about-farm.jpg"
-                         alt="The Matibari kitchen courtyard, with milk simmering on the wood fire and mangoes drying on the roof"
+                         alt="The Sabarna kitchen courtyard, with milk simmering on the wood fire and mangoes drying on the roof"
                          width="900" height="700" loading="lazy" />
                     <span class="mb-about-stamp">Since 2016</span>
                 </div>

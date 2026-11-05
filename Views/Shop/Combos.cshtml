@@ -1,4 +1,4 @@
-@model List<Matibari.Web.Models.Product>
+@model List<Sabarna.Web.Models.Product>
 <section class="mb-page-head mb-page-head-dark">
     <div class="container">
         <nav aria-label="Breadcrumb" class="mb-crumbs mb-crumbs-light">
@@ -44,7 +44,7 @@
                             <p class="mb-combo-text mb-combo-text-light">@featured.Description</p>
 
                             <ul class="mb-combo-chips">
-                                @foreach (var item in Matibari.Web.Services.CartService.GetComboItems(featured))
+                                @foreach (var item in Sabarna.Web.Services.CartService.GetComboItems(featured))
                                 {
                                     <li class="mb-chip">@item.Name · @item.Qty</li>
                                 }

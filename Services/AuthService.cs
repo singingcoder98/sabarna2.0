@@ -1,11 +1,11 @@
 using System.Security.Cryptography;
 using System.Text;
-using Matibari.Web.Data;
-using Matibari.Web.Models;
+using Sabarna.Web.Data;
+using Sabarna.Web.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace Matibari.Web.Services;
+namespace Sabarna.Web.Services;
 
 /// <summary>
 /// Everything about "proving you are the shop owner":

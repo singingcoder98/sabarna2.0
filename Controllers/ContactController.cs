@@ -1,9 +1,9 @@
-using Matibari.Web.Data;
-using Matibari.Web.Models;
+using Sabarna.Web.Data;
+using Sabarna.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace Matibari.Web.Controllers;
+namespace Sabarna.Web.Controllers;
 
 /// <summary>
 /// The contact page: a form plus our address, phone, email and picking-up hours.

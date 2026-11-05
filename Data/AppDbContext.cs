@@ -1,7 +1,7 @@
-using Matibari.Web.Models;
+using Sabarna.Web.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Matibari.Web.Data;
+namespace Sabarna.Web.Data;
 
 /// <summary>
 /// The Entity Framework Core context. Each DbSet is one table; the OnModelCreating method

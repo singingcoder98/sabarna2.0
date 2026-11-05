@@ -1,8 +1,8 @@
 using System.Text.Json;
-using Matibari.Web.Models;
+using Sabarna.Web.Models;
 using Microsoft.AspNetCore.Http;
 
-namespace Matibari.Web.Services;
+namespace Sabarna.Web.Services;
 
 /// <summary>
 /// The shopping basket. It lives in the visitor's session as a small JSON string, which means:
@@ -18,7 +18,7 @@ public class CartService
     public const decimal FreeShippingThreshold = 999m;
     public const decimal ShippingFee = 49m;
 
-    private const string SessionKey = "matibari.cart";
+    private const string SessionKey = "sabarna.cart";
 
     /// <summary>Case-insensitive JSON (matches the camelCase we store in the session).</summary>
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);

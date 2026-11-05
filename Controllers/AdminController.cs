@@ -2,16 +2,16 @@ using System.Globalization;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
-using Matibari.Web.Data;
-using Matibari.Web.Models;
-using Matibari.Web.Services;
+using Sabarna.Web.Data;
+using Sabarna.Web.Models;
+using Sabarna.Web.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace Matibari.Web.Controllers;
+namespace Sabarna.Web.Controllers;
 
 /// <summary>
 /// The shop owner's back office. Every action requires the "admin" role except the two login
@@ -24,10 +24,10 @@ namespace Matibari.Web.Controllers;
 public class AdminController : Controller
 {
     /// <summary>Session key holding the id of the admin who is halfway through logging in.</summary>
-    private const string PendingAdminKey = "matibari.pending-admin";
+    private const string PendingAdminKey = "sabarna.pending-admin";
 
     /// <summary>Session key holding the dev-only copy of the code, so it survives a page refresh.</summary>
-    private const string DevCodeKey = "matibari.dev-otp";
+    private const string DevCodeKey = "sabarna.dev-otp";
 
     /// <summary>Products at or below this stock level are flagged on the dashboard.</summary>
     public const int LowStockThreshold = 10;
@@ -441,7 +441,7 @@ public class AdminController : Controller
 
         // The BOM is what makes Excel open the file as UTF-8 and keep the ₹-priced names readable.
         var bytes = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true).GetBytes(csv.ToString());
-        var fileName = $"matibari-orders-{DateTime.UtcNow:yyyyMMdd-HHmm}.csv";
+        var fileName = $"sabarna-orders-{DateTime.UtcNow:yyyyMMdd-HHmm}.csv";
 
         return File(bytes, "text/csv", fileName);
     }
@@ -703,7 +703,7 @@ public class AdminController : Controller
     {
         var settings = await _db.Settings.FirstOrDefaultAsync() ?? new SiteSetting
         {
-            BrandName = "Matibari",
+            BrandName = "Sabarna",
             Tagline = "Small-batch ghee, honey & pickles"
         };
 

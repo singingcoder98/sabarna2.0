@@ -1,10 +1,10 @@
 using System.Net;
 using System.Text;
-using Matibari.Web.Data;
+using Sabarna.Web.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace Matibari.Web.Controllers;
+namespace Sabarna.Web.Controllers;
 
 /// <summary>
 /// The two things search engines ask for and a hand-written file cannot keep up to date.
@@ -98,7 +98,7 @@ public class SeoController : Controller
         var origin = $"{Request.Scheme}://{Request.Host}";
 
         var text = new StringBuilder();
-        text.AppendLine("# Matibari — robots.txt");
+        text.AppendLine("# Sabarna — robots.txt");
         text.AppendLine("# Everything public may be crawled. The admin panel, the basket and the error page may not.");
         text.AppendLine();
         text.AppendLine("User-agent: *");

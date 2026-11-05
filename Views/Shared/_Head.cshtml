@@ -1,4 +1,4 @@
-@model Matibari.Web.Models.SiteSetting
+@model Sabarna.Web.Models.SiteSetting
 @*
     Everything that lives inside <head>:
       • page title + meta description (set per page with ViewData["Title"] / ViewData["Description"])
@@ -12,7 +12,7 @@
       ViewData["PreloadImage"] a hero image worth fetching before the CSS asks for it
 *@
 @{
-    var brandName = string.IsNullOrWhiteSpace(Model.BrandName) ? "Matibari" : Model.BrandName;
+    var brandName = string.IsNullOrWhiteSpace(Model.BrandName) ? "Sabarna" : Model.BrandName;
     var pageTitle = ViewData["Title"] as string;
 
     var fullTitle = string.IsNullOrWhiteSpace(pageTitle)
@@ -77,8 +77,8 @@
 <meta name="twitter:image" content="@ogImage" />
 <meta name="twitter:image:alt" content="@brandName" />
 
-<link rel="icon" href="~/images/favicon.svg" type="image/svg+xml" />
-<link rel="apple-touch-icon" href="~/images/logo.png" />
+<link rel="icon" href="~/images/favicon.png" type="image/png" sizes="96x96" />
+<link rel="apple-touch-icon" href="~/images/apple-touch-icon.png" />
 
 @if (!string.IsNullOrWhiteSpace(preloadImage))
 {

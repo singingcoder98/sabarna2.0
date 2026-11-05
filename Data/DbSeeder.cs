@@ -1,9 +1,9 @@
 using System.Text.Json;
-using Matibari.Web.Models;
+using Sabarna.Web.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace Matibari.Web.Data;
+namespace Sabarna.Web.Data;
 
 /// <summary>
 /// Creates the SQLite file, the tables and a complete set of demo data on first run.
@@ -22,6 +22,7 @@ public static class DbSeeder
         // Creates app.db and every table/index described in AppDbContext.
         await db.Database.EnsureCreatedAsync();
 
+        await MigrateBrandAsync(db, hasher);
         await SeedSettingsAsync(db);
         await SeedAdminAsync(db, hasher);
         await SeedProductsAsync(db);
@@ -40,13 +41,13 @@ public static class DbSeeder
 
         db.Settings.Add(new SiteSetting
         {
-            BrandName = "Matibari",
+            BrandName = "Sabarna",
             Tagline = "Small-batch ghee, honey & pickles",
-            Logo = "/images/logo.png",
-            Email = "hello@matibari.in",
+            Logo = "/images/logo-mark.png",
+            Email = "hello@sabarna.in",
             Phone = "+91 98000 12345",
             Whatsapp = "919800012345",
-            Address = "Matibari Farm, Village Matibari, P.O. Kharagpur, West Bengal 721301",
+            Address = "Sabarna Farm, Village Sabarna, P.O. Kharagpur, West Bengal 721301",
             HeroKicker = "Farm to home · since 2016",
             HeroTitle1 = "Ghee that still",
             HeroTitle2 = "smells of the farm",
@@ -60,9 +61,47 @@ public static class DbSeeder
     }
 
     // -----------------------------------------------------------------------------------------
+    // 1b. The shop was seeded as "Matibari" before it was named Sabarna. If an older app.db is
+    //     still carrying that name, quietly move it across rather than asking the owner to throw
+    //     away their orders. Runs once — after the rename the condition is never true again.
+    // -----------------------------------------------------------------------------------------
+    private static async Task MigrateBrandAsync(AppDbContext db, IPasswordHasher<AdminUser> hasher)
+    {
+        var renamed = false;
+
+        var settings = await db.Settings.FirstOrDefaultAsync();
+        if (settings != null && settings.BrandName.Trim().Equals("Matibari", StringComparison.OrdinalIgnoreCase))
+        {
+            settings.BrandName = "Sabarna";
+            settings.Email = "hello@sabarna.in";
+            settings.Logo = "/images/logo-mark.png";
+            settings.UpdatedAt = DateTime.UtcNow;
+            renamed = true;
+        }
+
+        // The demo admin keeps working under its new address. Skipped if that address is taken.
+        var legacyAdmin = await db.AdminUsers.FirstOrDefaultAsync(a => a.Email == "admin@matibari.in");
+        if (legacyAdmin != null && !await db.AdminUsers.AnyAsync(a => a.Email == "admin@sabarna.in"))
+        {
+            legacyAdmin.Email = "admin@sabarna.in";
+
+            // The documented password changed with the brand, so the demo hash is refreshed too.
+            // If this account's password was changed by hand, set it again from /Admin afterwards.
+            legacyAdmin.PasswordHash = hasher.HashPassword(legacyAdmin, "Sabarna@2024");
+
+            renamed = true;
+        }
+
+        if (renamed)
+        {
+            await db.SaveChangesAsync();
+        }
+    }
+
+    // -----------------------------------------------------------------------------------------
     // 2. The single admin account. DEMO CREDENTIALS (change them before going live):
-    //      email:    admin@matibari.in
-    //      password: Matibari@2024
+    //      email:    admin@sabarna.in
+    //      password: Sabarna@2024
     // -----------------------------------------------------------------------------------------
     private static async Task SeedAdminAsync(AppDbContext db, IPasswordHasher<AdminUser> hasher)
     {
@@ -73,7 +112,7 @@ public static class DbSeeder
 
         var admin = new AdminUser
         {
-            Email = "admin@matibari.in",
+            Email = "admin@sabarna.in",
             FullName = "Sabarna Manna",
             Role = "admin",
             IsActive = true,
@@ -81,7 +120,7 @@ public static class DbSeeder
         };
 
         // PasswordHasher adds a per-password salt and a slow KDF — never store plain text.
-        admin.PasswordHash = hasher.HashPassword(admin, "Matibari@2024");
+        admin.PasswordHash = hasher.HashPassword(admin, "Sabarna@2024");
         db.AdminUsers.Add(admin);
 
         await db.SaveChangesAsync();
@@ -422,7 +461,7 @@ public static class DbSeeder
         db.Orders.AddRange(
             new Order
             {
-                OrderNumber = $"MB-{year}-1041",
+                OrderNumber = $"SB-{year}-1041",
                 Customer = "Ananya Ghosh",
                 Email = "ananya.ghosh@example.com",
                 ItemCount = 3,
@@ -436,7 +475,7 @@ public static class DbSeeder
             },
             new Order
             {
-                OrderNumber = $"MB-{year}-1042",
+                OrderNumber = $"SB-{year}-1042",
                 Customer = "Rohit Banerjee",
                 Email = "rohit.b@example.com",
                 ItemCount = 1,
@@ -450,7 +489,7 @@ public static class DbSeeder
             },
             new Order
             {
-                OrderNumber = $"MB-{year}-1043",
+                OrderNumber = $"SB-{year}-1043",
                 Customer = "Meera Iyer",
                 Email = "meera.iyer@example.com",
                 ItemCount = 2,
@@ -464,7 +503,7 @@ public static class DbSeeder
             },
             new Order
             {
-                OrderNumber = $"MB-{year}-1044",
+                OrderNumber = $"SB-{year}-1044",
                 Customer = "Souvik Dutta",
                 Email = "souvik.dutta@example.com",
                 ItemCount = 4,
@@ -478,7 +517,7 @@ public static class DbSeeder
             },
             new Order
             {
-                OrderNumber = $"MB-{year}-1045",
+                OrderNumber = $"SB-{year}-1045",
                 Customer = "Priyanka Seal",
                 Email = "priyanka.seal@example.com",
                 ItemCount = 1,
@@ -492,7 +531,7 @@ public static class DbSeeder
             },
             new Order
             {
-                OrderNumber = $"MB-{year}-1046",
+                OrderNumber = $"SB-{year}-1046",
                 Customer = "Arjun Chatterjee",
                 Email = "arjun.c@example.com",
                 ItemCount = 2,

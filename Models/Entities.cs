@@ -1,9 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
-using Matibari.Web.Services;
+using Sabarna.Web.Services;
 
-namespace Matibari.Web.Models;
+namespace Sabarna.Web.Models;
 
 // =============================================================================================
 // ENTITIES — one class per database table. Every property is explained in a short comment so a

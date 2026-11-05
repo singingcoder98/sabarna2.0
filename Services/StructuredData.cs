@@ -1,8 +1,8 @@
 using System.Globalization;
 using System.Text.Json;
-using Matibari.Web.Models;
+using Sabarna.Web.Models;
 
-namespace Matibari.Web.Services;
+namespace Sabarna.Web.Services;
 
 /// <summary>
 /// Builds the JSON-LD blocks that go into &lt;script type="application/ld+json"&gt;.
@@ -21,7 +21,7 @@ public static class StructuredData
     /// </summary>
     public static string Product(Product product, string storeName, string pageUrl, string absoluteImageUrl)
     {
-        var brand = string.IsNullOrWhiteSpace(storeName) ? "Matibari" : storeName;
+        var brand = string.IsNullOrWhiteSpace(storeName) ? "Sabarna" : storeName;
 
         var productSchema = new Dictionary<string, object>
         {
@@ -33,7 +33,7 @@ public static class StructuredData
                 : product.Description,
             ["image"] = new[] { absoluteImageUrl },
             ["url"] = pageUrl,
-            ["sku"] = $"MB-{product.Id:D4}",
+            ["sku"] = $"SB-{product.Id:D4}",
             ["category"] = product.Category,
             ["brand"] = new Dictionary<string, object>
             {

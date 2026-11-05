@@ -1,7 +1,7 @@
 @using Microsoft.EntityFrameworkCore
 @* AsNoTracking() is an EF Core extension method, and Razor does not import this namespace
    for you — that is why this line is here rather than in _ViewImports. *@
-@inject Matibari.Web.Data.AppDbContext Db
+@inject Sabarna.Web.Data.AppDbContext Db
 @*
     The admin shell: a fixed sidebar on desktop, which becomes an offcanvas drawer below 992px,
     plus a slim top bar with the signed-in name and a sign-out button.
@@ -10,7 +10,7 @@
     var store = Db.Settings.AsNoTracking().FirstOrDefault();
     if (store == null)
     {
-        store = new SiteSetting { BrandName = "Matibari", Tagline = "Small-batch ghee, honey & pickles" };
+        store = new SiteSetting { BrandName = "Sabarna", Tagline = "Small-batch ghee, honey & pickles" };
     }
 
     var adminName = User != null && User.Identity != null && User.Identity.IsAuthenticated

@@ -1,5 +1,5 @@
 /* =====================================================================================
-   Matibari — site.css
+   Sabarna — site.css
    -------------------------------------------------------------------------------------
    One stylesheet that layers the brand on top of Bootstrap 5.3.3.
 
@@ -403,9 +403,11 @@ code {
 .mb-brand-name {
     font-family: var(--mb-font-heading);
     font-weight: 600;
-    font-size: 1.3rem;
+    font-size: 1.15rem;
     color: var(--mb-green-900);
-    letter-spacing: -0.01em;
+    /* The logo wordmark is set in capitals; the header copy matches it. */
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
 }
 
 .mb-brand-tag {

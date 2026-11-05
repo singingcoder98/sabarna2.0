@@ -1,15 +1,15 @@
-@model Matibari.Web.Models.OtpViewModel
+@model Sabarna.Web.Models.OtpViewModel
 @using Microsoft.EntityFrameworkCore
 @* AsNoTracking() is an EF Core extension method, and Razor does not import this namespace
    for you — that is why this line is here rather than in _ViewImports. *@
-@inject Matibari.Web.Data.AppDbContext Db
+@inject Sabarna.Web.Data.AppDbContext Db
 @{
     Layout = null;
 
     // A sign-in screen has no business in a search index.
     ViewData["Robots"] = "noindex, nofollow";
     var store = Db.Settings.AsNoTracking().FirstOrDefault()
-                ?? new SiteSetting { BrandName = "Matibari", Tagline = "Small-batch ghee, honey & pickles" };
+                ?? new SiteSetting { BrandName = "Sabarna", Tagline = "Small-batch ghee, honey & pickles" };
     var devCode = ViewData["DevCode"] as string;
 }
 <!DOCTYPE html>
@@ -22,7 +22,7 @@
     <section class="mb-auth-visual mb-auth-visual-otp" aria-labelledby="otpHeading">
         <div class="mb-auth-visual-inner">
             <a class="mb-auth-brand" asp-controller="Home" asp-action="Index">
-                <img src="/images/logo.png" alt="" width="44" height="44" aria-hidden="true" />
+                <img src="/images/logo-mark.png" alt="" width="44" height="44" aria-hidden="true" />
                 <span>@store.BrandName</span>
             </a>
             <h1 class="mb-auth-visual-title" id="otpHeading">

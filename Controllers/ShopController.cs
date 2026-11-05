@@ -1,10 +1,10 @@
-using Matibari.Web.Data;
-using Matibari.Web.Models;
-using Matibari.Web.Services;
+using Sabarna.Web.Data;
+using Sabarna.Web.Models;
+using Sabarna.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace Matibari.Web.Controllers;
+namespace Sabarna.Web.Controllers;
 
 /// <summary>
 /// The catalogue: everything, one product, or the combo boxes.
@@ -134,7 +134,7 @@ public class ShopController : Controller
         var text = product.Description;
         if (string.IsNullOrWhiteSpace(text))
         {
-            return $"{product.Name} — {product.Unit}, ₹{product.Price:0} from Matibari.";
+            return $"{product.Name} — {product.Unit}, ₹{product.Price:0} from Sabarna.";
         }
 
         text = text.Trim();
