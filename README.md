@@ -470,6 +470,26 @@ machine). Right-click the project → **Publish** → pick **MonsterASP**, or *I
 not listed. It already sets Release, keeps remote files (`DeleteExistingFiles=False`, so
 `App_Data/app.db` survives), and excludes the local demo database.
 
+*If the profile does not appear in the Publish list* (Visual Studio caches the list at
+solution-open time): close and reopen the solution, or use **Import profile** on the Publish
+screen and pick `Properties/PublishProfiles/MonsterASP.pubxml`. Doing it by hand instead — choose
+**Web Server (IIS)** and type these five values, which the profile would have filled in:
+
+| Field | Value |
+| --- | --- |
+| Server | `site105177.siteasp.net:8172` |
+| Site name | `site105177` |
+| User name | `site105177` |
+| Password | the FTP/deployment password from the panel (`Show` reveals it) |
+| Destination URL | `https://sabarna.runasp.net` |
+
+Then **Settings**: Configuration `Release`, Target framework `net8.0`, and **untick "Remove
+additional files at destination"**.
+
+*Third route, no Web Deploy at all:* publish to a **Folder** (say `C:\sabarna-publish`), then upload
+that folder's contents to `/wwwroot` with FileZilla (server `site105177.siteasp.net`, port 21, user
+`site105177`) or the panel's **Files → File manager**.
+
 > **The physical root is `\wwwroot` on the host.** Whatever route you use, `Sabarna.Web.dll`,
 > `web.config` and `App_Data` must end up directly in that folder — not in a `publish` subfolder and
 > not inside `wwwroot\wwwroot`. The project's own `wwwroot` (the one with `css/`, `images/`) travels
