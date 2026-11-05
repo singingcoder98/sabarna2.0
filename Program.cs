@@ -22,8 +22,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 // ---- 1b. Preview mode -----------------------------------------------------------------------
-// While the shop is being shown to people before launch it must stay out of search engines (and
-// can ask for a shared code). Both switches live in appsettings.json under "Preview".
+// While the shop is being shown to people before launch it must stay out of search engines.
+// The switch lives in appsettings.json under "Preview".
 builder.Services.Configure<PreviewOptions>(builder.Configuration.GetSection("Preview"));
 
 // Behind a tunnel (cloudflared, ngrok) or a hosting proxy, the request arrives as plain HTTP on
@@ -132,8 +132,8 @@ app.Use(async (context, next) =>
 
 app.UseStaticFiles();
 
-// Preview gate: noindex everywhere, and optionally a shared code before anything is shown.
-app.UseMiddleware<PreviewGateMiddleware>();
+// Preview: noindex everywhere, no wall in front of the shop. Nothing else changes.
+app.UseMiddleware<PreviewNoIndexMiddleware>();
 
 app.UseRouting();
 app.UseSession();
