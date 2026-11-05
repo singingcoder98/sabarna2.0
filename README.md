@@ -490,6 +490,13 @@ additional files at destination"**.
 that folder's contents to `/wwwroot` with FileZilla (server `site105177.siteasp.net`, port 21, user
 `site105177`) or the panel's **Files → File manager**.
 
+> **Where the deployment password lives.** Visual Studio writes it to
+> `MonsterASP.pubxml.user`, next to the profile and git-ignored (`*.user`). The committed `.pubxml`
+> keeps `<Password></Password>` empty. If `Git Changes` ever shows the profile as modified after you
+> saved a password, discard that change — the password belongs in the side-car file, not in git. Some
+> Visual Studio versions store it inside the `.pubxml` instead; if yours does, add it, publish, then
+> `git checkout -- Properties/PublishProfiles/MonsterASP.pubxml`.
+
 > **The physical root is `\wwwroot` on the host.** Whatever route you use, `Sabarna.Web.dll`,
 > `web.config` and `App_Data` must end up directly in that folder — not in a `publish` subfolder and
 > not inside `wwwroot\wwwroot`. The project's own `wwwroot` (the one with `css/`, `images/`) travels

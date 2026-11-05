@@ -17,6 +17,8 @@ publish/
 .vscode/
 .idea/
 *.user
+*.pubxml.user
+PublishProfiles/*.user
 *.suo
 *.userosscache
 *.sln.docstates
