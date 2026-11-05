@@ -39,7 +39,12 @@
         canonical += "?category=" + Uri.EscapeDataString(category);
     }
 
-    var robots = ViewData["Robots"] as string ?? "index, follow, max-image-preview:large, max-snippet:-1";
+    // While the shop is a preview (see PreviewGateMiddleware) nothing may be indexed, whatever
+    // the page itself asked for.
+    var previewMode = Context.Items["SitePreview"] is true;
+    var robots = previewMode
+        ? "noindex, nofollow"
+        : ViewData["Robots"] as string ?? "index, follow, max-image-preview:large, max-snippet:-1";
 
     var ogType = ViewData["OgType"] as string ?? "website";
     var shareImagePath = ViewData["OgImage"] as string;

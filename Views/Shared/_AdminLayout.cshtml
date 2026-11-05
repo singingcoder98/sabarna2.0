@@ -2,6 +2,7 @@
 @* AsNoTracking() is an EF Core extension method, and Razor does not import this namespace
    for you — that is why this line is here rather than in _ViewImports. *@
 @inject Sabarna.Web.Data.AppDbContext Db
+@inject Microsoft.Extensions.Options.IOptions<Sabarna.Web.Services.PreviewOptions> PreviewSwitches
 @*
     The admin shell: a fixed sidebar on desktop, which becomes an offcanvas drawer below 992px,
     plus a slim top bar with the signed-in name and a sign-out button.
@@ -16,6 +17,8 @@
     var adminName = User != null && User.Identity != null && User.Identity.IsAuthenticated
         ? User.Identity.Name
         : "Shop owner";
+    // Shown in the top bar so nobody forgets the shop is still in preview on launch day.
+    var preview = PreviewSwitches.Value;
     var toastMessage = TempData["Toast"] as string;
     var errorMessage = TempData["Error"] as string;
 
@@ -54,6 +57,12 @@
             </button>
 
             <div class="mb-admin-topbar-right">
+                @if (preview.Enabled)
+                {
+                    <span class="pill pill-amber" title="Search engines are told to stay away until Preview:Enabled is false">
+                        Preview &middot; not indexed
+                    </span>
+                }
                 <a class="btn btn-ghost btn-sm" asp-controller="Home" asp-action="Index" target="_blank" rel="noopener">
                     View shop <span aria-hidden="true">&#8599;</span>
                 </a>

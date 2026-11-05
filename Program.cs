@@ -2,6 +2,7 @@ using Sabarna.Web.Data;
 using Sabarna.Web.Models;
 using Sabarna.Web.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,6 +20,21 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ---- 1. MVC (controllers + Razor views) ------------------------------------------------------
 builder.Services.AddControllersWithViews();
+
+// ---- 1b. Preview mode -----------------------------------------------------------------------
+// While the shop is being shown to people before launch it must stay out of search engines (and
+// can ask for a shared code). Both switches live in appsettings.json under "Preview".
+builder.Services.Configure<PreviewOptions>(builder.Configuration.GetSection("Preview"));
+
+// Behind a tunnel (cloudflared, ngrok) or a hosting proxy, the request arrives as plain HTTP on
+// localhost. Reading the forwarded headers is what keeps https, the public host name, canonical
+// URLs and the sitemap correct from the visitor's point of view.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // ---- 2. Database -----------------------------------------------------------------------------
 // A single SQLite file next to the app. No server to install, no connection secrets to keep.
@@ -77,6 +93,9 @@ using (var scope = app.Services.CreateScope())
 }
 
 // ---- Request pipeline -----------------------------------------------------------------------
+// First, so every later middleware sees the real scheme and host.
+app.UseForwardedHeaders();
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -112,6 +131,10 @@ app.Use(async (context, next) =>
 });
 
 app.UseStaticFiles();
+
+// Preview gate: noindex everywhere, and optionally a shared code before anything is shown.
+app.UseMiddleware<PreviewGateMiddleware>();
+
 app.UseRouting();
 app.UseSession();
 app.UseAuthentication();
