@@ -35,15 +35,25 @@ public class AdminController : Controller
     private readonly AppDbContext _db;
     private readonly AuthService _auth;
     private readonly IWebHostEnvironment _environment;
+    private readonly IConfiguration _configuration;
 
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
-    public AdminController(AppDbContext db, AuthService auth, IWebHostEnvironment environment)
+    public AdminController(AppDbContext db, AuthService auth, IWebHostEnvironment environment, IConfiguration configuration)
     {
         _db = db;
         _auth = auth;
         _environment = environment;
+        _configuration = configuration;
     }
+
+    /// <summary>
+    /// True when the one-time code may be shown on screen. No mail provider is connected yet, so
+    /// on a fresh host this is the only way in — it is Development by default, and can be switched
+    /// on for a hosted preview with Otp:ShowOnScreen = true. Turn it off the day mail is wired up.
+    /// </summary>
+    private bool ShowOtpOnScreen =>
+        _configuration.GetValue<bool?>("Otp:ShowOnScreen") ?? _environment.IsDevelopment();
 
     // =============================================================================================
     // LOGIN — step 1: email + password
@@ -87,9 +97,9 @@ public class AdminController : Controller
 
         HttpContext.Session.SetInt32(PendingAdminKey, admin.Id);
 
-        if (_environment.IsDevelopment())
+        if (ShowOtpOnScreen)
         {
-            // DEVELOPMENT ONLY: no mail provider is connected yet, so the code is shown on screen.
+            // No mail provider is connected yet, so the code is kept for the screen (see README §7).
             HttpContext.Session.SetString(DevCodeKey, code);
         }
 
@@ -114,7 +124,7 @@ public class AdminController : Controller
         }
 
         ViewData["Title"] = "Enter your one-time code";
-        ViewData["DevCode"] = _environment.IsDevelopment()
+        ViewData["DevCode"] = ShowOtpOnScreen
             ? HttpContext.Session.GetString(DevCodeKey)
             : null;
 
@@ -134,7 +144,7 @@ public class AdminController : Controller
         }
 
         ViewData["Title"] = "Enter your one-time code";
-        ViewData["DevCode"] = _environment.IsDevelopment()
+        ViewData["DevCode"] = ShowOtpOnScreen
             ? HttpContext.Session.GetString(DevCodeKey)
             : null;
 

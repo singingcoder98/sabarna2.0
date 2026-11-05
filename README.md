@@ -118,6 +118,8 @@ Program.cs                       DI, DbContext, session, cookie auth, "AdminOnly
 appsettings.json                 ConnectionStrings:Default = "Data Source=app.db", Preview switches
 Properties/launchSettings.json   http://localhost:5080, ASPNETCORE_ENVIRONMENT=Development
 Dockerfile                       .NET 8 build + runtime image, port 8080, database at /data
+web.config                       IIS entry point + env vars for shared hosting (MonsterASP, Azure)
+App_Data/                        where SQLite writes app.db on IIS; published, never served
 .dockerignore                    keeps bin/, obj/ and app.db out of the image
 
 Controllers/
@@ -390,16 +392,82 @@ Vercel dashboard to look busy, that is exactly what it is for — Next.js, not A
 
 **1. A link today, no domain, no card** — the tunnel in §9. Free, and the shop runs on your own PC.
 
-**2. Free or near-free .NET hosting** — nothing to containerise:
+**2. Free .NET hosting — MonsterASP.NET, step by step.** Nothing to containerise, and the free plan
+is enough for a preview shop on a `something.runasp.net` address. (Azure App Service F1 works the
+same way: publish from Visual Studio, then set the same two environment variables.)
 
-* **Azure App Service** (F1 free tier, or B1 ≈ ₹1,000/month). Publish from Visual Studio
-  (*right-click the project → Publish → Azure*) or from GitHub Actions with
-  `azure/webapps-deploy`. Set `ASPNETCORE_ENVIRONMENT=Production` and, so the database survives a
-  restart, point the connection string at the persistent area:
-  `ConnectionStrings__Default = Data Source=D:\home\data\app.db` on Windows,
-  `Data Source=/home/data/app.db` on Linux.
-* **MonsterASP.NET** — free ASP.NET Core hosting with SQLite support; upload the published folder.
-* Avoid the ancient free hosts that force `net4.x` or add banner ads.
+*Part A — create the site*
+
+1. **Plan:** Free.
+2. **Domain:** choose **Free subdomain**, type a name (min 3 characters: letters, digits, dashes —
+   e.g. `sabarna`), then pick `runasp.net` or `tryasp.net`. Your address becomes
+   `sabarna.runasp.net`.
+3. **Subscription / Package:** whatever the free option says.
+4. **Location / Datacenter:** the one closest to your visitors (Europe is usually fine from India).
+5. **Example application:** choose **Empty** if it is offered — a sample app is only something to
+   delete afterwards.
+6. **Create**, then open the site in the panel and set the runtime to **ASP.NET Core 8.0**. That one
+   setting decides whether the site runs at all.
+
+*Part B — publish the files*
+
+From Visual Studio (easiest):
+
+1. Right-click the project → **Publish** → target **Web Server (IIS)** → **Web Deploy**.
+2. Copy the four values from the panel's **Publish / Web Deploy** page: server
+   (`https://…:8172/msdeploy.axd?site=…`), site name, user name, password.
+3. Destination URL: `https://sabarna.runasp.net`.
+4. **Settings** → Configuration `Release`, Target framework `net8.0`, and **untick "Remove
+   additional files at destination"** — that checkbox wipes `App_Data/app.db` on every redeploy,
+   and that file is the entire shop.
+5. **Publish.**
+
+From the command line or the panel's file manager:
+
+```bash
+dotnet publish Sabarna.Web.csproj -c Release -o publish
+```
+
+Upload the **contents of `publish`** (not the folder itself) to the site root over FTP, or zip them
+and extract with the file manager. `Sabarna.Web.dll`, `web.config` and `App_Data` must all sit in
+the root.
+
+*Part C — what the shipped `web.config` already does*
+
+Nothing to configure in the panel. It sets:
+
+| Setting | Value | Why |
+| --- | --- | --- |
+| `ASPNETCORE_ENVIRONMENT` | `Production` | friendly error page, HSTS, no stack traces |
+| `ConnectionStrings__Default` | `Data Source=App_Data/app.db` | IIS keeps `App_Data` writable |
+| `Otp__ShowOnScreen` | `true` | no mail provider yet — the admin code is drawn on screen |
+
+That last line is a deliberate bridge, not a feature: delete it the day e-mail/SMS delivery is
+wired up (README §7), otherwise anyone who reaches `/Admin` with your password can read the code.
+
+*Part D — check it*
+
+1. Open `https://sabarna.runasp.net` — the home page should render. The first request creates
+   `App_Data/app.db` and seeds the catalogue.
+2. Go to `/Admin/Login`, sign in with `admin@sabarna.in` / `Sabarna@2024`; the six-digit code
+   appears in the yellow box on the next screen.
+3. The free address is not indexed: `Preview:Enabled` is still `true`, so the whole site is
+   `noindex` until launch day.
+4. Download `App_Data/app.db` now and then — that file is the shop.
+
+*If it does not come up*
+
+| Symptom | Cause and fix |
+| --- | --- |
+| **500.19** | Runtime not set to ASP.NET Core 8.0 in the panel, or `web.config` is missing from the site root |
+| **500.30** | The app started and crashed — usually the database path; check `logs/stdout` after setting `stdoutLogEnabled="true"` |
+| `unable to open database file` | `App_Data` was not published, or is not writable — create it with the file manager |
+| **404 on every page** | Files landed in a subfolder (`publish`, `wwwroot`) instead of the site root |
+| Login works, no code on screen | The `Otp__ShowOnScreen` line is missing from `web.config` |
+
+**Free tier caveats.** These plans are for showing the shop to people, not for taking money: the
+first request after a quiet spell can be slow, disk quotas are small, and the only backup of
+`App_Data/app.db` is the one you take yourself.
 
 **3. Any Docker host** — Fly.io, Railway, Render, or a ₹400/month VPS (DigitalOcean, Hetzner). The
 repository ships a `Dockerfile` for exactly this:

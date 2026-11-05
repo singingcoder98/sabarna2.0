@@ -49,13 +49,14 @@
             @if (!string.IsNullOrWhiteSpace(devCode))
             {
                 <div class="mb-dev-notice" role="status">
-                    <p class="mb-dev-notice-title">Development mode — no email is sent</p>
+                    <p class="mb-dev-notice-title">No email is sent yet</p>
                     <p class="mb-dev-notice-text">
                         Your one-time code is <strong class="mb-dev-code">@devCode</strong>
                     </p>
                     <p class="mb-dev-notice-fine">
-                        This box only appears when the site runs in the Development environment.
-                        Connect a mail provider (see README) and it disappears.
+                        This box appears because <code>Otp:ShowOnScreen</code> is on, or because the
+                        site is running in Development. Connect a mail provider (README §7) and
+                        switch it off.
                     </p>
                 </div>
             }

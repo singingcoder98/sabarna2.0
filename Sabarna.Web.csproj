@@ -32,6 +32,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- App_Data must exist at the destination: it is where SQLite writes app.db on IIS hosting. -->
+    <Content Include="App_Data\**" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Everything under wwwroot is static content; nothing else needs publishing rules. -->
     <Content Remove="app.db;app.db-shm;app.db-wal" />
     <None Remove="app.db;app.db-shm;app.db-wal" />

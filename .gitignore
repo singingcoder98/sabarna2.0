@@ -29,3 +29,8 @@ desktop.ini
 # ---------- Logs ----------
 *.log
 logs/
+
+# The SQLite file, wherever the app is told to put it.
+App_Data/*.db
+App_Data/*.db-shm
+App_Data/*.db-wal
