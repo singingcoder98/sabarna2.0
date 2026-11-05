@@ -54,6 +54,39 @@ if present), and run it again. Nothing else needs to be reset.
 `dotnet build` is expected to finish with **0 errors and 0 warnings**.
 `app.db` is git-ignored — it is demo data, never commit it.
 
+### Is the database actually connected?
+
+There is nothing to connect *to* and nothing to install — SQLite is a library inside the app and the
+database is one file on disk. Three lines explain the whole thing:
+
+| Where | What it says |
+| --- | --- |
+| `appsettings.json` | `"ConnectionStrings": { "Default": "Data Source=app.db" }` — the file name, no server, no password |
+| `Program.cs` | `AddDbContext<AppDbContext>(o => o.UseSqlite(connectionString))` — every page talks to that one context |
+| `Program.cs` | `EnsureCreatedAsync()` then `DbSeeder.SeedAsync()` — creates the file and fills it on first start |
+
+Four ways to see it with your own eyes:
+
+1. **The file appears.** Run the app, then look in the project folder next to `Sabarna.Web.csproj`
+   — `app.db` is there (it is git-ignored, so tick *Show All Files* in Solution Explorer). It is
+   **not** in `bin\`, because the content root is the project folder.
+2. **The shop shows data.** Open `/Shop` — 13 products, prices, stock. Those rows came out of the
+   file, not out of the view.
+3. **The admin writes to it.** Change a price in `/Admin/Products`, save, refresh `/Shop` — the new
+   price is already live. One database, two windows onto it.
+4. **Delete it and watch it come back.** Stop the app, delete `app.db`, start again: the file
+   reappears with the demo catalogue, because the app creates and seeds it itself.
+
+To look inside, install **DB Browser for SQLite** (<https://sqlitebrowser.org>, free, Windows) and
+open `app.db`. Tables: `Products`, `Categories`, `Orders`, `OrderItems`, `Settings`, `AdminUsers`.
+Close the app before editing rows there — SQLite gives one writer at a time.
+
+**Moving the file** is one line: `"Default": "Data Source=App_Data/app.db"` in `appsettings.json`
+(the folder must exist first). That is exactly what the deployed `web.config` does — see §10.
+
+> The local `app.db` is *yours*, not the site's. It is git-ignored, so whatever orders and edits you
+> make on this machine stay on this machine. A freshly deployed host seeds its own empty database.
+
 ---
 
 ## 3. Admin panel
