@@ -39,7 +39,7 @@
         canonical += "?category=" + Uri.EscapeDataString(category);
     }
 
-    // While the shop is a preview (see PreviewNoIndexMiddleware) nothing may be indexed, whatever
+    // While the shop is a preview (see PreviewGateMiddleware) nothing may be indexed, whatever
     // the page itself asked for.
     var previewMode = Context.Items["SitePreview"] is true;
     var robots = previewMode

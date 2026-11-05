@@ -128,6 +128,7 @@ Controllers/
                                  CSV), Customers, Products, SaveProduct, UpdateStock, ToggleProduct,
                                  DeleteProduct, Settings
   SeoController.cs               /sitemap.xml and /robots.txt, generated from the database
+  PreviewController.cs           /Preview/Gate — the door in front of an unlaunched shop
 
 Models/
   Entities.cs                    Product, SiteSetting, AdminUser, OtpChallenge, Order, OrderStatuses,
@@ -146,7 +147,7 @@ Services/
   AuthService.cs                 password hash check, OTP create/verify, SHA-256
   StructuredData.cs              the JSON-LD blocks (Product, BreadcrumbList, ItemList)
   PreviewOptions.cs              the "Preview" section of appsettings, bound to a class
-  PreviewNoIndexMiddleware.cs    keeps an unlaunched shop out of search engines, nothing else
+  PreviewGateMiddleware.cs       noindex while unlaunched, optional shared access code
 
 Views/
   _ViewImports.cshtml            namespaces + tag helpers
@@ -163,6 +164,7 @@ Views/
   Shop/                          Index, Details, Combos
   Cart/                          Index, Checkout, Success
   Contact/                       Index
+  Preview/                       Gate
   Admin/                         Login, VerifyOtp, Dashboard, Orders, Customers, Products, Settings
 
 wwwroot/
@@ -311,9 +313,8 @@ Everything below is already wired up; the only thing left for launch day is the 
 
 ## 9. Showing it to people before launch (no domain yet)
 
-The shop can live at a temporary address for as long as you need, without buying a domain — and
-without it ever appearing in Google. **Everyone who is given the link sees the whole shop**: there
-is no code, no wall and no sign-in in front of it.
+The shop can live at a temporary address for as long as you need, without buying a domain and
+without it ever appearing in Google.
 
 **A link, in one command.** On the machine running the shop, with `dotnet run` already going:
 
@@ -326,26 +327,37 @@ cloudflared tunnel --url http://localhost:5080
 
 Send that link to whoever needs to see it. `ngrok http 5080` does the same job if you prefer ngrok
 (free account required). The link works **only while your PC, the app and the tunnel are running**,
-and a quick tunnel gets a new name each time it starts — which is exactly why nothing should be
-indexed under it.
+and a quick tunnel gets a new name each time it starts — which is fine for "look at this and tell
+me what you think", and the reason nothing must be indexed under it.
 
-**It cannot end up in Google.** `Preview:Enabled` is `true` in `appsettings.json`, and that one
-switch makes the shop do all of this:
+**It cannot end up in Google.** `Preview:Enabled` is `true` in `appsettings.json`, which makes the
+shop do all of this:
 
 * send `X-Robots-Tag: noindex, nofollow` on every response,
 * write `<meta name="robots" content="noindex, nofollow">` into every page,
 * serve a `robots.txt` that disallows everything,
 * and leave the sitemap unsubmitted (there is nothing to submit until launch).
 
-It changes nothing for a visitor. Cart, checkout, product pages and the admin panel all behave
-exactly as they will on launch day — the admin top bar simply shows an amber
-"Preview · not indexed" pill so nobody forgets.
+**Only the people you send it to** — if you want the link to ask for a code as well, flip one
+switch:
+
+```json
+  "Preview": {
+    "Enabled": true,
+    "RequireCode": true,
+    "AccessCode": "choose-something-only-your-people-know"
+  }
+```
+
+Visitors then land on `/Preview/Gate`, type the code once, and get a cookie for 30 days. Changing
+`AccessCode` invalidates every cookie already handed out. The admin panel keeps its own two-step
+login and is not affected.
 
 **Two details that make the link behave properly**
 
 * Requests come in through the tunnel as plain HTTP on localhost. `UseForwardedHeaders` is wired up
-  first in the pipeline, so `https`, the public host name, canonical URLs and the sitemap all
-  reflect what the visitor actually sees.
+  first in the pipeline, so `https`, the public host name, canonical URLs, the sitemap and the
+  preview cookie's `Secure` flag all reflect what the visitor actually sees.
 * `AllowedHosts` is `*` in `appsettings.json`, so a random tunnel host name is served rather than
   being rejected by Kestrel.
 

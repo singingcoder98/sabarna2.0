@@ -1,0 +1,38 @@
+@{
+    Layout = "_Layout";
+
+    var returnUrl = ViewData["ReturnUrl"] as string;
+}
+<section class="mb-section mb-section-cream">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-xl-5">
+                <div class="mb-gate">
+                    <p class="mb-kicker mb-kicker-dark">Private preview</p>
+                    <h1 class="mb-gate-title">A few people get to look first</h1>
+                    <p class="mb-section-text">
+                        The shop is still being finished, so it is not open to everyone yet. If someone
+                        sent you a code, type it below.
+                    </p>
+
+                    <form method="post" asp-controller="Preview" asp-action="Enter">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="returnUrl" value="@returnUrl" />
+
+                        <div class="mb-field">
+                            <label class="form-label" for="code">Access code</label>
+                            <input class="form-control" id="code" name="code" type="password"
+                                   autocomplete="off" autocapitalize="none" spellcheck="false" required />
+                        </div>
+
+                        <button class="btn btn-brand" type="submit">Open the shop</button>
+                    </form>
+
+                    <p class="mb-gate-note">
+                        Nothing here is indexed by search engines while the preview is on.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
