@@ -65,10 +65,17 @@ if present), and run it again. Nothing else needs to be reset.
 | Password | `Sabarna@2024` |
 | One-time code | **shown on screen** at `/Admin/VerifyOtp` while running in Development |
 
-> **If you already ran the site as "Matibari":** the first start after this rename moves the
-> settings row across (brand name, email, logo path) and renames the demo admin to
-> `admin@sabarna.in` with the password above, so the old brand does not linger in your `app.db`.
-> Nothing else in the database is touched — orders, products and stock stay exactly as they were.
+> **If you already ran the site before the rename:** the first start afterwards cleans the old
+> brand out of your existing `app.db` — brand name, email, logo path, the address (which had the
+> old name written into it twice) and any product description or tag that mentioned it. The demo
+> admin is renamed to `admin@sabarna.in` with the password above. Orders, stock and prices are
+> not touched.
+>
+> `DbSeeder.MigrateBrandAsync` runs on every start and does nothing once the row is clean, so it
+> is safe to leave in forever. It is also the only place in the codebase that still contains the
+> old name — it has to, in order to look for it. If the shop still shows the old name after
+> pulling, you are either running a stale build (`rm -rf bin obj`, rebuild) or an old `app.db`
+> from before this commit (delete `app.db*` to re-seed).
 
 The code is valid for **5 minutes**, works **once**, and is burnt after 5 wrong attempts.
 Only a SHA-256 hash of it is stored. In Development the code is displayed in a yellow

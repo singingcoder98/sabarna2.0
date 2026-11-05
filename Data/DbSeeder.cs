@@ -47,7 +47,7 @@ public static class DbSeeder
             Email = "hello@sabarna.in",
             Phone = "+91 98000 12345",
             Whatsapp = "919800012345",
-            Address = "Sabarna Farm, Village Sabarna, P.O. Kharagpur, West Bengal 721301",
+            Address = "Sabarna Small Farms, P.O. Kharagpur, West Bengal 721301",
             HeroKicker = "Farm to home · since 2016",
             HeroTitle1 = "Ghee that still",
             HeroTitle2 = "smells of the farm",
@@ -61,22 +61,47 @@ public static class DbSeeder
     }
 
     // -----------------------------------------------------------------------------------------
-    // 1b. The shop was seeded as "Matibari" before it was named Sabarna. If an older app.db is
-    //     still carrying that name, quietly move it across rather than asking the owner to throw
-    //     away their orders. Runs once — after the rename the condition is never true again.
+    // 1b. Brand cleanup. The shop was first seeded as "Matibari"; this removes every trace of that
+    //     name from a database created before the rename — the brand, the email, the logo path and
+    //     the address (which had the old name written into it twice). It runs on every start and
+    //     does nothing at all once the row is clean, so it is safe to leave in forever.
     // -----------------------------------------------------------------------------------------
     private static async Task MigrateBrandAsync(AppDbContext db, IPasswordHasher<AdminUser> hasher)
     {
-        var renamed = false;
+        const string oldName = "Matibari";
+        var changed = false;
 
         var settings = await db.Settings.FirstOrDefaultAsync();
-        if (settings != null && settings.BrandName.Trim().Equals("Matibari", StringComparison.OrdinalIgnoreCase))
+        if (settings != null)
         {
-            settings.BrandName = "Sabarna";
-            settings.Email = "hello@sabarna.in";
-            settings.Logo = "/images/logo-mark.png";
-            settings.UpdatedAt = DateTime.UtcNow;
-            renamed = true;
+            // The seeded address carried the old name twice ("Matibari Farm, Village Matibari"),
+            // which a word-for-word swap would turn into nonsense. Replace the whole line instead.
+            if (settings.Address != null &&
+                settings.Address.Contains("Village " + oldName, StringComparison.OrdinalIgnoreCase))
+            {
+                settings.Address = "Sabarna Small Farms, P.O. Kharagpur, West Bengal 721301";
+                changed = true;
+            }
+
+            // Any other text field still mentioning the old name is rewritten in place, so the
+            // owner's own wording survives and only the brand word changes.
+            changed |= ScrubOldName(settings, oldName);
+
+            if (changed)
+            {
+                settings.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        // A product description or tag might mention the shop by its old name. Only the handful of
+        // rows that actually do are loaded, and only their wording changes.
+        var mentioningProducts = await db.Products
+            .Where(p => p.Name.Contains(oldName) || p.Description.Contains(oldName) || p.Tag.Contains(oldName))
+            .ToListAsync();
+
+        foreach (var product in mentioningProducts)
+        {
+            changed |= ScrubOldName(product, oldName);
         }
 
         // The demo admin keeps working under its new address. Skipped if that address is taken.
@@ -89,13 +114,41 @@ public static class DbSeeder
             // If this account's password was changed by hand, set it again from /Admin afterwards.
             legacyAdmin.PasswordHash = hasher.HashPassword(legacyAdmin, "Sabarna@2024");
 
-            renamed = true;
+            changed = true;
         }
 
-        if (renamed)
+        if (changed)
         {
             await db.SaveChangesAsync();
         }
+    }
+
+    /// <summary>
+    /// Rewrites every string property of an entity that still contains the pre-rename brand,
+    /// leaving the rest of the owner's wording exactly as it was.
+    /// </summary>
+    private static bool ScrubOldName(object entity, string oldName)
+    {
+        var changed = false;
+
+        foreach (var property in entity.GetType().GetProperties())
+        {
+            if (property.PropertyType != typeof(string) || !property.CanWrite)
+            {
+                continue;
+            }
+
+            var value = property.GetValue(entity) as string;
+            if (value == null || !value.Contains(oldName, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            property.SetValue(entity, value.Replace(oldName, "Sabarna", StringComparison.OrdinalIgnoreCase));
+            changed = true;
+        }
+
+        return changed;
     }
 
     // -----------------------------------------------------------------------------------------
