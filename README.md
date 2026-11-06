@@ -159,6 +159,7 @@ appsettings.json                 ConnectionStrings:Default = "Data Source=app.db
 Properties/launchSettings.json   http://localhost:5080, ASPNETCORE_ENVIRONMENT=Development
 Dockerfile                       .NET 8 build + runtime image, port 8080, database at /data
 web.config                       IIS entry point + env vars for shared hosting (MonsterASP, Azure)
+publish.cmd                      double-click: builds the folder you upload to the host
 DEPLOY-CHECKLIST.md              everything to do after hosting: first checks, security, launch day
 App_Data/                        where SQLite writes app.db on IIS; published, never served
 .dockerignore                    keeps bin/, obj/ and app.db out of the image
@@ -491,6 +492,12 @@ you no field to type the password into. Do not wrestle with it; publish over FTP
 and uses the same credentials the panel already shows: **New profile → FTP/FTPS Server** with server
 `site105177.siteasp.net`, port `21`, path `/wwwroot`, passive mode on, user `site105177`, and the
 password from the panel (`Show`, or `Change` to set a fresh one).
+
+*If Visual Studio's Publish pane is fighting you* (a stale failure message, an imported profile with
+no password field, "Attention required" that cannot be clicked), skip Visual Studio's publishing
+entirely: double-click **`publish.cmd`** in the project folder. It cleans `publish\`, runs
+`dotnet publish -c Release -o publish`, and tells you what to upload. Then drag the contents of
+`publish\` into `/wwwroot` with FileZilla. Two steps, nothing to configure, no publish profiles.
 
 *Third route, no Web Deploy at all:* publish to a **Folder** (say `C:\sabarna-publish`), then upload
 that folder's contents to `/wwwroot` with FileZilla (server `site105177.siteasp.net`, port 21, user
