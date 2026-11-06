@@ -1,5 +1,12 @@
 # After it is hosted — the checklist
 
+> **Status on 6 November 2026.** Live on the MonsterASP.NET free plan at
+> `https://sabarna.runasp.net` (site `site105374`), shared with the co-admins as a preview.
+> Right now: preview mode **on** (not indexed), access code **off** (anyone with the link gets in),
+> the admin one-time code is **drawn on screen** (`Otp__ShowOnScreen`), **no payment gateway**, and
+> the content is still the seeded demo catalogue with placeholder contact details.
+> Every unticked box below is still to do — nothing else stands between this and a real shop.
+
 Everything that has to happen **once the shop is on a real address**, in the order it should happen.
 Tick the boxes as you go; every item says *why*, so nothing has to be remembered from a chat.
 
