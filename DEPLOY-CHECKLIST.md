@@ -153,7 +153,9 @@ gone regardless of how long the cookie claims to live.
 
 | Thing | Value |
 | --- | --- |
+| Project folder on this PC | `D:\MVCDotNet\sabarna2.0` |
 | Local run | `dotnet build Sabarna.sln` → `dotnet run` → <http://localhost:5080> |
+| Build the upload folder | double-click `publish.cmd` → everything lands in `publish\` |
 | Seeded admin | `admin@sabarna.in` / `Sabarna@2024` — **change it** (§2) |
 | Database | `app.db` locally; `App_Data/app.db` on IIS; `/data/app.db` in Docker |
 | Session cookie | `.sabarna.session` · Admin cookie `.sabarna.admin` · Preview pass `.sabarna.preview` |
