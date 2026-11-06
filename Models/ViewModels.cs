@@ -242,3 +242,66 @@ public class ChangePasswordViewModel
     [Display(Name = "Repeat new password")]
     public string ConfirmPassword { get; set; } = string.Empty;
 }
+
+// =================================================================================================
+// saptarshi: added 06-Nov-2026 — the payment screens.
+// =================================================================================================
+
+/// <summary>Everything the Razorpay Checkout script needs on /Cart/Payment.</summary>
+public class PaymentViewModel
+{
+    public string OrderNumber { get; set; } = string.Empty;
+
+    /// <summary>Razorpay's public key id. It is safe to show this to the browser.</summary>
+    public string RazorpayKeyId { get; set; } = string.Empty;
+
+    /// <summary>Razorpay's order id (order_XXXX). Also safe to expose.</summary>
+    public string RazorpayOrderId { get; set; } = string.Empty;
+
+    /// <summary>Paise, not rupees — Razorpay only understands paise.</summary>
+    public long AmountPaise { get; set; }
+
+    public decimal Amount { get; set; }
+
+    public string CustomerName { get; set; } = string.Empty;
+
+    public string CustomerEmail { get; set; } = string.Empty;
+
+    public string CustomerPhone { get; set; } = string.Empty;
+
+    public string PaymentMethod { get; set; } = "UPI";
+
+    /// <summary>Where the browser POSTs the three values it got from Razorpay.</summary>
+    public string VerifyUrl { get; set; } = string.Empty;
+
+    /// <summary>Where to send the customer when they close the payment sheet.</summary>
+    public string CancelUrl { get; set; } = string.Empty;
+
+    /// <summary>False when Razorpay could not be reached, so the page can explain instead of waiting.</summary>
+    public bool Ready { get; set; } = true;
+
+    public string Problem { get; set; } = string.Empty;
+}
+
+/// <summary>Exactly the three values Razorpay's handler sends back. Nothing else is trusted.</summary>
+public class PaymentVerificationInput
+{
+    public string RazorpayOrderId { get; set; } = string.Empty;
+
+    public string RazorpayPaymentId { get; set; } = string.Empty;
+
+    public string RazorpaySignature { get; set; } = string.Empty;
+}
+
+/// <summary>The "that did not go through" page.</summary>
+public class PaymentFailedViewModel
+{
+    public string OrderNumber { get; set; } = string.Empty;
+
+    public string Reason { get; set; } = string.Empty;
+
+    /// <summary>True when the customer can simply try again — the basket is still in the session.</summary>
+    public bool CanRetry { get; set; } = true;
+
+    public string RetryUrl { get; set; } = string.Empty;
+}

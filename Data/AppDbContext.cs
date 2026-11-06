@@ -23,6 +23,11 @@ public class AppDbContext : DbContext
 
     public DbSet<Order> Orders => Set<Order>();
 
+    // saptarshi: added 06-Nov-2026 — the jars inside an order, and the webhook audit trail.
+    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+
+    public DbSet<PaymentEvent> PaymentEvents => Set<PaymentEvent>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

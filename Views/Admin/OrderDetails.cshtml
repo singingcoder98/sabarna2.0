@@ -1,0 +1,161 @@
+@*
+    saptarshi: added 06-Nov-2026 — this whole view is new.
+    One order, everything needed to pack and post it: who, where, what, and how it was paid.
+*@
+@model Sabarna.Web.Models.Order
+@{
+    Layout = "_AdminLayout";
+
+    var subtotal = Model.Items.Sum(i => i.LineTotal);
+    var shipping = Model.Total - subtotal;
+}
+<div class="mb-admin-head">
+    <div>
+        <h1 class="mb-admin-title">@Model.OrderNumber</h1>
+        <p class="mb-admin-sub">
+            Placed @Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, h:mm tt")
+            &middot; @Model.ItemCount jar(s) &middot; ₹@Model.Total.ToString("#,##0")
+        </p>
+    </div>
+    <div class="mb-admin-head-actions">
+        <span class="pill @OrderStatuses.PillClass(Model.Status)">@Model.Status</span>
+        <span class="pill @PaymentStatuses.PillClass(Model.PaymentStatus)">@Model.PaymentStatus</span>
+        <a class="btn btn-ghost btn-sm" asp-controller="Admin" asp-action="Orders">Back to orders</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-xl-7">
+
+        <div class="mb-admin-panel">
+            <h2 class="mb-admin-panel-title">Deliver to</h2>
+
+            <p class="mb-admin-sub mb-1"><strong>@Model.Customer</strong></p>
+            <p class="mb-admin-fine mb-1">@Model.Phone</p>
+            <p class="mb-admin-fine mb-3">@Model.Email</p>
+
+            <p class="mb-admin-fine" style="white-space: pre-line;">@Model.Address</p>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Note))
+            {
+                <p class="mb-admin-fine"><em>Note from the customer:</em> @Model.Note</p>
+            }
+        </div>
+
+        <div class="mb-admin-panel">
+            <h2 class="mb-admin-panel-title">What is in the parcel</h2>
+
+            @if (Model.Items.Count == 0)
+            {
+                <p class="mb-admin-fine">
+                    This order was placed before jars were stored one by one.
+                    Old summary: @Model.ProductName
+                </p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table mb-table align-middle">
+                        <thead>
+                            <tr>
+                                <th scope="col">Item</th>
+                                <th scope="col" class="mb-table-num">Qty</th>
+                                <th scope="col" class="mb-table-num">Price</th>
+                                <th scope="col" class="mb-table-num">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td>@item.Name</td>
+                                    <td class="mb-table-num">@item.Qty</td>
+                                    <td class="mb-table-num">₹@item.UnitPrice.ToString("#,##0")</td>
+                                    <td class="mb-table-num">₹@item.LineTotal.ToString("#,##0")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <p class="mb-admin-fine">Items ₹@subtotal.ToString("#,##0")</p>
+                <p class="mb-admin-fine">Delivery ₹@shipping.ToString("#,##0")</p>
+                <p class="mb-admin-fine"><strong>Total ₹@Model.Total.ToString("#,##0")</strong></p>
+            }
+        </div>
+
+        <div class="mb-admin-panel">
+            <h2 class="mb-admin-panel-title">Courier</h2>
+
+            @if (string.IsNullOrWhiteSpace(Model.AwbNumber))
+            {
+                <p class="mb-admin-fine">
+                    No docket number yet. SkyKing will return it when the parcel is booked.
+                </p>
+            }
+            else
+            {
+                <p class="mb-admin-fine"><strong>@Model.CourierName</strong> &middot; AWB @Model.AwbNumber</p>
+                @if (Model.ShippedAt.HasValue)
+                {
+                    <p class="mb-admin-fine">Booked @Model.ShippedAt.Value.ToLocalTime().ToString("dd MMM yyyy")</p>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="col-xl-5">
+        <div class="mb-admin-panel mb-admin-panel-sticky">
+            <h2 class="mb-admin-panel-title">Payment</h2>
+
+            <p class="mb-admin-fine">
+                Status <span class="pill @PaymentStatuses.PillClass(Model.PaymentStatus)">@Model.PaymentStatus</span>
+            </p>
+            <p class="mb-admin-fine">Method: @Model.PaymentMethod</p>
+
+            @if (!string.IsNullOrWhiteSpace(Model.PaymentVerifiedBy))
+            {
+                <p class="mb-admin-fine">Confirmed by: @Model.PaymentVerifiedBy</p>
+            }
+
+            @if (Model.PaidAt.HasValue)
+            {
+                <p class="mb-admin-fine">Paid on: @Model.PaidAt.Value.ToLocalTime().ToString("dd MMM yyyy, h:mm tt")</p>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.RazorpayPaymentId))
+            {
+                <p class="mb-admin-fine">Razorpay payment: <code>@Model.RazorpayPaymentId</code></p>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.RazorpayOrderId))
+            {
+                <p class="mb-admin-fine">Razorpay order: <code>@Model.RazorpayOrderId</code></p>
+            }
+
+            @if (Model.RefundAmount > 0)
+            {
+                <p class="mb-admin-fine">
+                    Refunded ₹@Model.RefundAmount.ToString("#,##0")
+                    @if (Model.RefundedAt.HasValue)
+                    {
+                        <span>on @Model.RefundedAt.Value.ToLocalTime().ToString("dd MMM yyyy")</span>
+                    }
+                </p>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.FailureReason))
+            {
+                <hr class="mb-admin-rule" />
+                <p class="mb-admin-fine"><em>@Model.FailureReason</em></p>
+            }
+
+            <hr class="mb-admin-rule" />
+            <p class="mb-admin-fine">
+                Payment is never set to Paid by hand. It changes only when Razorpay's signature has
+                been checked here on the server, so a screenshot from a customer is not evidence —
+                this page is.
+            </p>
+        </div>
+    </div>
+</div>

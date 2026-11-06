@@ -104,7 +104,10 @@ public sealed class PreviewGateMiddleware
         string[] allowed =
         {
             "/Preview", "/Admin", "/lib", "/css", "/images",
-            "/favicon.ico", "/favicon.png", "/robots.txt", "/sitemap.xml", "/Home/Error"
+            "/favicon.ico", "/favicon.png", "/robots.txt", "/sitemap.xml", "/Home/Error",
+            // saptarshi: added 06-Nov-2026 — Razorpay cannot type a preview code, and a redirected
+            // webhook is a payment that never gets confirmed.
+            "/Cart/RazorpayWebhook"
         };
 
         return allowed.Any(prefix => path.StartsWithSegments(prefix, StringComparison.OrdinalIgnoreCase));

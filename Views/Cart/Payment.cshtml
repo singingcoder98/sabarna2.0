@@ -1,0 +1,166 @@
+@*
+    saptarshi: added 06-Nov-2026 — this whole view is new.
+    The hand-off page. It opens Razorpay Checkout, and when Razorpay is done it sends the three
+    values back here; those are POSTed to /Cart/VerifyPayment, which checks the signature on the
+    server. The page never decides that anything was paid.
+*@
+@model Sabarna.Web.Models.PaymentViewModel
+@{
+    ViewData["Title"] = "Secure payment";
+
+    // Everything the script below needs, serialised once, so no customer text ever lands inside a
+    // JavaScript string by hand.
+    var payment = System.Text.Json.JsonSerializer.Serialize(new
+    {
+        key = Model.RazorpayKeyId,
+        orderId = Model.RazorpayOrderId,
+        amount = Model.AmountPaise,
+        orderNumber = Model.OrderNumber,
+        name = Model.CustomerName,
+        email = Model.CustomerEmail,
+        phone = Model.CustomerPhone,
+        verifyUrl = Model.VerifyUrl,
+        cancelUrl = Model.CancelUrl
+    });
+}
+
+<section class="mb-section mb-section-cream">
+    <div class="container">
+        <div class="mb-success">
+            <span class="mb-success-mark" aria-hidden="true">&#8377;</span>
+            <p class="mb-kicker mb-kicker-dark">Secure payment</p>
+            <h1 class="mb-success-title">Paying for @Model.OrderNumber</h1>
+            <p class="mb-success-text">
+                Your payment is handled by Razorpay. We never see your card or UPI details.
+                This page stays open only until the payment finishes.
+            </p>
+
+            <div class="mb-success-card">
+                <div class="mb-success-row">
+                    <span>Order</span>
+                    <strong>@Model.OrderNumber</strong>
+                </div>
+                <div class="mb-success-row">
+                    <span>Paying with</span>
+                    <strong>@Model.PaymentMethod</strong>
+                </div>
+                <div class="mb-success-row mb-success-row-total">
+                    <span>Amount</span>
+                    <strong>&#8377;@Model.Amount.ToString("0")</strong>
+                </div>
+            </div>
+
+            <div class="mb-success-actions">
+                <button type="button" id="payNow" class="btn btn-brand">Open the payment window</button>
+                <a class="btn btn-ghost" href="@Model.CancelUrl">Cancel and go back</a>
+            </div>
+
+            <p id="payStatus" class="mb-success-note" role="status" aria-live="polite">
+                Do not refresh this page while the payment window is open.
+            </p>
+
+            <noscript>
+                <p class="mb-success-note">
+                    The payment window needs JavaScript. Please turn it on, or call us on
+                    +91 98000 12345 and we will take the order by phone.
+                </p>
+            </noscript>
+        </div>
+    </div>
+</section>
+
+@* Hidden antiforgery token: the verification POST must carry one, exactly like a normal form. *@
+<div hidden>@Html.AntiForgeryToken()</div>
+
+@* Razorpay's own checkout script. It is the only external script on the site. *@
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    (function () {
+        "use strict";
+
+        var payment = @Html.Raw(payment);
+        var statusLine = document.getElementById("payStatus");
+        var payButton = document.getElementById("payNow");
+        var tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+        var token = tokenInput ? tokenInput.value : "";
+
+        function say(message) {
+            if (statusLine) {
+                statusLine.textContent = message;
+            }
+        }
+
+        function sendToVerification(response) {
+            say("Checking the payment with Razorpay…");
+
+            var body = new FormData();
+            body.append("__RequestVerificationToken", token);
+            body.append("RazorpayOrderId", response.razorpay_order_id || payment.orderId);
+            body.append("RazorpayPaymentId", response.razorpay_payment_id || "");
+            body.append("RazorpaySignature", response.razorpay_signature || "");
+
+            fetch(payment.verifyUrl, {
+                method: "POST",
+                body: body,
+                credentials: "same-origin",
+                headers: { "X-Requested-With": "XMLHttpRequest" }
+            })
+                .then(function (reply) { return reply.json(); })
+                .then(function (data) {
+                    if (data && data.ok && data.redirect) {
+                        window.location = data.redirect;
+                        return;
+                    }
+
+                    say((data && data.message) || "The payment could not be confirmed.");
+                    window.setTimeout(function () { window.location = payment.cancelUrl; }, 4000);
+                })
+                .catch(function () {
+                    // The money may well have arrived; the webhook will confirm it. Be honest.
+                    say("We could not confirm the payment in this browser. If money left your account, your order will still be confirmed by email in a few minutes.");
+                });
+        }
+
+        if (typeof Razorpay === "undefined") {
+            say("The payment window could not load. Please check your connection and refresh.");
+            return;
+        }
+
+        var checkout = new Razorpay({
+            key: payment.key,
+            order_id: payment.orderId,
+            amount: payment.amount,
+            currency: "INR",
+            name: "SABARNA",
+            description: "Order " + payment.orderNumber,
+            prefill: {
+                name: payment.name,
+                email: payment.email,
+                contact: payment.phone
+            },
+            notes: { order: payment.orderNumber },
+            theme: { color: "#2f3e24" },
+            handler: sendToVerification,
+            modal: {
+                ondismiss: function () {
+                    // Closing the sheet is not a failure — the order stays Pending and retryable.
+                    window.location = payment.cancelUrl;
+                }
+            }
+        });
+
+        checkout.on("payment.failed", function (response) {
+            var reason = response && response.error && response.error.description
+                ? response.error.description
+                : "The payment did not go through.";
+            say(reason + " Nothing has been charged twice — you can try again.");
+        });
+
+        if (payButton) {
+            payButton.addEventListener("click", function () { checkout.open(); });
+        }
+
+        // Open on load as well: most people expect the sheet to appear by itself.
+        checkout.open();
+    })();
+</script>

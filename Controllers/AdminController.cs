@@ -358,6 +358,30 @@ public class AdminController : Controller
         return View(model);
     }
 
+    // =============================================================================================
+    // saptarshi: added 06-Nov-2026 — the packing sheet for one order.
+    //
+    // WHY: until now an order carried only a name and an email. The address and phone the customer
+    // typed were thrown away, and the jars were a single summary line, so a parcel could not be
+    // packed or queried. This page shows everything, plus how the payment was confirmed.
+    // =============================================================================================
+    [HttpGet]
+    public async Task<IActionResult> OrderDetails(string orderNumber)
+    {
+        var order = await _db.Orders.AsNoTracking()
+            .Include(o => o.Items)
+            .FirstOrDefaultAsync(o => o.OrderNumber == orderNumber);
+
+        if (order == null)
+        {
+            TempData["Error"] = "No order with that number.";
+            return RedirectToAction(nameof(Orders));
+        }
+
+        ViewData["Title"] = "Order " + order.OrderNumber;
+        return View(order);
+    }
+
     /// <summary>Processing -> Packed -> Shipped -> Delivered. One click per parcel.</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]

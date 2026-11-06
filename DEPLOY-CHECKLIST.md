@@ -103,11 +103,38 @@ These are known gaps, not bugs. Each one has a single, obvious place to fix it.
 
 | Feature | Where the TODO lives | What finishing looks like |
 | --- | --- | --- |
-| **Online payment** | `Controllers/CartController.cs` — the checkout action, "PAYMENT GATEWAY" | Today the site records a payment method and marks the order paid, which is right for a demo and wrong for real money. Add Razorpay: create an order server-side, redirect, verify the signature/webhook, only then set `PaymentStatus = Paid`. Do not take real orders before this. |
+| ~~**Online payment**~~ | **Code is finished (6 Nov 2026)** — `CartController` + `Services/RazorpayService.cs`. It stays in demo mode until the keys are filled in. See "Payments — the five switches" below. |
 | **Admin one-time code by e-mail/SMS** | `Controllers/AdminController.cs` — after the password is accepted | Wire an SMTP or API provider, send `code`, and delete the `Otp__ShowOnScreen` line from `web.config`. |
 | **Contact form by e-mail** | `Controllers/ContactController.cs` — after the message is saved | The message is already stored; forward it to the owner's inbox as well. |
 | **Newsletter sign-up** | `Controllers/HomeController.cs` — the footer form | Hand the address to a mailing-list provider. |
 | **Product image upload** | `Views/Admin/_ProductFormFields.cshtml` | A file input, saved to `wwwroot/images/products/`, with the path written back to the product. |
+
+### Payments — the five switches
+
+The Razorpay code is in place but switched off, so nothing changes until you fill these in:
+
+| Where | Key | Value |
+| --- | --- | --- |
+| Panel env vars / `web.config` | `Razorpay__Enabled` | `true` |
+| | `Razorpay__KeyId` | `rzp_test_…` first, `rzp_live_…` later |
+| | `Razorpay__KeySecret` | from the Razorpay dashboard |
+| | `Razorpay__WebhookSecret` | a password you invent, typed in both places |
+| Razorpay dashboard | Payment capture | **Automatic** — otherwise money sits authorised and never captured |
+
+Webhook URL to add in the Razorpay dashboard, with events `payment.captured`, `payment.failed`,
+`order.paid`:
+
+```
+https://sabarna.runasp.net/Cart/RazorpayWebhook
+```
+
+How an order becomes Paid: only after a signature check on the server — either the one the browser
+returns with (HMAC of `order_id|payment_id` with the key secret) or the one on the webhook (HMAC of
+the raw body with the webhook secret). A screenshot from a customer is never proof; the order page in
+`/Admin/Orders` shows which one confirmed it.
+
+Stock is taken when the order is paid, with a guard per line. If a jar sold out in the meantime the
+payment is refunded automatically and the customer is told.
 
 ---
 

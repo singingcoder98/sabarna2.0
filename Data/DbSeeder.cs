@@ -597,6 +597,16 @@ public static class DbSeeder
                 CreatedAt = now.AddHours(-20)
             });
 
+        // saptarshi: added 06-Nov-2026 — the sample orders were written before the payment status
+        // existed. Everything seeded is Paid, so say so, otherwise the admin pills would show a
+        // confusing "Pending" on a freshly seeded database.
+        foreach (var order in db.Orders.Local.Where(o => o.Payment == PaymentStatuses.Paid))
+        {
+            order.PaymentStatus = PaymentStatuses.Paid;
+            order.PaymentVerifiedBy = "demo seed";
+            order.PaidAt = order.CreatedAt.AddMinutes(3);
+        }
+
         await db.SaveChangesAsync();
     }
 

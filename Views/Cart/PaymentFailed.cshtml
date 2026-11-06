@@ -1,0 +1,45 @@
+@*
+    saptarshi: added 06-Nov-2026 — this whole view is new.
+    Shown when Razorpay is unreachable, the customer closes the sheet, or a signature fails.
+    The basket is deliberately left untouched so "try again" is one click.
+*@
+@model Sabarna.Web.Models.PaymentFailedViewModel
+@{
+    ViewData["Title"] = "Payment did not go through";
+}
+
+<section class="mb-section mb-section-cream">
+    <div class="container">
+        <div class="mb-success">
+            <span class="mb-success-mark" aria-hidden="true">!</span>
+            <p class="mb-kicker mb-kicker-dark">Payment not completed</p>
+            <h1 class="mb-success-title">Nothing has been charged</h1>
+            <p class="mb-success-text">@Model.Reason</p>
+
+            <div class="mb-success-card">
+                <div class="mb-success-row">
+                    <span>Order</span>
+                    <strong>@Model.OrderNumber</strong>
+                </div>
+                <div class="mb-success-row">
+                    <span>Status</span>
+                    <strong>Awaiting payment</strong>
+                </div>
+            </div>
+
+            <div class="mb-success-actions">
+                @if (Model.CanRetry)
+                {
+                    <a class="btn btn-brand" href="@Model.RetryUrl">Try the payment again</a>
+                }
+                <a class="btn btn-ghost" asp-controller="Cart" asp-action="Index">Back to your basket</a>
+            </div>
+
+            <p class="mb-success-note">
+                Your basket is still saved. If money left your account and you see this page, wait a
+                few minutes — Razorpay confirms the payment with us directly — then check your email,
+                or call +91 98000 12345 with order @Model.OrderNumber.
+            </p>
+        </div>
+    </div>
+</section>

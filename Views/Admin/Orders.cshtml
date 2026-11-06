@@ -94,18 +94,25 @@
                     {
                         <tr>
                             <td>
-                                <span class="mb-table-strong">@order.OrderNumber</span>
+                                <a class="mb-table-strong"
+                                   asp-controller="Admin" asp-action="OrderDetails"
+                                   asp-route-orderNumber="@order.OrderNumber">@order.OrderNumber</a>
                                 <span class="mb-table-sub">@order.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, h:mm tt")</span>
                             </td>
                             <td>
                                 <span class="mb-table-strong">@order.Customer</span>
                                 <span class="mb-table-sub">@order.Email</span>
+                                @* saptarshi: added 06-Nov-2026 *@
+                                @if (!string.IsNullOrWhiteSpace(order.Phone))
+                                {
+                                    <span class="mb-table-sub">@order.Phone</span>
+                                }
                                 <span class="mb-table-sub mb-table-sub-quiet">@order.ProductName</span>
                             </td>
                             <td class="mb-table-num">@order.ItemCount</td>
                             <td class="mb-table-num">&#8377;@order.Total.ToString("#,##0")</td>
                             <td>
-                                <span class="pill pill-green">@order.Payment</span>
+                                <span class="pill @PaymentStatuses.PillClass(order.PaymentStatus)">@order.PaymentStatus</span>
                                 <span class="mb-table-sub">@order.PaymentMethod</span>
                             </td>
                             <td><span class="pill @OrderStatuses.PillClass(order.Status)">@order.Status</span></td>

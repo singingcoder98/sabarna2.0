@@ -268,9 +268,13 @@ public class Order
 
     public decimal Total { get; set; }
 
-    /// <summary>"Paid" today — a real gateway will keep this truthful once Razorpay is wired up.</summary>
+    /// <summary>
+    /// saptarshi: changed 06-Nov-2026 — used to default to "Paid", which told a lie the moment a
+    /// Razorpay payment could fail. Now an order starts as Pending and only becomes Paid after a
+    /// verified signature or a verified webhook.
+    /// </summary>
     [StringLength(30)]
-    public string Payment { get; set; } = "Paid";
+    public string Payment { get; set; } = PaymentStatuses.Pending;
 
     /// <summary>UPI, Card or Netbanking. Cash on delivery is not offered anywhere.</summary>
     [StringLength(30)]
@@ -279,6 +283,168 @@ public class Order
     /// <summary>Processing -> Packed -> Shipped -> Delivered.</summary>
     [StringLength(30)]
     public string Status { get; set; } = OrderStatuses.Processing;
+
+    public DateTime CreatedAt { get; set; }
+
+    // =============================================================================================
+    // saptarshi: added 06-Nov-2026 — everything below is new.
+    //
+    // WHY: the checkout form collected a phone number and a delivery address, and the order never
+    // stored them, so a real parcel could not be shipped. These columns are added to the live
+    // database by Data/SchemaPatcher.cs (ALTER TABLE ADD COLUMN), never by dropping anything.
+    // =============================================================================================
+
+    /// <summary>Where the parcel goes.</summary>
+    [StringLength(400)]
+    public string Address { get; set; } = string.Empty;
+
+    /// <summary>The 10-digit mobile the courier will call.</summary>
+    [StringLength(20)]
+    public string Phone { get; set; } = string.Empty;
+
+    /// <summary>Anything the customer typed in the "delivery note" box.</summary>
+    [StringLength(300)]
+    public string Note { get; set; } = string.Empty;
+
+    // ---- Razorpay -------------------------------------------------------------------------------
+    // The order id Razorpay gives us (order_XXXX). The browser is allowed to know this one.
+    [StringLength(60)]
+    public string RazorpayOrderId { get; set; } = string.Empty;
+
+    // The payment id (pay_XXXX). Only ever written after a signature check.
+    [StringLength(60)]
+    public string RazorpayPaymentId { get; set; } = string.Empty;
+
+    // The signature Razorpay sent back; kept as evidence for a dispute.
+    [StringLength(200)]
+    public string RazorpaySignature { get; set; } = string.Empty;
+
+    /// <summary>Pending / Paid / Failed / Refunded — see <see cref="PaymentStatuses"/>.</summary>
+    [StringLength(20)]
+    public string PaymentStatus { get; set; } = PaymentStatuses.Pending;
+
+    /// <summary>"browser" (verified return) or "webhook" — how we learned it was paid.</summary>
+    [StringLength(20)]
+    public string PaymentVerifiedBy { get; set; } = string.Empty;
+
+    /// <summary>When the money was confirmed. Null while unpaid.</summary>
+    public DateTime? PaidAt { get; set; }
+
+    /// <summary>Razorpay's own words when a payment fails ("insufficient funds" etc).</summary>
+    [StringLength(200)]
+    public string FailureReason { get; set; } = string.Empty;
+
+    public DateTime? RefundedAt { get; set; }
+
+    /// <summary>How much of the money went back. Zero means nothing was refunded.</summary>
+    public decimal RefundAmount { get; set; }
+
+    // ---- GST placeholders -----------------------------------------------------------------------
+    // Left at zero until the shop is registered for GST. The invoice hides the tax block while
+    // TaxAmount is zero, so nothing changes for the customer today and nothing has to be migrated
+    // later when GSTIN arrives.
+    public decimal TaxAmount { get; set; }
+
+    [StringLength(20)]
+    public string Gstin { get; set; } = string.Empty;
+
+    [StringLength(30)]
+    public string InvoiceNumber { get; set; } = string.Empty;
+
+    // ---- SkyKing courier ------------------------------------------------------------------------
+    // Filled in when SkyKing returns an AWB (docket) number. The public tracking page reads these.
+    [StringLength(40)]
+    public string CourierName { get; set; } = string.Empty;
+
+    [StringLength(60)]
+    public string AwbNumber { get; set; } = string.Empty;
+
+    public DateTime? ShippedAt { get; set; }
+
+    public DateTime? DeliveredAt { get; set; }
+
+    /// <summary>The actual jars on this order. Saved so the parcel can be packed and billed.</summary>
+    public List<OrderItem> Items { get; set; } = new();
+}
+
+/// <summary>
+/// saptarshi: added 06-Nov-2026 — one row per product on an order.
+///
+/// WHY: the old order only kept a summary string ("A2 Ghee + 2 more"), so nobody could see what was
+/// actually inside the parcel. Prices are copied at the moment of the order, so a later price change
+/// never rewrites history.
+/// </summary>
+public class OrderItem
+{
+    public int Id { get; set; }
+
+    public int OrderId { get; set; }
+
+    public int ProductId { get; set; }
+
+    [StringLength(200)]
+    public string Name { get; set; } = string.Empty;
+
+    public int Qty { get; set; }
+
+    public decimal UnitPrice { get; set; }
+
+    public decimal LineTotal { get; set; }
+}
+
+/// <summary>
+/// saptarshi: added 06-Nov-2026 — the four payment states, plus the pill colours the admin uses.
+/// The old <see cref="Order.Payment"/> text column is still written alongside these, so every
+/// existing screen keeps working without being touched.
+/// </summary>
+public static class PaymentStatuses
+{
+    public const string Pending = "Pending";
+    public const string Paid = "Paid";
+    public const string Failed = "Failed";
+    public const string Refunded = "Refunded";
+
+    public static string PillClass(string current)
+    {
+        return current switch
+        {
+            Paid => "pill-green",
+            Pending => "pill-amber",
+            Failed => "pill-red",
+            Refunded => "pill-grey",
+            _ => "pill-grey"
+        };
+    }
+}
+
+/// <summary>
+/// saptarshi: added 06-Nov-2026 — every webhook Razorpay sends, kept as evidence.
+///
+/// WHY: if a customer ever says "I paid but my order is not confirmed", this table is the proof,
+/// and it makes the handler idempotent (the same event id is never processed twice).
+/// </summary>
+public class PaymentEvent
+{
+    public int Id { get; set; }
+
+    /// <summary>Razorpay's event id (event_XXXX). Unique per delivery attempt.</summary>
+    [StringLength(120)]
+    public string EventId { get; set; } = string.Empty;
+
+    [StringLength(60)]
+    public string EventName { get; set; } = string.Empty;
+
+    [StringLength(60)]
+    public string OrderNumber { get; set; } = string.Empty;
+
+    [StringLength(60)]
+    public string PaymentId { get; set; } = string.Empty;
+
+    public bool SignatureVerified { get; set; }
+
+    /// <summary>The raw JSON body, so nothing is lost. Never contains our own secrets.</summary>
+    [StringLength(8000)]
+    public string Payload { get; set; } = string.Empty;
 
     public DateTime CreatedAt { get; set; }
 }

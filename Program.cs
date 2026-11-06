@@ -26,6 +26,11 @@ builder.Services.AddControllersWithViews();
 // can ask for a shared code). Both switches live in appsettings.json under "Preview".
 builder.Services.Configure<PreviewOptions>(builder.Configuration.GetSection("Preview"));
 
+// saptarshi: added 06-Nov-2026 — Razorpay and mail settings, read from configuration so the real
+// secrets can live in environment variables on the host instead of in git.
+builder.Services.Configure<RazorpayOptions>(builder.Configuration.GetSection("Razorpay"));
+builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("Email"));
+
 // Behind a tunnel (cloudflared, ngrok) or a hosting proxy, the request arrives as plain HTTP on
 // localhost. Reading the forwarded headers is what keeps https, the public host name, canonical
 // URLs and the sitemap correct from the visitor's point of view.
@@ -57,6 +62,11 @@ builder.Services.AddSession(options =>
 
 builder.Services.AddHttpContextAccessor();
 
+// saptarshi: added 06-Nov-2026 — the payment client (one HttpClient, managed by the framework) and
+// the mail sender. Both are harmless when their settings are empty: they simply say "not configured".
+builder.Services.AddHttpClient<RazorpayService>();
+builder.Services.AddScoped<EmailService>();
+
 // ---- 4. Domain services ---------------------------------------------------------------------
 builder.Services.AddScoped<CartService>();
 builder.Services.AddScoped<AuthService>();
@@ -86,9 +96,17 @@ builder.Services.AddAuthorization(options =>
 var app = builder.Build();
 
 // ---- Create the SQLite schema and the demo data on first run --------------------------------
-// EnsureCreatedAsync is all a single-file SQLite database needs; there is nothing to migrate.
+// saptarshi: changed 06-Nov-2026 — the patcher runs BEFORE the seeder, because the live database
+// already exists and new columns (Address, RazorpayOrderId, ...) have to be added to it by
+// ALTER TABLE. EnsureCreated only ever builds tables in a file that is brand new.
 using (var scope = app.Services.CreateScope())
 {
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    await db.Database.EnsureCreatedAsync();
+
+    await SchemaPatcher.EnsureAsync(db, app.Logger);
+
     await DbSeeder.SeedAsync(scope.ServiceProvider);
 }
 

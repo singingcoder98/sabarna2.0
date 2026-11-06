@@ -31,6 +31,11 @@
                     <span>Paid by</span>
                     <strong>@Model.PaymentMethod</strong>
                 </div>
+                @* saptarshi: added 06-Nov-2026 — say plainly what the payment state is. *@
+                <div class="mb-success-row">
+                    <span>Payment</span>
+                    <strong>@Model.PaymentStatus</strong>
+                </div>
                 <div class="mb-success-row mb-success-row-total">
                     <span>Total paid</span>
                     <strong>&#8377;@Model.Total.ToString("0")</strong>
