@@ -42,5 +42,108 @@
             // Reduced motion (or an old browser): show everything immediately.
             revealItems.forEach(function (item) { item.classList.add('is-visible'); });
         }
+
+        // ---- 4. "Add to basket" without reloading the page -------------------------------------
+        // saptarshi: added 06-Nov-2026.
+        //
+        // Why: an ordinary form post ends in a redirect back to the same page, and a redirect always
+        // lands at the TOP. On the home page that meant the customer added a jar and was thrown back
+        // to the hero, having to scroll all the way down again for the next one.
+        //
+        // Now the form posts quietly, the badge and a toast are updated in place, and the customer
+        // stays exactly where they were. If anything goes wrong — old browser, network hiccup —
+        // the form is submitted the normal way, so the basket is never lost.
+        function showToast(message, isError) {
+            var stack = document.querySelector('.mb-toast-stack');
+            if (!stack || !window.bootstrap) { return; }
+
+            var box = document.createElement('div');
+            box.className = 'toast mb-toast ' + (isError ? 'mb-toast-error' : 'mb-toast-success');
+            box.setAttribute('role', isError ? 'alert' : 'status');
+            box.setAttribute('aria-live', isError ? 'assertive' : 'polite');
+            box.innerHTML = '<div class="d-flex">' +
+                '<div class="toast-body"></div>' +
+                '<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>' +
+                '</div>';
+
+            box.querySelector('.toast-body').textContent = message;
+            stack.appendChild(box);
+
+            var toast = new bootstrap.Toast(box, { delay: isError ? 6000 : 4000 });
+            box.addEventListener('hidden.bs.toast', function () { box.remove(); });
+            toast.show();
+        }
+
+        document.querySelectorAll('form[data-cart-form]').forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                // A browser without fetch simply posts the old way.
+                if (!window.fetch || !window.FormData) { return; }
+
+                event.preventDefault();
+
+                var button = form.querySelector('button[type="submit"]');
+                var original = button ? button.innerHTML : '';
+                var action = form.getAttribute('action');
+
+                if (button) {
+                    button.disabled = true;
+                    button.innerHTML = 'Adding…';
+                }
+
+                fetch(action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    credentials: 'same-origin',
+                    headers: {
+                        'X-Requested-With': 'fetch',
+                        'Accept': 'application/json'
+                    }
+                })
+                    .then(function (response) {
+                        if (!response.ok) { throw new Error('bad status ' + response.status); }
+                        return response.json();
+                    })
+                    .then(function (data) {
+                        // The little gold number next to "Basket".
+                        if (typeof data.count === 'number') {
+                            document.querySelectorAll('.mb-basket-count').forEach(function (badge) {
+                                badge.textContent = data.count;
+                                badge.classList.remove('is-bumped');
+                                void badge.offsetWidth;   // restart the animation
+                                badge.classList.add('is-bumped');
+                            });
+                        }
+
+                        showToast(data.message, !data.ok);
+
+                        // The jar vanished from the shelf: the basket is the honest place to be.
+                        if (data.reload) {
+                            window.location.href = '/Cart';
+                            return;
+                        }
+
+                        if (!button) { return; }
+
+                        if (data.ok) {
+                            button.innerHTML = 'Added';
+                            window.setTimeout(function () {
+                                button.innerHTML = original;
+                                button.disabled = false;
+                            }, 1500);
+                        } else {
+                            button.innerHTML = original;
+                            button.disabled = false;
+                        }
+                    })
+                    .catch(function () {
+                        // Nothing was added as far as we know, so let the browser post it for real.
+                        if (button) {
+                            button.innerHTML = original;
+                            button.disabled = false;
+                        }
+                        form.submit();
+                    });
+            });
+        });
     }());
 </script>

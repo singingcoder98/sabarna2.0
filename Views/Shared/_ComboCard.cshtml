@@ -51,7 +51,7 @@
                     <span class="mb-price-mrp mb-price-mrp-light">&#8377;@Model.Mrp.ToString("0")</span>
                 }
             </div>
-            <form method="post" asp-controller="Cart" asp-action="Add">
+            <form method="post" asp-controller="Cart" asp-action="Add" data-cart-form>
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="id" value="@Model.Id" />
                 <input type="hidden" name="qty" value="1" />

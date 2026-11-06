@@ -63,7 +63,7 @@
                                     <a class="btn btn-gold" asp-controller="Shop" asp-action="Details" asp-route-id="@featured.Id">
                                         See what's inside
                                     </a>
-                                    <form method="post" asp-controller="Cart" asp-action="Add">
+                                    <form method="post" asp-controller="Cart" asp-action="Add" data-cart-form>
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="id" value="@featured.Id" />
                                         <input type="hidden" name="qty" value="1" />

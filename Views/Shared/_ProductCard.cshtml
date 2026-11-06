@@ -52,7 +52,7 @@
     </div>
 
     <div class="mb-card-foot">
-        <form method="post" asp-controller="Cart" asp-action="Add" class="mb-card-form">
+        <form method="post" asp-controller="Cart" asp-action="Add" class="mb-card-form" data-cart-form>
             @Html.AntiForgeryToken()
             <input type="hidden" name="id" value="@Model.Id" />
             <input type="hidden" name="qty" value="1" />

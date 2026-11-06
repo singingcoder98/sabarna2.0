@@ -3781,3 +3781,29 @@ code {
     color: var(--mb-muted);
     margin: 1.25rem 0 0;
 }
+
+/* ---------------------------------------------------------------------------------------------
+   saptarshi: added 06-Nov-2026 — a small pulse on the basket badge when a jar goes in.
+   Kept to a transform only, and switched off for anyone who asks for less motion.
+   --------------------------------------------------------------------------------------------- */
+.mb-basket-count.is-bumped {
+    animation: mb-badge-bump 420ms ease-out;
+}
+
+@keyframes mb-badge-bump {
+    0% {
+        transform: scale(1);
+    }
+    40% {
+        transform: scale(1.32);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mb-basket-count.is-bumped {
+        animation: none;
+    }
+}

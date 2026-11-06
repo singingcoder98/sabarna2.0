@@ -79,19 +79,51 @@ public class CartController : Controller
     {
         var product = await _db.Products.FirstOrDefaultAsync(p => p.Id == id);
 
+        // saptarshi: added 06-Nov-2026 — "Add to basket" buttons now post in the background
+        // (see the last block in Views/Shared/_Scripts.cshtml). The old form post redirected back to
+        // the same page, and a redirect always lands at the TOP of the page, so the customer lost
+        // their place in the shop and had to scroll down again. These three answers let the button
+        // reply with a small JSON message instead. When JavaScript is off, nothing below changes and
+        // the shop behaves exactly as before.
         if (product == null || !product.Active)
         {
-            TempData["Error"] = "That jar is no longer on the shelf. Have a look at the rest of the shop.";
+            const string gone = "That jar is no longer on the shelf. Have a look at the rest of the shop.";
+
+            if (WantsJson())
+            {
+                return Json(new { ok = false, count = _cart.Count(), message = gone, reload = true });
+            }
+
+            TempData["Error"] = gone;
             return RedirectToAction(nameof(Index));
         }
 
         if (product.Stock <= 0)
         {
-            TempData["Error"] = $"{product.Name} is out of stock right now. We restock every fortnight.";
+            var soldOut = $"{product.Name} is out of stock right now. We restock every fortnight.";
+
+            if (WantsJson())
+            {
+                return Json(new { ok = false, count = _cart.Count(), message = soldOut });
+            }
+
+            TempData["Error"] = soldOut;
             return Back(returnUrl);
         }
 
         _cart.Add(product, qty);
+
+        if (WantsJson())
+        {
+            return Json(new
+            {
+                ok = true,
+                count = _cart.Count(),
+                message = $"{product.Name} is in your basket.",
+                productId = product.Id
+            });
+        }
+
         TempData["Toast"] = $"{product.Name} is in your basket.";
         return Back(returnUrl);
     }
@@ -896,6 +928,14 @@ UPDATE ""Products""
     /// Returns to the page the button was pressed on. Only same-site URLs are followed, which
     /// stops the returnUrl parameter from being used as an open redirect.
     /// </summary>
+    // saptarshi: added 06-Nov-2026 — did this "Add to basket" post come from the in-page script
+    // rather than a plain form submit? Only that header is trusted; the request itself is still
+    // checked (antiforgery token, stock, quantity) exactly like a normal post.
+    private bool WantsJson()
+    {
+        return string.Equals(Request.Headers["X-Requested-With"], "fetch", StringComparison.OrdinalIgnoreCase);
+    }
+
     private IActionResult Back(string returnUrl)
     {
         if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))

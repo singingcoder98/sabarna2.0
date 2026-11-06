@@ -91,7 +91,7 @@
                 }
 
                 @* Quantity + add to basket *@
-                <form method="post" asp-controller="Cart" asp-action="Add" class="mb-buy-form">
+                <form method="post" asp-controller="Cart" asp-action="Add" class="mb-buy-form" data-cart-form>
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="id" value="@product.Id" />
                     <input type="hidden" name="returnUrl" value="@returnUrl" />
