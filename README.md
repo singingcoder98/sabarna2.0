@@ -478,9 +478,9 @@ screen and pick `Properties/PublishProfiles/MonsterASP.pubxml`. Doing it by hand
 
 | Field | Value |
 | --- | --- |
-| Server | `site105177.siteasp.net:8172` |
-| Site name | `site105177` |
-| User name | `site105177` |
+| Server | `site105374.siteasp.net:8172` |
+| Site name | `site105374` |
+| User name | `site105374` |
 | Password | the FTP/deployment password from the panel (`Show` reveals it) |
 | Destination URL | `https://sabarna.runasp.net` |
 
@@ -490,7 +490,7 @@ additional files at destination"**.
 *If Web Deploy answers 401* — reachable server, rejected credentials, and an imported profile gives
 you no field to type the password into. Do not wrestle with it; publish over FTP, which is one dialog
 and uses the same credentials the panel already shows: **New profile → FTP/FTPS Server** with server
-`site105177.siteasp.net`, port `21`, path `/wwwroot`, passive mode on, user `site105177`, and the
+`site105374.siteasp.net`, port `21`, path `/wwwroot`, passive mode on, user `site105374`, and the
 password from the panel (`Show`, or `Change` to set a fresh one).
 
 *If Visual Studio's Publish pane is fighting you* (a stale failure message, an imported profile with
@@ -500,8 +500,8 @@ entirely: double-click **`publish.cmd`** in the project folder. It cleans `publi
 `publish\` into `/wwwroot` with FileZilla. Two steps, nothing to configure, no publish profiles.
 
 *Third route, no Web Deploy at all:* publish to a **Folder** (say `C:\sabarna-publish`), then upload
-that folder's contents to `/wwwroot` with FileZilla (server `site105177.siteasp.net`, port 21, user
-`site105177`) or the panel's **Files → File manager**.
+that folder's contents to `/wwwroot` with FileZilla (server `site105374.siteasp.net`, port 21, user
+`site105374`) or the panel's **Files → File manager**.
 
 > **Where the deployment password lives.** Visual Studio writes it to
 > `MonsterASP.pubxml.user`, next to the profile and git-ignored (`*.user`). The committed `.pubxml`

@@ -154,6 +154,7 @@ gone regardless of how long the cookie claims to live.
 | Thing | Value |
 | --- | --- |
 | Project folder on this PC | `D:\MVCDotNet\sabarna2.0` |
+| MonsterASP site ID (this one changes if the site is recreated) | `site105374` — check the overview page before deploying |
 | Local run | `dotnet build Sabarna.sln` → `dotnet run` → <http://localhost:5080> |
 | Build the upload folder | double-click `publish.cmd` → everything lands in `publish\` |
 | Seeded admin | `admin@sabarna.in` / `Sabarna@2024` — **change it** (§2) |
