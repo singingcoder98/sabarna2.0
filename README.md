@@ -160,6 +160,7 @@ Properties/launchSettings.json   http://localhost:5080, ASPNETCORE_ENVIRONMENT=D
 Dockerfile                       .NET 8 build + runtime image, port 8080, database at /data
 web.config                       IIS entry point + env vars for shared hosting (MonsterASP, Azure)
 publish.cmd                      double-click: builds the folder you upload to the host
+HANDOVER.md                      where the project stands, what is built, what to do next
 DEPLOY-CHECKLIST.md              everything to do after hosting: first checks, security, launch day
 App_Data/                        where SQLite writes app.db on IIS; published, never served
 .dockerignore                    keeps bin/, obj/ and app.db out of the image
