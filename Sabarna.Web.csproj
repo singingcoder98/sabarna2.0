@@ -34,6 +34,17 @@
   <ItemGroup>
     <!-- App_Data must exist at the destination: it is where SQLite writes app.db on IIS hosting. -->
     <Content Include="App_Data\**" CopyToPublishDirectory="PreserveNewest" />
+
+    <!--
+      saptarshi: added 08-Nov-2026 — the local database must NEVER travel.
+
+      Running the shop on this PC creates App_Data\app.db full of demo orders. The rule above copies
+      everything in App_Data, so that file would land in publish\ and, on the next FileZilla upload,
+      silently OVERWRITE the live shop's database — every real order gone. Excluding the database
+      files here means the folder still arrives (SQLite needs it to exist) but the data never does.
+    -->
+    <Content Remove="App_Data\app.db;App_Data\app.db-shm;App_Data\app.db-wal" />
+    <None Remove="App_Data\app.db;App_Data\app.db-shm;App_Data\app.db-wal" />
   </ItemGroup>
 
   <ItemGroup>

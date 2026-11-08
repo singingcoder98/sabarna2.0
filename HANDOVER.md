@@ -71,9 +71,27 @@ dotnet run                    # http://localhost:5080
 Admin: `admin@sabarna.in` / `Sabarna@2024` (change it in `/Admin/Settings` if not already done).
 Reset the demo data by deleting `app.db` and running again.
 
-To redeploy after a change: double-click **`publish.cmd`**, upload `publish\` contents to `/wwwroot`
-with FileZilla (overwrite, never delete `App_Data`), then panel → **Scripting → Restart application
-(AppPool)**.
+## Pushing a change to the live site (site105374, sabarna.runasp.net)
+
+Anything you change in Visual Studio stays on this PC until it is published. Six steps, every time:
+
+1. **Build first.** `Ctrl+Shift+B`. Fix errors here — the host never shows a build error, only a 500.
+2. **Double-click `publish.cmd`** in `D:\MVCDotNet\sabarna2.0`. It wipes and rebuilds `publish\`, and
+   deletes any local `App_Data\app.db` that slipped in. Wait for `Done. Folder: …\publish`.
+3. **Stop the site in the panel** (MonsterASP → your site → *Scripting* → **Stop application**), or
+   upload will fail on `Sabarna.Web.dll` with "permission denied" because IIS has it open.
+4. **FileZilla**: host `site105374.siteasp.net`, port `21`, FTP over TLS, user `site105374`, password
+   from the panel. Remote folder `/wwwroot`. Select **everything inside `publish\`** (not the folder)
+   and upload, choosing **Overwrite**. Never tick "remove files at destination".
+5. **Never upload `App_Data`.** `publish\App_Data` only contains a README, but the server's
+   `App_Data\app.db` is the shop: orders, products, settings. Skipping the folder is free insurance.
+   (Column changes are applied automatically on start by `Data/SchemaPatcher.cs` — that is why the
+   database must be left alone.)
+6. **Start the site again**, open the shop and press **`Ctrl+Shift+R`**. CSS and JS are
+   version-stamped, images are not, so a plain refresh may still show the old logo.
+
+If a free-plan upload drops halfway: reconnect, re-queue the same files, and check the file count in
+`/wwwroot` against `publish\` before starting the site.
 
 ## What is next
 

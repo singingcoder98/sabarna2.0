@@ -30,6 +30,16 @@ if errorlevel 1 (
 )
 
 echo.
+rem saptarshi: added 08-Nov-2026 - belt and braces. The csproj already keeps the local
+rem database out of publish\, but if one ever slips through it is deleted here, so it can
+rem never be uploaded over the live shop's App_Data\app.db.
+if exist "publish\App_Data\app.db" (
+    echo [X] Found publish\App_Data\app.db - deleting it so it cannot overwrite the live database.
+    del /q "publish\App_Data\app.db"
+)
+if exist "publish\App_Data\app.db-wal" del /q "publish\App_Data\app.db-wal"
+if exist "publish\App_Data\app.db-shm" del /q "publish\App_Data\app.db-shm"
+
 echo ============================================================
 echo   Done.  Folder: %CD%\publish
 echo ============================================================
