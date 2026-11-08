@@ -83,11 +83,11 @@ public class EmailService
     // ---------------------------------------------------------------------------------------------
     public async Task<bool> SendOtpAsync(string code, string adminEmail)
     {
-        var subject = $"SABARNA admin code: {code}";
-        var text = $"Your SABARNA admin code is {code}. It expires in 5 minutes.\n\n"
+        var subject = $"SABARNA PURE admin code: {code}";
+        var text = $"Your SABARNA PURE admin code is {code}. It expires in 5 minutes.\n\n"
                  + "If you did not try to sign in, change the admin password immediately.";
         var html = $@"<div style=""font-family:Segoe UI,Helvetica,Arial,sans-serif;font-size:15px;color:#1e2a14"">
-  <p>Your SABARNA admin code is</p>
+  <p>Your SABARNA PURE admin code is</p>
   <p style=""font-size:30px;letter-spacing:6px;font-weight:700;margin:12px 0"">{code}</p>
   <p style=""color:#5c6a50"">It expires in 5 minutes. If you did not try to sign in, change the admin password immediately.</p>
 </div>";
@@ -169,7 +169,7 @@ Open the admin panel to mark it Packed when it leaves the farm.";
             return false;
         }
 
-        var subject = $"SABARNA order {order.OrderNumber} confirmed";
+        var subject = $"SABARNA PURE order {order.OrderNumber} confirmed";
         var items = string.Join("\n", order.Items.Select(i => $"  {i.Qty} x {i.Name} = ₹{i.LineTotal:0}"));
 
         var text = $@"Thank you, {order.Customer}.
@@ -181,7 +181,7 @@ We have your payment of ₹{order.Total:0} and your order {order.OrderNumber} is
 We will email the SkyKing tracking number the evening it leaves the farm. Keep this order number:
 you can check the parcel any time on our website.
 
-SABARNA — small-batch ghee, honey & pickles";
+SABARNA PURE — small-batch ghee, honey & pickles";
 
         var html = $@"<div style=""font-family:Segoe UI,Helvetica,Arial,sans-serif;font-size:15px;color:#1e2a14"">
   <h2 style=""color:#2f3e24"">Thank you, {WebUtility.HtmlEncode(order.Customer)}</h2>

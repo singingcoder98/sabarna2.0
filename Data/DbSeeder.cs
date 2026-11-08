@@ -41,7 +41,7 @@ public static class DbSeeder
 
         db.Settings.Add(new SiteSetting
         {
-            BrandName = "Sabarna",
+            BrandName = "Sabarna Pure",
             Tagline = "Small-batch ghee, honey & pickles",
             Logo = "/images/logo-mark.png",
             Email = "hello@sabarna.in",
@@ -74,6 +74,16 @@ public static class DbSeeder
         var settings = await db.Settings.FirstOrDefaultAsync();
         if (settings != null)
         {
+            // saptarshi: added 08-Nov-2026 — the shop's name became "Sabarna Pure" when the new logo
+            // arrived. A database seeded before that still stores the short name, and the owner's
+            // own edits must survive, so only the exact old value is lifted — anything else he has
+            // typed at /Admin/Settings is left alone. Runs every start; does nothing after the first.
+            if (settings.BrandName.Trim().Equals("Sabarna", StringComparison.OrdinalIgnoreCase))
+            {
+                settings.BrandName = "Sabarna Pure";
+                changed = true;
+            }
+
             // The seeded address carried the old name twice ("Matibari Farm, Village Matibari"),
             // which a word-for-word swap would turn into nonsense. Replace the whole line instead.
             if (settings.Address != null &&
@@ -144,7 +154,7 @@ public static class DbSeeder
                 continue;
             }
 
-            property.SetValue(entity, value.Replace(oldName, "Sabarna", StringComparison.OrdinalIgnoreCase));
+            property.SetValue(entity, value.Replace(oldName, "Sabarna Pure", StringComparison.OrdinalIgnoreCase));
             changed = true;
         }
 

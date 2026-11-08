@@ -182,7 +182,7 @@ public class HomeController : Controller
         var settings = await _db.Settings.AsNoTracking().FirstOrDefaultAsync();
         return settings ?? new SiteSetting
         {
-            BrandName = "Sabarna",
+            BrandName = "Sabarna Pure",
             Tagline = "Small-batch ghee, honey & pickles",
             Email = "hello@sabarna.in",
             Phone = "+91 98000 12345",

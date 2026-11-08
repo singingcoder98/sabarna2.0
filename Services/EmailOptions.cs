@@ -30,7 +30,7 @@ public class EmailOptions
 
     public string FromAddress { get; set; } = string.Empty;
 
-    public string FromName { get; set; } = "SABARNA";
+    public string FromName { get; set; } = "SABARNA PURE";
 
     public string OwnerAddress { get; set; } = string.Empty;
 

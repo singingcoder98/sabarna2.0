@@ -78,7 +78,7 @@ public class RazorpayService
             ["notes"] = new Dictionary<string, string>
             {
                 ["order"] = receipt,
-                ["shop"] = "Sabarna"
+                ["shop"] = "SABARNA PURE"
             }
         };
 

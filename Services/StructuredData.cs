@@ -21,7 +21,7 @@ public static class StructuredData
     /// </summary>
     public static string Product(Product product, string storeName, string pageUrl, string absoluteImageUrl)
     {
-        var brand = string.IsNullOrWhiteSpace(storeName) ? "Sabarna" : storeName;
+        var brand = string.IsNullOrWhiteSpace(storeName) ? "Sabarna Pure" : storeName;
 
         var productSchema = new Dictionary<string, object>
         {

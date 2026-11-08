@@ -737,7 +737,7 @@ public class AdminController : Controller
     {
         var settings = await _db.Settings.FirstOrDefaultAsync() ?? new SiteSetting
         {
-            BrandName = "Sabarna",
+            BrandName = "Sabarna Pure",
             Tagline = "Small-batch ghee, honey & pickles"
         };
 

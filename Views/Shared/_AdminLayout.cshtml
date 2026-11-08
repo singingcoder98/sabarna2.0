@@ -11,7 +11,7 @@
     var store = Db.Settings.AsNoTracking().FirstOrDefault();
     if (store == null)
     {
-        store = new SiteSetting { BrandName = "Sabarna", Tagline = "Small-batch ghee, honey & pickles" };
+        store = new SiteSetting { BrandName = "Sabarna Pure", Tagline = "Small-batch ghee, honey & pickles" };
     }
 
     var adminName = User != null && User.Identity != null && User.Identity.IsAuthenticated

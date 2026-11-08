@@ -217,9 +217,10 @@ Views/
 wwwroot/
   css/site.css                   the whole brand layer (~1 of 1 stylesheets)
   lib/bootstrap/                 bootstrap.min.css, bootstrap.bundle.min.js, LICENSE (v5.3.3)
-  images/                        logo.png (full lockup, transparent), logo-mark.png (tree only,
-                                 for the 36-44px slots), favicon.png, apple-touch-icon.png, hero,
-                                 farmer photo, product photography (incl. jaggery), og-cover
+  images/                        logo.png (full lockup on cream), logo-lockup.png (same, transparent),
+                                 logo-mark.png (tree only, for the 36-44px slots), favicon.png,
+                                 apple-touch-icon.png, hero, farmer photo, product photography
+                                 (incl. jaggery), og-cover
   (robots.txt and sitemap.xml are no longer files — SeoController serves both)
 ```
 
@@ -287,26 +288,33 @@ Changing the palette means editing those nine values — nothing else.
 
 ---
 
-**The logo.** The supplied artwork is a stacked lockup: a tree, the word SABARNA, and PURE. Two
-files come out of it, because one size cannot do both jobs:
+**The logo.** The artwork the owner supplied is a stacked lockup: a gold tree, the word SABARNA, and
+PURE with two leaf flourishes, drawn on black. The shop is **SABARNA PURE**, and the black backplate
+is never shown — the logo always sits on cream (`--mb-cream`) or on nothing at all.
 
 | File | What it is | Where it is used |
 | --- | --- | --- |
 | `images/logo-mark.png` | the tree on its own, transparent | the 36–44 px slots: navbar, footer, admin sidebar, sign-in screens |
-| `images/logo.png` | the full lockup, transparent | structured data (`Organization.logo`), the settings placeholder, anywhere large |
-| `images/favicon.png`, `images/apple-touch-icon.png` | the tree on the cream colour | browser tab, iOS home screen |
+| `images/logo.png` | the full lockup **on cream**, 800 px | structured data (`Organization.logo`), `og:image` fallback, anywhere large |
+| `images/logo-lockup.png` | the full lockup, transparent, 700 px | print, invoices, e-mail signatures — anything that needs its own background |
+| `images/favicon.png`, `images/apple-touch-icon.png` | the tree on cream | browser tab, iOS home screen |
 
-The cream paper of the original was knocked out to transparency, so the mark sits cleanly on both
-the cream navbar and the dark green footer. `SiteSetting.Logo` points at the **mark**; change it in
-`/Admin/Settings` if you ever want a different image in those small slots.
+Two rules follow from that, and both live in `site.css`: the black background was knocked out to
+transparency, and every slot that sits on a dark panel — the footer, the admin sidebar, the sign-in
+screen — puts the mark on a **cream disc** (`.mb-footer-logo`, `.mb-admin-brand img`,
+`.mb-auth-brand img`). `logo.png` is deliberately opaque: WhatsApp and Facebook turn a transparent
+PNG into a black tile.
+
+`SiteSetting.Logo` points at the **mark**; change it in `/Admin/Settings` if you ever want a
+different image in those small slots.
 
 ---
 
 ## 7. Deliberately deferred (clearly marked `TODO` in the code)
 
-1. **Payment gateway.** `CartController.Checkout` has a marked block where Razorpay goes. Today the
-   order is simply recorded with `Payment = "Paid"` so the rest of the flow can be finished and
-   tested. Everything else (order number, stock, confirmation page, admin views) is already in place.
+1. ~~**Payment gateway.**~~ **Done 6 Nov 2026** — Razorpay, taken end to end in `CartController`
+   and `Services/RazorpayService.cs`, switched off until `Razorpay__*` settings exist. Without keys
+   the shop keeps the old demo behaviour. See `DEPLOY-CHECKLIST.md`, "Payments — the five switches".
 2. **Email / SMS.** The admin OTP and the contact form are shown on screen / toasted instead of sent.
    See `AdminController.Login` (OTP) and `ContactController.Index` (contact form).
 3. **Product image upload.** The admin types an image path (`/images/products/…`). The path is

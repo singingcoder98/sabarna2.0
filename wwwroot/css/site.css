@@ -1238,7 +1238,11 @@ code {
     height: 48px;
     border-radius: 50%;
     object-fit: cover;
-    border: 1px solid rgba(251, 246, 234, 0.2);
+    /* saptarshi: 08-Nov-2026 — the footer is dark green, and the tree is gold. A cream disc behind
+       the mark keeps the logo on the light background the owner asked for, instead of sinking it
+       into the dark panel. Same trick as the header and the admin sidebar. */
+    background: var(--mb-cream);
+    border: 1px solid var(--mb-line);
 }
 
 .mb-footer-name {
@@ -2656,7 +2660,9 @@ code {
 
 .mb-auth-brand img {
     border-radius: 50%;
-    border: 1px solid rgba(251, 246, 234, 0.25);
+    /* saptarshi: 08-Nov-2026 — the sign-in panel is dark green; the logo sits on cream. */
+    background: var(--mb-cream);
+    border: 1px solid var(--mb-line);
 }
 
 .mb-auth-visual-title {
@@ -2868,7 +2874,9 @@ code {
 
 .mb-admin-brand img {
     border-radius: 50%;
-    border: 1px solid rgba(251, 246, 234, 0.25);
+    /* saptarshi: 08-Nov-2026 — cream disc, for the same reason as the footer logo. */
+    background: var(--mb-cream);
+    border: 1px solid var(--mb-line);
 }
 
 .mb-admin-nav-list {
@@ -3805,5 +3813,22 @@ code {
 @media (prefers-reduced-motion: reduce) {
     .mb-basket-count.is-bumped {
         animation: none;
+    }
+}
+
+/* ---------------------------------------------------------------------------------------------
+   saptarshi: added 08-Nov-2026 — the shop is called SABARNA PURE now, one word longer, so the
+   mark and the name have to share the same narrow header on a phone without wrapping to two lines.
+   The name shrinks a little instead of breaking.
+   --------------------------------------------------------------------------------------------- */
+.mb-brand-name {
+    white-space: nowrap;
+    font-size: clamp(0.95rem, 3.4vw, 1.15rem);
+    letter-spacing: 0.06em;
+}
+
+@media (max-width: 359px) {
+    .mb-brand-tag {
+        display: none;
     }
 }
