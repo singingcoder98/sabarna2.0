@@ -110,8 +110,19 @@
         <div class="row g-4 g-lg-5">
             <div class="col-lg-4">
                 <div class="mb-footer-brand">
-                    <img src="@logoPath" alt="" class="mb-footer-logo" width="48" height="48" aria-hidden="true" />
-                    <span class="mb-footer-name">@store.BrandName</span>
+                    @* saptarshi: changed 08-Nov-2026 — the footer is the one place with room, so it now
+                       carries the FULL logo (tree + the SABARNA PURE wordmark with its leaves) on a cream
+                       plaque, instead of a 48 px tree with the name typed next to it. The old two lines
+                       are kept just below, commented out, in case the owner wants them back. *@
+                    <a class="mb-footer-plaque" asp-controller="Home" asp-action="Index">
+                        <img src="/images/logo-lockup.png" alt="SABARNA PURE"
+                             class="mb-footer-lockup" width="128" height="180" />
+                    </a>
+
+                    @*
+                        <img src="@logoPath" alt="" class="mb-footer-logo" width="48" height="48" aria-hidden="true" />
+                        <span class="mb-footer-name">@store.BrandName</span>
+                    *@
                 </div>
                 <p class="mb-footer-text">
                     @(store.Tagline). Small batches, honest labels and a parcel that smells of the kitchen

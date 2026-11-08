@@ -1233,6 +1233,47 @@ code {
     margin-bottom: 0.9rem;
 }
 
+/* saptarshi: added 08-Nov-2026 — the full lockup in the footer sits on a cream plaque, so the logo
+   is never directly on the dark green, and the wordmark stays readable at 128 x 180 px. */
+.mb-footer-plaque {
+    display: inline-flex;
+    padding: 0.85rem 0.95rem;
+    background: var(--mb-cream);
+    border-radius: 14px;
+    box-shadow: 0 10px 24px rgba(12, 20, 10, 0.22);
+    line-height: 0;
+    transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.mb-footer-plaque:hover,
+.mb-footer-plaque:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(12, 20, 10, 0.28);
+}
+
+.mb-footer-lockup {
+    display: block;
+    width: auto;
+    height: 180px;
+}
+
+@media (max-width: 575.98px) {
+    .mb-footer-lockup {
+        height: 150px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mb-footer-plaque {
+        transition: none;
+    }
+
+    .mb-footer-plaque:hover,
+    .mb-footer-plaque:focus-visible {
+        transform: none;
+    }
+}
+
 .mb-footer-logo {
     width: 48px;
     height: 48px;
