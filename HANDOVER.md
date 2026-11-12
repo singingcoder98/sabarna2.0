@@ -73,6 +73,9 @@ Reset the demo data by deleting `app.db` and running again.
 
 ## Pushing a change to the live site (site105374, sabarna.runasp.net)
 
+> Hand this to anyone who has never deployed: **`UPLOAD-STEPS.md`** says the same thing in plain
+> language — where `publish.cmd` lives, what each window should show, and what to do when it breaks.
+
 Anything you change in Visual Studio stays on this PC until it is published. Six steps, every time:
 
 1. **Build first.** `Ctrl+Shift+B`. Fix errors here — the host never shows a build error, only a 500.
