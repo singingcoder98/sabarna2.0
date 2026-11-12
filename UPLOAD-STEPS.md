@@ -31,6 +31,13 @@ Ye **project folder ke andar sabse upar** rakha hai — wahi folder jisme `Sabar
 **Tip:** `publish.cmd` par right-click → **Send to → Desktop (create shortcut)**. Agli baar desktop se
 seedha double-click.
 
+> ⚠️ **Shortcut banao, copy nahi.** Agar aap file ko **copy-paste** karke Desktop par le aaye, to wo
+> chalega hi nahi — screen par aayega:
+> `MSBUILD : error MSB1009: Project file does not exist. Switch: Sabarna.Web.csproj`
+> **Pehchan:** asli shortcut ke corner me chhota sa **teer (arrow)** hota hai; copy me nahi hota.
+> Galti ho jaaye to Desktop wali copy delete kar dijiye — project folder wali asli file me koi
+> dikkat nahi aayi hai.
+
 ---
 
 ## Ek baar ka setup (sirf pehli baar)
@@ -55,7 +62,16 @@ Agli baar se sirf: FileZilla kholiye → site select → **Connect**.
 
 ---
 
-## Har baar ke 6 steps
+## Har baar ke steps
+
+### Step 0 — Latest code laao (Visual Studio)
+
+1. `Sabarna.sln` kholiye.
+2. Menu: **Git → Pull** (ya `Ctrl + Shift + F5` nahi — **Git menu se "Pull"** hi dabaiye).
+3. Aana chahiye: `Already up to date.` ya `Successfully pulled`.
+
+**Kyun?** Aapke PC par jo code hai wahi publish hota hai. Pull na karne se **purana version live**
+chala jayega, aur naye changes website par nahi dikhenge.
 
 ### Step 1 — Build karo (Visual Studio)
 
@@ -144,6 +160,7 @@ hain — database ko chhedne ki zaroorat nahi.
 
 | Dikh raha hai | Matlab | Kya karna hai |
 | --- | --- | --- |
+| **`MSBUILD : error MSB1009: Project file does not exist`** | `publish.cmd` Desktop par **copy** hua hai, shortcut nahi | Desktop wali copy delete kariye → `D:\MVCDotNet\sabarna2.0\publish.cmd` seedha chalaiye, ya uska **shortcut** banaiye |
 | **500 – Internal Server Error** | Build local me fail hua tha, ya upload adhoora hai | Panel → **Logs** dekhiye; Step 1 dobara; Step 4 dobara |
 | Upload me **"permission denied"** | Website band nahi ki (Step 3) | Panel se **Stop**, phir wo file dobara upload |
 | Upload beech me **toot gaya** | Free plan ki limit | FileZilla reconnect → wahi files dobara queue → file count milaaiye |
