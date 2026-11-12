@@ -125,6 +125,11 @@ bilkul muft hai.)
 
 **Kyun?** Server abhi chal rahi website ki files ko "pakde" baitha hai; rokne se upload fail nahi hota.
 
+> ⚠️ **Stop ke baad Start karna mat bhoolna.** "Stop" karte waqt host `/wwwroot` me ek file
+> `app_offline.htm` bana deta hai. Wo file rahi to poori website **500 error** deti hai — page nahi,
+> bas error. Upload khatam hone par Step 6 me Start kariye, aur File Manager me dekh lijiye ki
+> `app_offline.htm` hat gaya hai. Na hate to usse **delete** kar dijiye.
+
 ### Step 4 — FileZilla se upload
 
 1. FileZilla kholiye → apni site → **Connect**.
@@ -173,6 +178,8 @@ hain — database ko chhedne ki zaroorat nahi.
 
 | Dikh raha hai | Matlab | Kya karna hai |
 | --- | --- | --- |
+| **`/wwwroot` me `app_offline.htm` file pada hai** | Website "stop" ki hui hai (ya stop ke baad start nahi hui) | Panel → **Start application**; file rah jaaye to use **delete** kariye |
+| **Har page par 500**, `Sabarna.Web.dll` date aaj ki hai | Site chalu nahi hui / upload adhoora | Panel → **Restart**; `runtimes` aur `wwwroot` folders ki date aaj ki honi chahiye |
 | **`MSBUILD : error MSB1009: Project file does not exist`** | `publish.cmd` Desktop par **copy** hua hai, shortcut nahi | Desktop wali copy delete kariye → `D:\MVCDotNet\sabarna2.0\publish.cmd` seedha chalaiye, ya uska **shortcut** banaiye |
 | **500 – Internal Server Error** | Build local me fail hua tha, ya upload adhoora hai | Panel → **Logs** dekhiye; Step 1 dobara; Step 4 dobara |
 | Upload me **"permission denied"** | Website band nahi ki (Step 3) | Panel se **Stop**, phir wo file dobara upload |
