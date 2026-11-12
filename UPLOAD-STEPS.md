@@ -102,6 +102,19 @@ website par error 500 dikhega.
 **Isne kya kiya?** `publish` naam ka naya folder bana diya, jisme website ka taiyaar version hai —
 yahi folder upload hota hai.
 
+**Ek 10-second check (bahut zaroori):**
+
+1. File Explorer me `D:\MVCDotNet\sabarna2.0\publish` kholiye.
+2. Andar `App_Data` folder kholiye.
+3. Wahan **sirf `README.txt`** dikhna chahiye.
+
+Agar `app.db` dikhe → **upload mat kariye**, pehle bataiye. Wo file aapke PC ka demo database hai
+aur server ka asli database mita degi. (`publish.cmd` ise khud delete karta hai, phir bhi dekh lena
+bilkul muft hai.)
+
+> Screen par `info NETSDK1057: You are using a preview version of .NET` dikh sakta hai — **koi dikkat
+> nahi**, publish fir bhi theek hota hai. Website .NET 8 par chalti hai, jo host par pehle se hai.
+
 > Black window turant band ho jaaye aur "dotnet was not found" likhe, to .NET 8 SDK install nahi hai.
 > Us case me screenshot bhejiye.
 
