@@ -315,8 +315,11 @@ different image in those small slots.
 1. ~~**Payment gateway.**~~ **Done 6 Nov 2026** — Razorpay, taken end to end in `CartController`
    and `Services/RazorpayService.cs`, switched off until `Razorpay__*` settings exist. Without keys
    the shop keeps the old demo behaviour. See `DEPLOY-CHECKLIST.md`, "Payments — the five switches".
-2. **Email / SMS.** The admin OTP and the contact form are shown on screen / toasted instead of sent.
-   See `AdminController.Login` (OTP) and `ContactController.Index` (contact form).
+2. **Admin OTP e-mail.** ~~Deferred~~ **Done 12 Nov 2026.** `AdminController` e-mails the six-digit
+   code (owner address, backup address and the account address), with an automatic fallback to the
+   screen if no mail is configured — so nobody can be locked out. Fill in `Email__*` (Brevo free
+   plan) to switch the screen copy off. Still open: the **contact form** and the **newsletter** are
+   toasted, not stored — see item 3 of `DEPLOY-CHECKLIST.md` §4.
 3. **Product image upload.** The admin types an image path (`/images/products/…`). The path is
    normalised, but there is no upload control yet.
 4. **Order status notifications.** Advancing an order updates the database; the customer is not

@@ -104,10 +104,56 @@ public class EmailService
             sent |= await SendAsync(_options.BackupOwnerAddress, subject, html, text);
         }
 
-        // Last resort: the admin's own address on the account.
-        if (!sent && !string.IsNullOrWhiteSpace(adminEmail))
+        // saptarshi: changed 12-Nov-2026 — the account's own address is always included, not only as
+        // a last resort. If the owner address is a stale inbox that the mail server happily accepts,
+        // the code would otherwise sit somewhere nobody reads and the shop would lock its owner out.
+        if (!string.IsNullOrWhiteSpace(adminEmail)
+            && !string.Equals(adminEmail, _options.OwnerAddress, StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(adminEmail, _options.BackupOwnerAddress, StringComparison.OrdinalIgnoreCase))
         {
-            sent = await SendAsync(adminEmail, subject, html, text);
+            sent |= await SendAsync(adminEmail, subject, html, text);
+        }
+
+        return sent;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // saptarshi: added 12-Nov-2026 — a message from the contact page goes to the owner's inbox.
+    // Until now the page said "your message has reached us" and then dropped it on the floor.
+    // ---------------------------------------------------------------------------------------------
+    public async Task<bool> SendContactMessageToOwnerAsync(
+        string name, string email, string phone, string subject, string message)
+    {
+        const string heading = "New message from the contact page";
+
+        var text = $@"{heading}
+
+Name     {name}
+Email    {email}
+Mobile   {(string.IsNullOrWhiteSpace(phone) ? "-" : phone)}
+Subject  {subject}
+
+{message}";
+
+        var html = $@"<div style=""font-family:Segoe UI,Helvetica,Arial,sans-serif;font-size:15px;color:#1e2a14"">
+  <p><strong>{heading}</strong></p>
+  <p>Name: {WebUtility.HtmlEncode(name)}<br />
+     Email: {WebUtility.HtmlEncode(email)}<br />
+     Mobile: {WebUtility.HtmlEncode(string.IsNullOrWhiteSpace(phone) ? "-" : phone)}<br />
+     Subject: {WebUtility.HtmlEncode(subject)}</p>
+  <p style=""white-space:pre-line"">{WebUtility.HtmlEncode(message)}</p>
+</div>";
+
+        if (string.IsNullOrWhiteSpace(_options.OwnerAddress))
+        {
+            return false;
+        }
+
+        var sent = await SendAsync(_options.OwnerAddress, $"Contact: {subject}", html, text);
+
+        if (!string.IsNullOrWhiteSpace(_options.BackupOwnerAddress))
+        {
+            sent |= await SendAsync(_options.BackupOwnerAddress, $"Contact: {subject}", html, text);
         }
 
         return sent;

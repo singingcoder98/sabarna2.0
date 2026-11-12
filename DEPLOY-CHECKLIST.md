@@ -105,7 +105,7 @@ These are known gaps, not bugs. Each one has a single, obvious place to fix it.
 | --- | --- | --- |
 | ~~**Online payment**~~ | **Code is finished (6 Nov 2026)** — `CartController` + `Services/RazorpayService.cs`. It stays in demo mode until the keys are filled in. See "Payments — the five switches" below. |
 | **Admin one-time code by e-mail/SMS** | `Controllers/AdminController.cs` — after the password is accepted | Wire an SMTP or API provider, send `code`, and delete the `Otp__ShowOnScreen` line from `web.config`. |
-| **Contact form by e-mail** | `Controllers/ContactController.cs` — after the message is saved | The message is already stored; forward it to the owner's inbox as well. |
+| ~~**Contact form by e-mail**~~ | **Half done (12 Nov 2026).** The message is now e-mailed to the owner, and if mail is not configured the page tells the customer to call instead of pretending it arrived. | **Still open:** the message is **not** saved in the database (the earlier note here was wrong — nothing was stored). Add a `ContactMessage` table and saving in task 3, plus a honeypot and a rate limit. |
 | **Newsletter sign-up** | `Controllers/HomeController.cs` — the footer form | Hand the address to a mailing-list provider. |
 | **Product image upload** | `Views/Admin/_ProductFormFields.cshtml` | A file input, saved to `wwwroot/images/products/`, with the path written back to the product. |
 

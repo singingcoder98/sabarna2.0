@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Security.Claims;
+using Microsoft.Extensions.Caching.Memory;   // saptarshi: login attempt counter
 using System.Text;
 using System.Text.Json;
 using Sabarna.Web.Data;
@@ -32,17 +33,30 @@ public class AdminController : Controller
     /// <summary>Products at or below this stock level are flagged on the dashboard.</summary>
     public const int LowStockThreshold = 10;
 
+    /// <summary>Session key holding when the last code was sent, so "Resend" cannot be hammered.</summary>
+    private const string LastOtpSentKey = "sabarna.otp-sent-at";   // saptarshi
+
     private readonly AppDbContext _db;
     private readonly AuthService _auth;
+    private readonly EmailService _email;
+    private readonly IMemoryCache _cache;
     private readonly IWebHostEnvironment _environment;
     private readonly IConfiguration _configuration;
 
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
-    public AdminController(AppDbContext db, AuthService auth, IWebHostEnvironment environment, IConfiguration configuration)
+    public AdminController(
+        AppDbContext db,
+        AuthService auth,
+        EmailService email,          // saptarshi
+        IMemoryCache cache,          // saptarshi
+        IWebHostEnvironment environment,
+        IConfiguration configuration)
     {
         _db = db;
         _auth = auth;
+        _email = email;
+        _cache = cache;
         _environment = environment;
         _configuration = configuration;
     }
@@ -54,6 +68,89 @@ public class AdminController : Controller
     /// </summary>
     private bool ShowOtpOnScreen =>
         _configuration.GetValue<bool?>("Otp:ShowOnScreen") ?? _environment.IsDevelopment();
+
+    // =============================================================================================
+    // saptarshi: added 12-Nov-2026 — the code is now e-mailed (Task 2).
+    //
+    // Three rules decide where a code goes, in this order:
+    //
+    //   1. Otp:ShowOnScreen is on (or the site is in Development)  -> straight on the screen.
+    //      That is how this PC works, and how the hosted preview worked until today.
+    //   2. Otherwise it goes out by e-mail: owner address first, then the backup address, then the
+    //      admin's own address (Services/EmailService.cs).
+    //   3. If no mail is configured, or the mail server refuses, the code falls back to the screen.
+    //
+    // Rule 3 exists on purpose. A shop whose owner cannot get in because a password expired is a
+    // worse day than a code being visible for five minutes. The moment Email__Enabled is turned on
+    // and the first e-mail lands, the screen copy disappears by itself — no setting to remember.
+    // =============================================================================================
+    private async Task<bool> DeliverOtpAsync(AdminUser admin, string code)
+    {
+        HttpContext.Session.SetString(LastOtpSentKey, DateTime.UtcNow.ToString("O"));
+
+        if (ShowOtpOnScreen)
+        {
+            HttpContext.Session.SetString(DevCodeKey, code);
+            return true;
+        }
+
+        var emailed = await _email.SendOtpAsync(code, admin.Email);
+
+        if (emailed)
+        {
+            HttpContext.Session.Remove(DevCodeKey);
+        }
+        else
+        {
+            HttpContext.Session.SetString(DevCodeKey, code);
+        }
+
+        return emailed;
+    }
+
+    // =============================================================================================
+    // saptarshi: added 12-Nov-2026 — a ceiling on wrong passwords, counted per address + device.
+    // Eight wrong tries in a quarter of an hour and that pair waits; the real owner on another
+    // phone, or fifteen minutes later, is unaffected. Nothing is locked permanently, so there is
+    // no "recovery" step to remember.
+    // =============================================================================================
+    private const int MaxLoginFailures = 8;
+    private static readonly TimeSpan LoginWindow = TimeSpan.FromMinutes(15);
+
+    private string LoginAttemptKey(string email)
+    {
+        var device = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return "sabarna.login-fail|" + device + "|" + (email ?? string.Empty).Trim().ToLowerInvariant();
+    }
+
+    private bool IsLoginBlocked(string email)
+    {
+        return _cache.TryGetValue(LoginAttemptKey(email), out int failures) && failures >= MaxLoginFailures;
+    }
+
+    private void RecordLoginFailure(string email)
+    {
+        var key = LoginAttemptKey(email);
+        var failures = _cache.TryGetValue(key, out int current) ? current : 0;
+        _cache.Set(key, failures + 1, LoginWindow);
+    }
+
+    private void ClearLoginFailures(string email)
+    {
+        _cache.Remove(LoginAttemptKey(email));
+    }
+
+    /// <summary>a***@gmail.com — enough for the owner to recognise the inbox, useless to a snooper.</summary>
+    private static string MaskEmail(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return "your registered email";
+        }
+
+        var at = email.IndexOf('@');
+        return at <= 1 ? email : email[0] + "***" + email[(at - 1)..];
+    }
 
     // =============================================================================================
     // LOGIN — step 1: email + password
@@ -84,27 +181,37 @@ public class AdminController : Controller
             return View(model);
         }
 
+        // saptarshi: added 12-Nov-2026 — too many wrong tries from this device: stop guessing here.
+        if (IsLoginBlocked(model.Email))
+        {
+            ModelState.AddModelError(string.Empty,
+                "Too many wrong attempts from this device. Please wait fifteen minutes and try again.");
+            return View(model);
+        }
+
         var admin = await _auth.FindActiveAdminAsync(model.Email);
 
         // The same message for "no such account" and "wrong password" — no free hints.
         if (admin == null || !_auth.VerifyPassword(admin, model.Password))
         {
+            RecordLoginFailure(model.Email);   // saptarshi
             ModelState.AddModelError(string.Empty, "That email and password do not match an account.");
             return View(model);
         }
+
+        ClearLoginFailures(model.Email);       // saptarshi
 
         var code = await _auth.CreateOtpAsync(admin);
 
         HttpContext.Session.SetInt32(PendingAdminKey, admin.Id);
 
-        if (ShowOtpOnScreen)
-        {
-            // No mail provider is connected yet, so the code is kept for the screen (see README §7).
-            HttpContext.Session.SetString(DevCodeKey, code);
-        }
+        // saptarshi: e-mail it, or fall back to the screen if no mail is connected (see DeliverOtpAsync).
+        var delivered = await DeliverOtpAsync(admin, code);
 
-        // TODO (deferred): e-mail / SMS the code to the admin's own address or phone.
-        TempData["Toast"] = "Password accepted. We have sent a 6-digit code to your registered email.";
+        TempData["Toast"] = delivered
+            ? $"Password accepted. A 6-digit code is on its way to {MaskEmail(admin.Email)} — it expires in 5 minutes."
+            : "Password accepted. Email is not connected yet, so your code is shown on the next screen.";
+
         return RedirectToAction(nameof(VerifyOtp));
     }
 
@@ -124,9 +231,10 @@ public class AdminController : Controller
         }
 
         ViewData["Title"] = "Enter your one-time code";
-        ViewData["DevCode"] = ShowOtpOnScreen
-            ? HttpContext.Session.GetString(DevCodeKey)
-            : null;
+
+        // saptarshi: the session only holds a code when the screen is the delivery method, so this
+        // one line covers both the "screen" setting and the "email failed, fell back" case.
+        ViewData["DevCode"] = HttpContext.Session.GetString(DevCodeKey);
 
         return View(new OtpViewModel());
     }
@@ -193,6 +301,57 @@ public class AdminController : Controller
 
         TempData["Toast"] = $"Welcome back, {admin.FullName}.";
         return RedirectToAction(nameof(Dashboard));
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // saptarshi: added 12-Nov-2026 — POST /Admin/ResendOtp
+    //
+    // "The code never came." One new code, one old code burnt, and a 60-second wait between asks so
+    // the button cannot be used to flood a mailbox or to fish for a code that happens to match.
+    // ---------------------------------------------------------------------------------------------
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResendOtp()
+    {
+        var pendingAdminId = HttpContext.Session.GetInt32(PendingAdminKey);
+        if (pendingAdminId == null)
+        {
+            TempData["Error"] = "Please start again with your email and password.";
+            return RedirectToAction(nameof(Login));
+        }
+
+        var lastSent = HttpContext.Session.GetString(LastOtpSentKey);
+        if (!string.IsNullOrWhiteSpace(lastSent)
+            && DateTime.TryParse(lastSent, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var sentAt)
+            && DateTime.UtcNow - sentAt < TimeSpan.FromSeconds(60))
+        {
+            TempData["Error"] = "A code was sent less than a minute ago. Check your inbox (and the spam folder), then try again.";
+            return RedirectToAction(nameof(VerifyOtp));
+        }
+
+        var admin = await _db.AdminUsers.FirstOrDefaultAsync(a => a.Id == pendingAdminId.Value && a.IsActive);
+        if (admin == null)
+        {
+            HttpContext.Session.Remove(PendingAdminKey);
+            TempData["Error"] = "That account is no longer active.";
+            return RedirectToAction(nameof(Login));
+        }
+
+        var code = await _auth.CreateOtpAsync(admin);
+
+        var delivered = await DeliverOtpAsync(admin, code);
+
+        if (delivered)
+        {
+            TempData["Toast"] = $"A fresh code is on its way to {MaskEmail(admin.Email)}. The earlier one no longer works.";
+        }
+        else
+        {
+            TempData["Error"] = "Email is not connected yet, so the new code is shown below.";
+        }
+
+        return RedirectToAction(nameof(VerifyOtp));
     }
 
     [HttpPost]

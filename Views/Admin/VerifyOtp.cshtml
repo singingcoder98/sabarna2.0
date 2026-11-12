@@ -54,9 +54,10 @@
                         Your one-time code is <strong class="mb-dev-code">@devCode</strong>
                     </p>
                     <p class="mb-dev-notice-fine">
-                        This box appears because <code>Otp:ShowOnScreen</code> is on, or because the
-                        site is running in Development. Connect a mail provider (README §7) and
-                        switch it off.
+                        @* saptarshi: changed 12-Nov-2026 — the code is now e-mailed. *@
+                        This box appears because e-mail is not connected yet (or the mail server
+                        refused the message), so the code is shown here instead of locking you out.
+                        Fill in <code>Email__*</code> on the server and it disappears by itself.
                     </p>
                 </div>
             }
@@ -74,6 +75,13 @@
                 </div>
 
                 <button type="submit" class="btn btn-brand btn-lg w-100">Verify and sign in</button>
+            </form>
+
+            @* saptarshi: added 12-Nov-2026 — "the code never arrived". One extra code, 60 s apart. *@
+            <form method="post" asp-controller="Admin" asp-action="ResendOtp" class="mb-otp-resend">
+                @Html.AntiForgeryToken()
+                <p class="mb-auth-fine">Code not in your inbox? Check the spam folder first.</p>
+                <button type="submit" class="btn btn-ghost btn-sm">Send me a new code</button>
             </form>
 
             <p class="mb-auth-fine">

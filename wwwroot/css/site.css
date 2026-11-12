@@ -3873,3 +3873,15 @@ code {
         display: none;
     }
 }
+
+/* saptarshi: added 12-Nov-2026 — the "send me a new code" block under the verify button. */
+.mb-otp-resend {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--mb-line);
+    text-align: center;
+}
+
+.mb-otp-resend .mb-auth-fine {
+    margin-bottom: 0.6rem;
+}

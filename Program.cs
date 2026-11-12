@@ -52,6 +52,10 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(connect
 
 // ---- 3. Session (used for the shopping cart and the pending admin login) ----------------------
 builder.Services.AddDistributedMemoryCache();
+
+// saptarshi: added 12-Nov-2026 — a small in-memory cache, used only to count wrong admin passwords
+// so nobody can guess one forever. It is per-process on purpose: no database, nothing to clean up.
+builder.Services.AddMemoryCache();
 builder.Services.AddSession(options =>
 {
     options.Cookie.Name = ".sabarna.session";
