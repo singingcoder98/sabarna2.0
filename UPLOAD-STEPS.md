@@ -130,6 +130,29 @@ bilkul muft hai.)
 > bas error. Upload khatam hone par Step 6 me Start kariye, aur File Manager me dekh lijiye ki
 > `app_offline.htm` hat gaya hai. Na hate to usse **delete** kar dijiye.
 
+## Server par files kahan rehti hain (ek baar samajh lo)
+
+```
+/wwwroot/               <- PROGRAM yahan hai: Sabarna.Web.dll, web.config, runtimes
+    wwwroot/            <- DESIGN yahan hai: css, images, lib   (dhyaan do: naam ek jaisa!)
+    App_Data/           <- DATABASE yahan hai (app.db) - kabhi chhuna nahi
+```
+
+Do folder ka naam ek jaisa (`wwwroot`) hone se hi galti hoti hai: `publish\` ke andar bhi ek
+`wwwroot` folder hai. Upload karte waqt **remote box me `/wwwroot` likha hona chahiye**, aur agar
+galti se `/wwwroot/wwwroot` par upload ho gaya to design purana hi rahega (CSS aur tasveerein purani
+dikhengi) — program naya hoga par dikhega purana.
+
+**Sahi tareeka, do line me:**
+
+| Upload karna hai | Remote box me likho |
+| --- | --- |
+| poora `publish` (program + design) | `/wwwroot` |
+| sirf design dobara bhejna ho | `/wwwroot/wwwroot` (aur local me `publish\wwwroot` kholo) |
+
+Aur upload ke baad **Restart** karna zaroori hai — purana program memory me chalta rehta hai, naya
+DLL apne aap load nahi hota.
+
 ### Step 4 — FileZilla se upload
 
 1. FileZilla kholiye → apni site → **Connect**.
