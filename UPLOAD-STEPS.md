@@ -207,7 +207,9 @@ hain — database ko chhedne ki zaroorat nahi.
 | **500 – Internal Server Error** | Build local me fail hua tha, ya upload adhoora hai | Panel → **Logs** dekhiye; Step 1 dobara; Step 4 dobara |
 | Upload me **"permission denied"** | Website band nahi ki (Step 3) | Panel se **Stop**, phir wo file dobara upload |
 | Upload beech me **toot gaya** | Free plan ki limit | FileZilla reconnect → wahi files dobara queue → file count milaaiye |
-| **Purana logo / purana naam** | Browser cache | **Ctrl + Shift + R**; ya incognito window |
+| **Purana logo / purani CSS** | Browser cache, ya design galat folder me gaya | **Ctrl + Shift + R**; phir "Server par files kahan rehti hain" dekhiye |
+| **Design naya, par naam purana ("SABARNA")** | Naam database me pada hai; naya code use restart par badalta hai | Turant fix: `/Admin/Settings` → **Brand name** = `Sabarna Pure` → **Save**. Ya panel se **Restart** kariye |
+| **Naam ke saath "Add to basket" bhi page upar kood raha hai** | Server par **purana program** chal raha hai (naya DLL load nahi hua) | Panel → **Scripting → Restart application** |
 | **Database khaali lag raha** (orders gayab) | Galti se `App_Data` upload ho gaya | Turant panel se site **Stop** kariye aur backup se `app.db` wapas rakhiye — dobara mat upload karna |
 | Site slow / error | App pool atka | Panel → **Restart application** |
 
