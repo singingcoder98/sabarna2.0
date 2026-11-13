@@ -1,10 +1,12 @@
 # After it is hosted — the checklist
 
-> **Status on 6 November 2026.** Live on the MonsterASP.NET free plan at
-> `https://sabarna.runasp.net` (site `site105374`), shared with the co-admins as a preview.
-> Right now: preview mode **on** (not indexed), access code **off** (anyone with the link gets in),
-> the admin one-time code is **drawn on screen** (`Otp__ShowOnScreen`), **no payment gateway**, and
-> the content is still the seeded demo catalogue with placeholder contact details.
+> **Status on 4 November 2026 (Phase 0 is written, not yet uploaded).** Live on the
+> MonsterASP.NET free plan at `https://sabarna.runasp.net` (site `site105374`), shared with the
+> co-admins as a preview. Right now: preview mode **on** (not indexed), access code **off**
+> (anyone with the link gets in), **no payment gateway** — and from Phase 0, on the live site the
+> admin one-time code is **e-mailed only** (never drawn on screen) and the seeded admin password
+> must be changed before the panel opens. The content is still the seeded demo catalogue with
+> placeholder contact details.
 > Every unticked box below is still to do — nothing else stands between this and a real shop.
 
 Everything that has to happen **once the shop is on a real address**, in the order it should happen.
@@ -12,6 +14,27 @@ Tick the boxes as you go; every item says *why*, so nothing has to be remembered
 
 The two companion documents: `README.md` (§10 is the deploy walkthrough, §11 is the pre-launch
 list) and this file, which is the list for **the days after** deployment.
+
+---
+
+## 0-A. The owner's steps, in this order — say them again at every visit
+
+saptarshi: this section exists because the owner asked for his own tasks to be repeated step by
+step, every single time, instead of being scattered across a chat. It is the short version; the
+detailed boxes are in the sections named after each step. Nothing here needs code.
+
+| # | What you do | Where the detail is | Done when |
+|---|---|---|---|
+| 1 | **Upload Phase 0.** `Ctrl+Shift+B` → `publish.cmd` → panel **Stop** → FileZilla (skip `App_Data`) → **Start** → `Ctrl+Shift+R`. | README §10 | The live home page shows the new code and `/Admin/Backups` exists after login. |
+| 2 | **Give the sign-in code a way to reach you.** Either fill `Email__*` (Brevo) and send yourself a test, or set `Otp__ShowOnScreen=true` for one sign-in and put it back. | §1, §2 | You reach `/Admin/VerifyOtp` and the code actually arrives. |
+| 3 | **Sign in and change the admin password.** The panel will not open anything else until you do. | §2 | Dashboard opens after the new password is set. |
+| 4 | **Open an account with Razorpay** and finish KYC: PAN, Aadhaar, bank proof, business name/address, website URL. | "Payments — the five switches" | Razorpay says **KYC approved** (1–3 working days). Test keys work from day one, without KYC. |
+| 5 | **Paste the four Razorpay settings** on the server (`Razorpay__Enabled`, `__KeyId`, `__KeySecret`, `__WebhookSecret`), restart. | "Payments — the five switches" | Checkout now opens the Razorpay window instead of refusing the order. |
+| 6 | **In the Razorpay dashboard:** webhook `https://<your domain>/Cart/RazorpayWebhook` with `payment.captured`, `payment.failed`, `order.paid`; and *Payment capture* = **Automatic**. | same section | A test order shows **Paid** in `/Admin/Orders`, and stock drops by the quantity bought. |
+| 7 | **Live keys, then launch day.** Replace test keys with `rzp_live_…`, do one real ₹1 order and refund it, then §3 switches preview off. | §3 | A real payment lands in the Razorpay balance and the site is indexable. |
+
+**Two things to remember while doing them:** keys never go in this file, in git, or in chat — only
+in the panel's environment variables; and `App_Data` is never deleted or published.
 
 ---
 
