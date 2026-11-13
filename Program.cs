@@ -31,6 +31,12 @@ builder.Services.Configure<PreviewOptions>(builder.Configuration.GetSection("Pre
 builder.Services.Configure<RazorpayOptions>(builder.Configuration.GetSection("Razorpay"));
 builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("Email"));
 
+// saptarshi: Phase 0 (12-Nov-2026) — HTTPS on/off in one place.
+// "Security:ForceHttps" is true unless someone deliberately turns it off. It exists because a host
+// without a certificate would otherwise redirect every visitor to an address that does not answer:
+// the escape hatch is one environment variable, not a code change.
+var forceHttps = builder.Configuration.GetValue<bool?>("Security:ForceHttps") ?? true;
+
 // Behind a tunnel (cloudflared, ngrok) or a hosting proxy, the request arrives as plain HTTP on
 // localhost. Reading the forwarded headers is what keeps https, the public host name, canonical
 // URLs and the sitemap correct from the visitor's point of view.
@@ -61,6 +67,11 @@ builder.Services.AddSession(options =>
     options.Cookie.Name = ".sabarna.session";
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;   // required, so it may be set before cookie consent
+
+    // saptarshi: Phase 0 — the basket cookie never travels on a plain-HTTP request when HTTPS is on.
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = forceHttps ? CookieSecurePolicy.Always : CookieSecurePolicy.SameAsRequest;
+
     options.IdleTimeout = TimeSpan.FromDays(7);
 });
 
@@ -70,6 +81,11 @@ builder.Services.AddHttpContextAccessor();
 // the mail sender. Both are harmless when their settings are empty: they simply say "not configured".
 builder.Services.AddHttpClient<RazorpayService>();
 builder.Services.AddScoped<EmailService>();
+
+// saptarshi: Phase 0 — automatic database copies. Singleton because it holds no per-request state;
+// the hosted service is the timer that calls it.
+builder.Services.AddSingleton<BackupService>();
+builder.Services.AddHostedService<BackupHostedService>();
 
 // ---- 4. Domain services ---------------------------------------------------------------------
 builder.Services.AddScoped<CartService>();
@@ -84,6 +100,10 @@ builder.Services
         options.Cookie.Name = ".sabarna.admin";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
+
+        // saptarshi: Phase 0 — the admin cookie is the keys to the shop; it must not be readable by
+        // script (above) and must not be sent over plain HTTP while HTTPS is on.
+        options.Cookie.SecurePolicy = forceHttps ? CookieSecurePolicy.Always : CookieSecurePolicy.SameAsRequest;
         options.LoginPath = "/Admin/Login";
         options.LogoutPath = "/Admin/Logout";
         options.AccessDeniedPath = "/Admin/Login";
@@ -122,6 +142,14 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
+}
+
+// saptarshi: Phase 0 (12-Nov-2026) — plain http is sent to https before anything else happens, so a
+// password or an admin cookie never travels in clear text. Behind IIS the request reaches the app as
+// https already (ForwardedHeaders reads X-Forwarded-Proto), which is why this does not loop.
+if (forceHttps && !app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
 }
 
 // Friendly error page for 404/403/500. The original status code is preserved for search engines.

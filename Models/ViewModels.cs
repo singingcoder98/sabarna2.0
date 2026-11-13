@@ -305,3 +305,22 @@ public class PaymentFailedViewModel
 
     public string RetryUrl { get; set; } = string.Empty;
 }
+
+// -------------------------------------------------------------------------------------------------
+// saptarshi: Phase 0 (12-Nov-2026) — proving you own an order before it is shown.
+//
+// An order number is short and guessable by design (SB-2026-1234), so it can never be the only key
+// to somebody's name, address and phone. The browser proves ownership once with the email address or
+// the mobile number that was typed at checkout; after that the order is remembered for that session.
+// -------------------------------------------------------------------------------------------------
+public class OrderProofViewModel
+{
+    [Required]
+    [StringLength(20)]
+    public string OrderNumber { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Type the email address or the mobile number used on the order.")]
+    [StringLength(160)]
+    [Display(Name = "Email or mobile number on the order")]
+    public string Proof { get; set; } = string.Empty;
+}

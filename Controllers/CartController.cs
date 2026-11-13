@@ -36,6 +36,14 @@ public class CartController : Controller
     // saptarshi: added — how long a half-finished order may be reused before a fresh one is made.
     private const int PendingOrderReuseMinutes = 20;
 
+    // saptarshi: Phase 0 (12-Nov-2026) — order privacy.
+    // This session holds the order numbers THIS browser is allowed to open. An order number on its
+    // own is not a password: it is four digits, the whole range is 9,000, and a shop cannot show
+    // somebody else's address to whoever types the right guess.
+    private const string MyOrdersSessionKey = ".sabarna.my-orders";
+    private const string OrderProofFailsKey = ".sabarna.order-proof-fails";
+    private const int MaxOrderProofFails = 5;
+
     private readonly CartService _cart;
     private readonly AppDbContext _db;
 
@@ -43,19 +51,75 @@ public class CartController : Controller
     private readonly RazorpayService _razorpay;
     private readonly IServiceScopeFactory _scopes;
     private readonly ILogger<CartController> _logger;
+    private readonly IWebHostEnvironment _environment;   // saptarshi: Phase 0
 
     public CartController(
         CartService cart,
         AppDbContext db,
         RazorpayService razorpay,
         IServiceScopeFactory scopes,
-        ILogger<CartController> logger)
+        ILogger<CartController> logger,
+        IWebHostEnvironment environment)
     {
         _cart = cart;
         _db = db;
         _razorpay = razorpay;
         _scopes = scopes;
         _logger = logger;
+        _environment = environment;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // saptarshi: Phase 0 (12-Nov-2026) — who may look at an order
+    // ---------------------------------------------------------------------------------------------
+    private List<string> MyOrderNumbers()
+    {
+        var json = HttpContext.Session.GetString(MyOrdersSessionKey);
+
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return new List<string>();
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<List<string>>(json) ?? new List<string>();
+        }
+        catch (JsonException)
+        {
+            return new List<string>();
+        }
+    }
+
+    private void RememberOrder(string orderNumber)
+    {
+        if (string.IsNullOrWhiteSpace(orderNumber))
+        {
+            return;
+        }
+
+        var list = MyOrderNumbers();
+
+        if (list.Contains(orderNumber, StringComparer.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        list.Add(orderNumber);
+
+        // Keep the session small; nobody needs twenty old orders open at once.
+        if (list.Count > 20)
+        {
+            list = list.Skip(list.Count - 20).ToList();
+        }
+
+        HttpContext.Session.SetString(MyOrdersSessionKey, JsonSerializer.Serialize(list));
+    }
+
+    private bool CanOpenOrder(string orderNumber)
+    {
+        return !string.IsNullOrWhiteSpace(orderNumber)
+            && MyOrderNumbers().Contains(orderNumber.Trim(), StringComparer.OrdinalIgnoreCase);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -257,6 +321,23 @@ public class CartController : Controller
             return View(model);   // re-render with the visitor's input and the error messages
         }
 
+        // saptarshi: Phase 0 (12-Nov-2026) — THE most important guard in this file.
+        //
+        // Until now, if Razorpay was not configured the shop recorded the order as PAID and cleared
+        // the basket. That is a sensible demo on a laptop and a catastrophe on a live shop: one
+        // missing environment variable and every order is free, with a "Paid" badge in the admin.
+        // On the live site an unconfigured gateway now refuses the order instead.
+        if (!_razorpay.IsConfigured && _environment.IsProduction())
+        {
+            _logger.LogError("Checkout refused: Razorpay is not configured in Production. No order was created.");
+
+            ModelState.AddModelError(string.Empty,
+                "Online payment is not open yet, so we cannot take this order. Nothing has been charged. "
+                + "Please call or WhatsApp us and we will do it by hand.");
+
+            return View(model);
+        }
+
         // saptarshi: added — if this exact visitor already has a young, unpaid order, reuse it
         // instead of creating a second one. This is the "double click on Pay" guard.
         var reusable = await FindReusablePendingOrderAsync();
@@ -305,12 +386,24 @@ public class CartController : Controller
 
         HttpContext.Session.SetString(PendingOrderSessionKey, order.OrderNumber);
 
+        // saptarshi: Phase 0 — this browser has earned the right to see this order.
+        RememberOrder(order.OrderNumber);
+
         // -----------------------------------------------------------------------------------------
         // saptarshi: DEMO PATH — no Razorpay keys yet. Behave exactly like the old shop did, so the
         // site keeps working while the owner is still setting the gateway up.
         // -----------------------------------------------------------------------------------------
         if (!_razorpay.IsConfigured)
         {
+            // saptarshi: Phase 0 — belt and braces. The guard at the top of this action already
+            // refuses Production here, so this branch only runs on a laptop. If that guard is ever
+            // moved or removed, this keeps a live shop from handing out free paid orders.
+            if (_environment.IsProduction())
+            {
+                _logger.LogError("Demo payment blocked in Production for {Order}.", order.OrderNumber);
+                return RedirectToAction(nameof(PaymentFailed), new { orderNumber = order.OrderNumber, reason = "gateway" });
+            }
+
             await TakeStockClampedAsync(order.Items);
 
             order.Payment = PaymentStatuses.Paid;
@@ -355,6 +448,12 @@ public class CartController : Controller
     [HttpGet]
     public async Task<IActionResult> Payment(string orderNumber)
     {
+        // saptarshi: Phase 0 — same rule as Success: the payment page repeats the customer's details.
+        if (!CanOpenOrder(orderNumber))
+        {
+            return RedirectToAction(nameof(VerifyOrder), new { orderNumber });
+        }
+
         var order = await LoadOrderAsync(orderNumber);
 
         if (order == null)
@@ -606,6 +705,13 @@ public class CartController : Controller
     [HttpGet]
     public async Task<IActionResult> PaymentFailed(string orderNumber, string reason)
     {
+        // saptarshi: Phase 0 — this page only prints the order number and the reason, but it also
+        // offers a "try again" button, so it goes behind the same door as the other two.
+        if (!CanOpenOrder(orderNumber))
+        {
+            return RedirectToAction(nameof(VerifyOrder), new { orderNumber });
+        }
+
         var order = await LoadOrderAsync(orderNumber);
 
         if (order == null)
@@ -641,6 +747,89 @@ public class CartController : Controller
     }
 
     // ---------------------------------------------------------------------------------------------
+    // saptarshi: Phase 0 (12-Nov-2026) — GET/POST /Cart/VerifyOrder?orderNumber=SB-2026-1047
+    //
+    // The door for anyone who is not already holding this order in their session: a confirmation
+    // link in an email, or a customer coming back an hour later. They type the email address or the
+    // mobile number that was used at checkout. Five wrong tries and the form stops answering.
+    // Nothing on this page reveals whether the order exists.
+    // ---------------------------------------------------------------------------------------------
+    [HttpGet]
+    public IActionResult VerifyOrder(string orderNumber)
+    {
+        ViewData["Robots"] = "noindex, nofollow";
+        ViewData["Title"] = "Look up your order";
+        ViewData["Description"] = "Confirm the email or mobile number used on the order to see it.";
+
+        if (string.IsNullOrWhiteSpace(orderNumber))
+        {
+            return RedirectToAction("Index", "Home");
+        }
+
+        if (CanOpenOrder(orderNumber))
+        {
+            return RedirectToAction(nameof(Success), new { orderNumber });
+        }
+
+        return View(new OrderProofViewModel { OrderNumber = orderNumber });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> VerifyOrder(OrderProofViewModel model)
+    {
+        ViewData["Robots"] = "noindex, nofollow";
+        ViewData["Title"] = "Look up your order";
+        ViewData["Description"] = "Confirm the email or mobile number used on the order to see it.";
+
+        var fails = HttpContext.Session.GetInt32(OrderProofFailsKey) ?? 0;
+
+        if (fails >= MaxOrderProofFails)
+        {
+            TempData["Error"] = "Too many tries. Please wait a few minutes, or call us and we will look it up.";
+            return RedirectToAction("Index", "Home");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var order = await _db.Orders.AsNoTracking()
+            .FirstOrDefaultAsync(o => o.OrderNumber == model.OrderNumber);
+
+        // One message for "no such order", "wrong email" and "wrong phone" — nothing to fish with.
+        var proof = (model.Proof ?? string.Empty).Trim();
+
+        var emailMatches = order != null
+                           && !string.IsNullOrWhiteSpace(order.Email)
+                           && string.Equals(order.Email.Trim(), proof, StringComparison.OrdinalIgnoreCase);
+
+        var typedDigits = new string(proof.Where(char.IsDigit).ToArray());
+        var orderDigits = new string((order?.Phone ?? string.Empty).Where(char.IsDigit).ToArray());
+
+        var phoneMatches = order != null
+                           && typedDigits.Length >= 10
+                           && orderDigits.Length >= 10
+                           && string.Equals(orderDigits, typedDigits, StringComparison.Ordinal);
+
+        if (!emailMatches && !phoneMatches)
+        {
+            HttpContext.Session.SetInt32(OrderProofFailsKey, fails + 1);
+
+            ModelState.AddModelError(nameof(model.Proof),
+                "That does not match the order. Use the email address or the mobile number you gave at checkout.");
+
+            return View(model);
+        }
+
+        HttpContext.Session.Remove(OrderProofFailsKey);
+        RememberOrder(order!.OrderNumber);
+
+        return RedirectToAction(nameof(Success), new { orderNumber = order.OrderNumber });
+    }
+
+    // ---------------------------------------------------------------------------------------------
     // GET /Cart/Success?orderNumber=SB-2026-1047
     // ---------------------------------------------------------------------------------------------
     [HttpGet]
@@ -649,6 +838,13 @@ public class CartController : Controller
         if (string.IsNullOrWhiteSpace(orderNumber))
         {
             return RedirectToAction("Index", "Home");
+        }
+
+        // saptarshi: Phase 0 — an order number alone no longer opens a page full of somebody's
+        // name, email, phone and address. Proof is asked for once, then remembered for this session.
+        if (!CanOpenOrder(orderNumber))
+        {
+            return RedirectToAction(nameof(VerifyOrder), new { orderNumber });
         }
 
         var order = await _db.Orders.AsNoTracking()

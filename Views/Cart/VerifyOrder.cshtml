@@ -1,0 +1,42 @@
+@*
+    saptarshi: Phase 0 (12-Nov-2026) — this whole view is new.
+    Shown when somebody opens an order link without having placed it in this browser.
+    It deliberately shows nothing about the order until the proof is right.
+*@
+@model Sabarna.Web.Models.OrderProofViewModel
+@{
+    ViewData["Title"] = "Look up your order";
+}
+
+<section class="mb-section mb-section-cream">
+    <div class="container">
+        <div class="mb-success">
+            <span class="mb-success-mark" aria-hidden="true">?</span>
+            <p class="mb-kicker mb-kicker-dark">One quick check</p>
+            <h1 class="mb-success-title">Confirm it is your order</h1>
+            <p class="mb-success-text">
+                Order @Model.OrderNumber is not open in this browser. To protect our customers, we show
+                an order only to the person who placed it.
+            </p>
+
+            <form method="post" asp-controller="Cart" asp-action="VerifyOrder" class="mb-form">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="OrderNumber" />
+                <div asp-validation-summary="ModelOnly" class="mb-form-errors"></div>
+
+                <div class="mb-field">
+                    <label class="form-label" asp-for="Proof">Email or mobile number on the order</label>
+                    <input class="form-control" asp-for="Proof" autocomplete="email"
+                           placeholder="you@example.com or 9800012345" autofocus />
+                    <span class="mb-field-error" asp-validation-for="Proof"></span>
+                </div>
+
+                <button type="submit" class="btn btn-brand w-100">Show my order</button>
+            </form>
+
+            <p class="mb-success-text mt-3">
+                Trouble getting in? Call or WhatsApp us at <strong>+91 98000 12345</strong> and we will help.
+            </p>
+        </div>
+    </div>
+</section>

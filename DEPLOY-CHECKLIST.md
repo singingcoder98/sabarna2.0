@@ -39,8 +39,9 @@ Do these before telling anyone the address exists.
       permission; a read-only host fails here and nowhere earlier.
 - [ ] **A test order goes all the way through:** add to cart → refresh the page (cart survives) →
       checkout → success page → cart is empty.
-- [ ] **`/Admin/Login` works:** `admin@sabarna.in` / `Sabarna@2024`, then the six-digit code appears
-      in the yellow box, then the dashboard renders.
+- [ ] **`/Admin/Login` works:** `admin@sabarna.in` / `Sabarna@2024`, then the six-digit code
+      (saptarshi: by email on the host — it is not printed on screen in `Production`), then you are
+      taken to *Admin password* and must choose a new one before the dashboard opens.
 - [ ] **The yellow "Demo account" box is *absent* on that page** — a public address must never print
       the credentials. It only shows on your own machine (Development). If you see it on the host,
       the environment is not `Production`.
@@ -56,7 +57,8 @@ Do these before telling anyone the address exists.
 
 ## 2. Before you send the link to anyone else
 
-- [ ] **Change the admin password.** `/Admin/Settings` → *Admin password* card at the bottom
+- [ ] **Change the admin password.** (saptarshi: from Phase 0 the panel forces this — you cannot
+      open any other screen until it is done.) `/Admin/Settings` → *Admin password* card at the bottom
       (current password, new password twice). The seeded `Sabarna@2024` is printed in the README —
       a public URL with a published password is how shops get their orders edited by strangers.
 - [ ] **Decide who gets in.** `RequireCode: true` in `appsettings.json` (or the

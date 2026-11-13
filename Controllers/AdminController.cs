@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 
 namespace Sabarna.Web.Controllers;
@@ -36,12 +37,20 @@ public class AdminController : Controller
     /// <summary>Session key holding when the last code was sent, so "Resend" cannot be hammered.</summary>
     private const string LastOtpSentKey = "sabarna.otp-sent-at";   // saptarshi
 
+    /// <summary>
+    /// saptarshi: Phase 0 (12-Nov-2026) — carried inside the auth cookie. "1" means this account is
+    /// still on the seeded password, and the panel will not open anything except the password form.
+    /// </summary>
+    private const string MustChangePasswordClaim = "sabarna.must-change-password";
+
     private readonly AppDbContext _db;
     private readonly AuthService _auth;
     private readonly EmailService _email;
+    private readonly BackupService _backups;
     private readonly IMemoryCache _cache;
     private readonly IWebHostEnvironment _environment;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<AdminController> _logger;   // saptarshi
 
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
@@ -49,16 +58,20 @@ public class AdminController : Controller
         AppDbContext db,
         AuthService auth,
         EmailService email,          // saptarshi
+        BackupService backups,       // saptarshi
         IMemoryCache cache,          // saptarshi
         IWebHostEnvironment environment,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        ILogger<AdminController> logger)
     {
         _db = db;
         _auth = auth;
         _email = email;
+        _backups = backups;
         _cache = cache;
         _environment = environment;
         _configuration = configuration;
+        _logger = logger;
     }
 
     /// <summary>
@@ -99,13 +112,23 @@ public class AdminController : Controller
         if (emailed)
         {
             HttpContext.Session.Remove(DevCodeKey);
+            return true;
         }
-        else
+
+        // saptarshi: Phase 0 (12-Nov-2026) — the live site never draws a sign-in code on the screen.
+        // A code on screen turns two-factor sign-in into one-factor for anybody who has the password,
+        // so a mail failure is reported as a failure. The escape hatch is the explicit setting
+        // Otp:ShowOnScreen=true, which is a deliberate decision by the owner, not an accident.
+        if (!_environment.IsProduction())
         {
             HttpContext.Session.SetString(DevCodeKey, code);
         }
+        else
+        {
+            HttpContext.Session.Remove(DevCodeKey);
+        }
 
-        return emailed;
+        return false;
     }
 
     // =============================================================================================
@@ -150,6 +173,85 @@ public class AdminController : Controller
 
         var at = email.IndexOf('@');
         return at <= 1 ? email : email[0] + "***" + email[(at - 1)..];
+    }
+
+    // =============================================================================================
+    // saptarshi: Phase 0 (12-Nov-2026) — "you are still using the password from the README"
+    //
+    // Nothing in the panel opens until a new password is set. Everything the owner needs to get out
+    // of that state (the Settings page with its password form, the change action itself, and signing
+    // out) is allowed through, so this can never become a lock-out.
+    // =============================================================================================
+    /// <summary>
+    /// saptarshi: Phase 0 — an admin who was already signed in when this update was deployed carries
+    /// an older cookie that does not know about the flag. Rather than guess, they are signed out once
+    /// and asked to sign in again, which stamps the answer into the new cookie.
+    /// </summary>
+    public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+    {
+        if (context.HttpContext.User.Identity?.IsAuthenticated == true
+            && context.HttpContext.User.FindFirst(MustChangePasswordClaim) == null)
+        {
+            await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            context.Result = new RedirectToActionResult(nameof(Login), "Admin", null);
+            return;
+        }
+
+        await base.OnActionExecutionAsync(context, next);
+    }
+
+    public override void OnActionExecuting(ActionExecutingContext context)
+    {
+        base.OnActionExecuting(context);
+
+        if (context.HttpContext.User.Identity?.IsAuthenticated != true)
+        {
+            return;
+        }
+
+        if (context.HttpContext.User.FindFirst(MustChangePasswordClaim)?.Value != "1")
+        {
+            return;
+        }
+
+        var action = context.RouteData.Values["action"] as string ?? string.Empty;
+
+        if (action is nameof(Settings) or nameof(ChangePassword) or nameof(Logout))
+        {
+            return;
+        }
+
+        TempData["Error"] = "The shop is still using the password it was set up with. "
+                          + "Please choose a new one below, then the whole panel opens.";
+
+        context.Result = new RedirectToActionResult(nameof(Settings), "Admin", null);
+    }
+
+    /// <summary>
+    /// saptarshi: Phase 0 — one place that builds the cookie, so the "change your password" mark can
+    /// never be left out of a fresh sign-in.
+    /// </summary>
+    private async Task SignInAdminAsync(AdminUser admin)
+    {
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, admin.Id.ToString()),
+            new(ClaimTypes.Name, admin.FullName),
+            new(ClaimTypes.Email, admin.Email),
+            new(ClaimTypes.Role, admin.Role),
+            new(MustChangePasswordClaim, admin.MustChangePassword ? "1" : "0")
+        };
+
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+        await HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            new ClaimsPrincipal(identity),
+            new AuthenticationProperties
+            {
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddHours(8)
+            });
     }
 
     // =============================================================================================
@@ -208,9 +310,21 @@ public class AdminController : Controller
         // saptarshi: e-mail it, or fall back to the screen if no mail is connected (see DeliverOtpAsync).
         var delivered = await DeliverOtpAsync(admin, code);
 
-        TempData["Toast"] = delivered
-            ? $"Password accepted. A 6-digit code is on its way to {MaskEmail(admin.Email)} — it expires in 5 minutes."
-            : "Password accepted. Email is not connected yet, so your code is shown on the next screen.";
+        // saptarshi: Phase 0 — "could not send" is now an error, not a friendly note, because on the
+        // live site there is nothing to fall back to by design.
+        if (delivered)
+        {
+            TempData["Toast"] = $"Password accepted. A 6-digit code is on its way to {MaskEmail(admin.Email)} — it expires in 5 minutes.";
+        }
+        else if (ShowOtpOnScreen)
+        {
+            TempData["Toast"] = "Password accepted. Your code is on the next screen.";
+        }
+        else
+        {
+            TempData["Error"] = "Password accepted, but we could not e-mail your code. "
+                              + "Check the Email__ settings on the server (or the backup inbox), then start again.";
+        }
 
         return RedirectToAction(nameof(VerifyOtp));
     }
@@ -278,23 +392,8 @@ public class AdminController : Controller
             return View(model);
         }
 
-        var claims = new List<Claim>
-        {
-            new(ClaimTypes.NameIdentifier, admin.Id.ToString()),
-            new(ClaimTypes.Name, admin.FullName),
-            new(ClaimTypes.Email, admin.Email),
-            new(ClaimTypes.Role, admin.Role)
-        };
-
-        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-        await HttpContext.SignInAsync(
-            CookieAuthenticationDefaults.AuthenticationScheme,
-            new ClaimsPrincipal(identity),
-            new AuthenticationProperties
-            {
-                IsPersistent = true,
-                ExpiresUtc = DateTimeOffset.UtcNow.AddHours(8)
-            });
+        // saptarshi: Phase 0 — the helper also records whether the seeded password is still in use.
+        await SignInAdminAsync(admin);
 
         HttpContext.Session.Remove(PendingAdminKey);
         HttpContext.Session.Remove(DevCodeKey);
@@ -346,12 +445,63 @@ public class AdminController : Controller
         {
             TempData["Toast"] = $"A fresh code is on its way to {MaskEmail(admin.Email)}. The earlier one no longer works.";
         }
+        else if (ShowOtpOnScreen)
+        {
+            TempData["Toast"] = "A fresh code is shown below. The earlier one no longer works.";
+        }
         else
         {
-            TempData["Error"] = "Email is not connected yet, so the new code is shown below.";
+            TempData["Error"] = "We could not e-mail the new code. Please check the Email__ settings on the server.";
         }
 
         return RedirectToAction(nameof(VerifyOtp));
+    }
+
+    // =============================================================================================
+    // saptarshi: Phase 0 (12-Nov-2026) — database backups (task 4 of the audit).
+    //
+    // The whole shop is one SQLite file. A copy is taken automatically (BackupHostedService) and the
+    // owner can take one now and download any of them here. Only the admin sees this page, and only
+    // file names this application produced are ever opened.
+    // =============================================================================================
+    [HttpGet]
+    public IActionResult Backups()
+    {
+        ViewData["Title"] = "Backups";
+        return View(_backups.ListBackups());
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> BackupNow()
+    {
+        try
+        {
+            var name = await _backups.CreateBackupAsync();
+            TempData["Toast"] = $"Backup written: {name}.";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Manual database backup failed.");
+            TempData["Error"] = "The backup could not be written. The site is unaffected — try again, "
+                              + "and tell your host if it keeps failing.";
+        }
+
+        return RedirectToAction(nameof(Backups));
+    }
+
+    [HttpGet]
+    public IActionResult DownloadBackup(string name)
+    {
+        var path = _backups.ResolvePath(name);
+
+        if (path == null)
+        {
+            TempData["Error"] = "That backup is not on the server.";
+            return RedirectToAction(nameof(Backups));
+        }
+
+        return PhysicalFile(path, "application/octet-stream", name);
     }
 
     [HttpPost]
@@ -994,6 +1144,15 @@ public class AdminController : Controller
         }
 
         await _auth.ChangePasswordAsync(admin, newPassword);
+
+        // saptarshi: Phase 0 — the seeded password is gone, so the panel opens properly now. The
+        // cookie is re-issued so the guard stops firing without needing a sign-out.
+        if (admin.MustChangePassword)
+        {
+            admin.MustChangePassword = false;
+            await _db.SaveChangesAsync();
+            await SignInAdminAsync(admin);
+        }
 
         TempData["Toast"] = "Password changed. Use the new one the next time you sign in.";
         return RedirectToAction(nameof(Settings));

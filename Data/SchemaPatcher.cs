@@ -48,6 +48,18 @@ public static class SchemaPatcher
         ("DeliveredAt",        "TEXT NULL")
     };
 
+    /// <summary>
+    /// saptarshi: Phase 0 (12-Nov-2026) — columns added to other tables after they were first created.
+    /// Same rule as above: add only what is missing, never drop or rewrite.
+    /// </summary>
+    private static readonly (string Table, (string Name, string Definition)[] Columns)[] OtherColumns =
+    {
+        ("AdminUsers", new[]
+        {
+            ("MustChangePassword", "INTEGER NOT NULL DEFAULT 0")
+        })
+    };
+
     private const string OrderItemsTable = @"
 CREATE TABLE IF NOT EXISTS ""OrderItems"" (
     ""Id""        INTEGER NOT NULL CONSTRAINT ""PK_OrderItems"" PRIMARY KEY AUTOINCREMENT,
@@ -81,12 +93,12 @@ CREATE TABLE IF NOT EXISTS ""PaymentEvents"" (
             // ---- 1. Orders: add the columns that are not there yet -------------------------------
             var existing = await ColumnNamesAsync(db, "Orders");
 
+            // saptarshi: Phase 0 — a fresh database used to skip this whole method, which also meant
+            // the unique index below was never created there. Now only the ALTERs are skipped; the
+            // tables and indexes are always ensured, so a rebuilt database is protected too.
             if (existing.Count == 0)
             {
-                // No Orders table at all — EnsureCreated has just made a complete one, so there is
-                // nothing to patch. (Both paths are normal; this is the fresh-install path.)
-                logger.LogInformation("SchemaPatcher: Orders table not found yet, nothing to patch.");
-                return;
+                logger.LogInformation("SchemaPatcher: Orders table not found yet, nothing to alter.");
             }
 
             var added = 0;
@@ -96,7 +108,7 @@ CREATE TABLE IF NOT EXISTS ""PaymentEvents"" (
 #pragma warning disable CA2100
             foreach (var column in OrderColumns)
             {
-                if (existing.Contains(column.Name))
+                if (existing.Count == 0 || existing.Contains(column.Name))
                 {
                     continue;
                 }
@@ -104,6 +116,30 @@ CREATE TABLE IF NOT EXISTS ""PaymentEvents"" (
                 var sql = $@"ALTER TABLE ""Orders"" ADD COLUMN ""{column.Name}"" {column.Definition}";
                 await db.Database.ExecuteSqlRawAsync(sql);
                 added++;
+            }
+
+            // saptarshi: Phase 0 — the admin flag, added the same careful way.
+            foreach (var (table, columns) in OtherColumns)
+            {
+                var present = await ColumnNamesAsync(db, table);
+
+                if (present.Count == 0)
+                {
+                    continue;   // table not created yet; EnsureCreated will make it complete
+                }
+
+                foreach (var column in columns)
+                {
+                    if (present.Contains(column.Name))
+                    {
+                        continue;
+                    }
+
+                    var sql = $@"ALTER TABLE ""{table}"" ADD COLUMN ""{column.Name}"" {column.Definition}";
+                    await db.Database.ExecuteSqlRawAsync(sql);
+                    added++;
+                    logger.LogInformation("SchemaPatcher: added {Table}.{Column}.", table, column.Name);
+                }
             }
 
             // ---- 2. The two new tables ----------------------------------------------------------

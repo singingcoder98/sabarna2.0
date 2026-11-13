@@ -11,6 +11,9 @@
     var onCustomers = controller == "Admin" && action == "Customers";
     var onProducts = controller == "Admin" && action == "Products";
     var onSettings = controller == "Admin" && action == "Settings";
+
+    // saptarshi: Phase 0 — the backup screen needs a door.
+    var onBackups = controller == "Admin" && action == "Backups";
 }
 <nav class="mb-admin-nav" aria-label="Admin">
     <a class="mb-admin-brand" asp-controller="Admin" asp-action="Dashboard">
@@ -34,6 +37,10 @@
         <li>
             <a class="mb-admin-nav-link @(onProducts ? "is-active" : string.Empty)"
                asp-controller="Admin" asp-action="Products">Products</a>
+        </li>
+        <li>
+            <a class="mb-admin-nav-link @(onBackups ? "is-active" : string.Empty)"
+               asp-controller="Admin" asp-action="Backups">Backups</a>
         </li>
         <li>
             <a class="mb-admin-nav-link @(onSettings ? "is-active" : string.Empty)"

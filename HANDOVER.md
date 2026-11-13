@@ -68,7 +68,8 @@ dotnet build Sabarna.sln      # 0 errors, 0 warnings
 dotnet run                    # http://localhost:5080
 ```
 
-Admin: `admin@sabarna.in` / `Sabarna@2024` (change it in `/Admin/Settings` if not already done).
+Admin: `admin@sabarna.in` / `Sabarna@2024`. (saptarshi: on any real deployment the panel now
+forces a new password on the first sign-in — the seeded one stops working the moment you do.)
 Reset the demo data by deleting `app.db` and running again.
 
 ## Pushing a change to the live site (site105374, sabarna.runasp.net)

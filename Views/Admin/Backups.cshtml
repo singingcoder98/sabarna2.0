@@ -1,0 +1,72 @@
+@*
+    saptarshi: Phase 0 (12-Nov-2026) — this whole view is new.
+    The shop lives in one file, so this page is the insurance policy: see the copies, take one now,
+    download one to keep off the server.
+*@
+@model IReadOnlyList<Sabarna.Web.Services.BackupFile>
+@{
+    Layout = "_AdminLayout";
+}
+<div class="mb-admin-head">
+    <div>
+        <h1 class="mb-admin-title">Backups</h1>
+        <p class="mb-admin-sub">
+            A copy of the database is taken automatically about once a day and kept for
+            @Sabarna.Web.Services.BackupService.RetentionDays days.
+            Download one and keep it somewhere else — a copy on this server does not survive the server.
+        </p>
+    </div>
+    <div class="mb-admin-head-actions">
+        <form method="post" asp-controller="Admin" asp-action="BackupNow" class="d-inline">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-brand btn-sm">Back up now</button>
+        </form>
+    </div>
+</div>
+
+<div class="mb-admin-panel">
+    <h2 class="mb-admin-panel-title">Copies on the server</h2>
+
+    @if (Model.Count == 0)
+    {
+        <p class="mb-admin-fine">
+            No copy yet. One is taken on its own within a few minutes of the site starting, or press
+            <strong>Back up now</strong>.
+        </p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table mb-table align-middle">
+                <thead>
+                    <tr>
+                        <th scope="col">File</th>
+                        <th scope="col">Taken</th>
+                        <th scope="col" class="mb-table-num">Size</th>
+                        <th scope="col" class="mb-table-num">Download</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var backup in Model)
+                    {
+                        <tr>
+                            <td><code>@backup.Name</code></td>
+                            <td>@backup.CreatedUtc.ToLocalTime().ToString("dd MMM yyyy, h:mm tt")</td>
+                            <td class="mb-table-num">@((backup.SizeBytes / 1024.0).ToString("0")) KB</td>
+                            <td class="mb-table-num">
+                                <a class="btn btn-ghost btn-sm"
+                                   asp-controller="Admin" asp-action="DownloadBackup"
+                                   asp-route-name="@backup.Name">Download</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <p class="mb-admin-fine">
+        Restoring a copy: stop the site, replace <code>App_Data/app.db</code> with the downloaded file,
+        start the site. Nothing else needs to change — the schema is brought up to date on start.
+    </p>
+</div>

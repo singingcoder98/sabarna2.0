@@ -95,7 +95,7 @@ Close the app before editing rows there — SQLite gives one writer at a time.
 | --- | --- |
 | URL | <http://localhost:5080/Admin> |
 | Email | `admin@sabarna.in` |
-| Password | `Sabarna@2024` |
+| Password | `Sabarna@2024` — **first sign-in only**; the panel now refuses everything except *Admin password* and *Sign out* until it has been changed |
 | One-time code | **shown on screen** at `/Admin/VerifyOtp` while running in Development (or when `Otp:ShowOnScreen` is on) |
 | Change the password | `/Admin/Settings` → *Admin password* card: current password, new password twice |
 
@@ -555,8 +555,10 @@ wired up (README §7), otherwise anyone who reaches `/Admin` with your password 
 
 1. Open `https://sabarna.runasp.net` — the home page should render. The first request creates
    `App_Data/app.db` and seeds the catalogue.
-2. Go to `/Admin/Login`, sign in with `admin@sabarna.in` / `Sabarna@2024`; the six-digit code
-   appears in the yellow box on the next screen.
+2. Go to `/Admin/Login`, sign in with `admin@sabarna.in` / `Sabarna@2024`. (saptarshi: on the
+   live site the code arrives by email — it is never printed on screen once the shop is running in
+   `Production`, unless you deliberately set `Otp__ShowOnScreen=true`.) You are taken straight to
+   *Admin password* and the rest of the panel stays locked until you choose a new password.
 3. The free address is not indexed: `Preview:Enabled` is still `true`, so the whole site is
    `noindex` until launch day.
 4. Download `App_Data/app.db` now and then — that file is the shop.

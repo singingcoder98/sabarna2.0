@@ -215,6 +215,13 @@ public class AdminUser
     public bool IsActive { get; set; } = true;
 
     public DateTime CreatedAt { get; set; }
+
+    /// <summary>
+    /// saptarshi: Phase 0 (12-Nov-2026) — true while this account is still using the password that
+    /// the shop was seeded with, which is printed in the project documentation. The admin panel
+    /// refuses to open anything except the password form until it is changed.
+    /// </summary>
+    public bool MustChangePassword { get; set; }
 }
 
 /// <summary>

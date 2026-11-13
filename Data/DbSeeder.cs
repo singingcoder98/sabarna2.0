@@ -127,6 +127,21 @@ public static class DbSeeder
             changed = true;
         }
 
+        // saptarshi: Phase 0 (12-Nov-2026) — while an account still accepts the seeded password,
+        // the panel stays locked to the password form. Checked on every start, so it heals itself
+        // even if the flag is ever reset by hand. Nothing is written to a log about the password.
+        foreach (var account in await db.AdminUsers.Where(a => !a.MustChangePassword).ToListAsync())
+        {
+            var stillSeeded = hasher.VerifyHashedPassword(account, account.PasswordHash, "Sabarna@2024")
+                              != PasswordVerificationResult.Failed;
+
+            if (stillSeeded)
+            {
+                account.MustChangePassword = true;
+                changed = true;
+            }
+        }
+
         if (changed)
         {
             await db.SaveChangesAsync();
@@ -179,7 +194,11 @@ public static class DbSeeder
             FullName = "Sabarna Manna",
             Role = "admin",
             IsActive = true,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+
+            // saptarshi: Phase 0 — this password is written in the project notes, so the panel asks
+            // for a new one before anything else is allowed.
+            MustChangePassword = true
         };
 
         // PasswordHasher adds a per-password salt and a slow KDF — never store plain text.
