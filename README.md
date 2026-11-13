@@ -313,13 +313,18 @@ different image in those small slots.
 ## 7. Deliberately deferred (clearly marked `TODO` in the code)
 
 1. ~~**Payment gateway.**~~ **Done 6 Nov 2026** — Razorpay, taken end to end in `CartController`
-   and `Services/RazorpayService.cs`, switched off until `Razorpay__*` settings exist. Without keys
-   the shop keeps the old demo behaviour. See `DEPLOY-CHECKLIST.md`, "Payments — the five switches".
+   and `Services/RazorpayService.cs`, switched off until `Razorpay__*` settings exist.
+   **Changed in Phase 0 (required):** on the live site (Production) an unconfigured gateway now
+   *refuses* the order with a plain message — the old "mark it paid anyway" demo path only runs on
+   your own machine. One missing environment variable can no longer mean free orders.
+   See `DEPLOY-CHECKLIST.md`, "Payments — the five switches".
 2. **Admin OTP e-mail.** ~~Deferred~~ **Done 12 Nov 2026.** `AdminController` e-mails the six-digit
-   code (owner address, backup address and the account address), with an automatic fallback to the
-   screen if no mail is configured — so nobody can be locked out. Fill in `Email__*` (Brevo free
-   plan) to switch the screen copy off. Still open: the **contact form** and the **newsletter** are
-   toasted, not stored — see item 3 of `DEPLOY-CHECKLIST.md` §4.
+   code (owner address, backup address and the account address). **Changed in Phase 0 (required):**
+   on the live site the code is *never* drawn on screen any more, so `Email__*` (Brevo free plan)
+   must work before the first sign-in — otherwise the panel cannot be entered. The deliberate
+   exception is `Otp__ShowOnScreen=true`, one sign-in only, then put it back to `false`.
+   Still open: the **contact form** and the **newsletter** are toasted, not stored — see item 3 of
+   `DEPLOY-CHECKLIST.md` §4.
 3. **Product image upload.** The admin types an image path (`/images/products/…`). The path is
    normalised, but there is no upload control yet.
 4. **Order status notifications.** Advancing an order updates the database; the customer is not
