@@ -502,17 +502,24 @@ additional files at destination"**.
 *If Web Deploy answers 401* — reachable server, rejected credentials, and an imported profile gives
 you no field to type the password into. Do not wrestle with it; publish over FTP, which is one dialog
 and uses the same credentials the panel already shows: **New profile → FTP/FTPS Server** with server
-`site105374.siteasp.net`, port `21`, path `/wwwroot`, passive mode on, user `site105374`, and the
+`site105374.siteasp.net`, port `21`, path `/` (the FTP root — see the note below), passive mode on,
+user `site105374`, and the
 password from the panel (`Show`, or `Change` to set a fresh one).
+
+> **saptarshi: corrected 13-Nov-2026 — the FTP path.** Over FTP, `/` **is** the website root: that is
+> where `Sabarna.Web.dll`, `web.config`, `appsettings.json`, `runtimes` and `App_Data` live. The folder
+> called `wwwroot` inside it holds only the design (css, js, images, lib). So: upload the **contents of
+> `publish`** to `/`, and never upload `App_Data`. Putting program files in `/wwwroot` is the mistake
+> that makes a deploy look successful while the site keeps running yesterday's code.
 
 *If Visual Studio's Publish pane is fighting you* (a stale failure message, an imported profile with
 no password field, "Attention required" that cannot be clicked), skip Visual Studio's publishing
 entirely: double-click **`publish.cmd`** in the project folder. It cleans `publish\`, runs
 `dotnet publish -c Release -o publish`, and tells you what to upload. Then drag the contents of
-`publish\` into `/wwwroot` with FileZilla. Two steps, nothing to configure, no publish profiles.
+`publish\` into the FTP root `/` with FileZilla. Two steps, nothing to configure, no publish profiles.
 
 *Third route, no Web Deploy at all:* publish to a **Folder** (say `C:\sabarna-publish`), then upload
-that folder's contents to `/wwwroot` with FileZilla (server `site105374.siteasp.net`, port 21, user
+that folder's contents to the FTP root `/` with FileZilla (server `site105374.siteasp.net`, port 21, user
 `site105374`) or the panel's **Files → File manager**.
 
 > **Where the deployment password lives.** Visual Studio writes it to
@@ -573,7 +580,7 @@ wired up (README §7), otherwise anyone who reaches `/Admin` with your password 
 | **404 on every page** | Files landed in a subfolder (`publish`, `wwwroot`) instead of the site root |
 | Login works, no code on screen | The `Otp__ShowOnScreen` line is missing from `web.config` |
 | **401 Unauthorized** on `msdeploy.axd` | Web Deploy credentials are missing or wrong. `Attention required` on an *imported* profile is a status, not a field — switch to the FTP profile (below) instead of fighting it |
-| Publish connects but nothing appears | The FTP path was `/` instead of `/wwwroot` |
+| Publish connects, files "succeed", but the site never changes | The FTP path was `/wwwroot` instead of `/`. `/wwwroot` is the *design* folder; program files belong in the FTP root — and never upload `App_Data` |
 
 **Free tier caveats.** These plans are for showing the shop to people, not for taking money: the
 first request after a quiet spell can be slow, disk quotas are small, and the only backup of

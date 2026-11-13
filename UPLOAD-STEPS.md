@@ -125,7 +125,7 @@ bilkul muft hai.)
 
 **Kyun?** Server abhi chal rahi website ki files ko "pakde" baitha hai; rokne se upload fail nahi hota.
 
-> ⚠️ **Stop ke baad Start karna mat bhoolna.** "Stop" karte waqt host `/wwwroot` me ek file
+> ⚠️ **Stop ke baad Start karna mat bhoolna.** "Stop" karte waqt host website root (`/`) me ek file
 > `app_offline.htm` bana deta hai. Wo file rahi to poori website **500 error** deti hai — page nahi,
 > bas error. Upload khatam hone par Step 6 me Start kariye, aur File Manager me dekh lijiye ki
 > `app_offline.htm` hat gaya hai. Na hate to usse **delete** kar dijiye.
@@ -133,22 +133,24 @@ bilkul muft hai.)
 ## Server par files kahan rehti hain (ek baar samajh lo)
 
 ```
-/wwwroot/               <- PROGRAM yahan hai: Sabarna.Web.dll, web.config, runtimes
+/                       <- PROGRAM yahan hai (FTP ka root = website ka root)
+                            Sabarna.Web.dll, web.config, appsettings.json, runtimes
     wwwroot/            <- DESIGN yahan hai: css, images, lib   (dhyaan do: naam ek jaisa!)
     App_Data/           <- DATABASE yahan hai (app.db) - kabhi chhuna nahi
 ```
 
-Do folder ka naam ek jaisa (`wwwroot`) hone se hi galti hoti hai: `publish\` ke andar bhi ek
-`wwwroot` folder hai. Upload karte waqt **remote box me `/wwwroot` likha hona chahiye**, aur agar
-galti se `/wwwroot/wwwroot` par upload ho gaya to design purana hi rahega (CSS aur tasveerein purani
-dikhengi) — program naya hoga par dikhega purana.
+saptarshi: corrected 13-Nov-2026 — **ye line pehle galat likhi thi.** FTP me root `/` khud website ka
+root hai; uske andar wala `wwwroot` sirf design (css/images/lib) ka folder hai. Isliye program files
+ka raasta `/` hai, `/wwwroot` **nahi**. `/wwwroot` par program bhejne se do nuksan hote hain: code
+badalta nahi (site purana hi chalta hai) aur DLLs public folder me chali jaati hain jahan se koi bhi
+unhe download kar sakta hai. Design ke liye `/wwwroot` hi sahi jagah hai.
 
 **Sahi tareeka, do line me:**
 
 | Upload karna hai | Remote box me likho |
 | --- | --- |
-| poora `publish` (program + design) | `/wwwroot` |
-| sirf design dobara bhejna ho | `/wwwroot/wwwroot` (aur local me `publish\wwwroot` kholo) |
+| poora `publish` — `App_Data` chhod kar (program + design) | `/` (sirf slash) |
+| sirf design dobara bhejna ho | `/wwwroot` (aur local me `publish\wwwroot` kholo) |
 
 Aur upload ke baad **Restart** karna zaroori hai — purana program memory me chalta rehta hai, naya
 DLL apne aap load nahi hota.
@@ -157,7 +159,8 @@ DLL apne aap load nahi hota.
 
 1. FileZilla kholiye → apni site → **Connect**.
 2. **Left side (Local site):** address bar me `D:\MVCDotNet\sabarna2.0\publish` type kariye → Enter.
-3. **Right side (Remote site):** `/wwwroot` (ye website ka asli folder hai).
+3. **Right side (Remote site):** `/` — sirf slash. (Ye website ka root hai, yahan
+   `Sabarna.Web.dll` aur `web.config` rehte hain. `/wwwroot` uska *design* folder hai.)
 4. Left side par `Ctrl + A` (sab select) — **lekin `App_Data` folder ko Ctrl-click se deselect kar
    dijiye** (Step 5 me wajah likhi hai).
 5. Selected files par right-click → **Upload**.
@@ -174,7 +177,7 @@ Sab line jab khatam ho jaayein aur **Failed transfers = 0** ho, tab aage badhiye
 - **Pehli baar connect par certificate ki warning** aa sakti hai (*"Unknown certificate"* / *"The
   server's certificate is unknown"*). Ye normal hai — shared hosting ka apna certificate hota hai.
   **Trust / OK** dabaiye (tick "Always trust").
-- **Remote folder sahi hai ya nahi**, iska test: `/wwwroot` khulte hi in cheezon me se kam se kam 2
+- **Remote folder sahi hai ya nahi**, iska test: `/` khulte hi in cheezon me se kam se kam 2
   dikhni chahiye — `Sabarna.Web.dll`, `web.config`, `appsettings.json`, `wwwroot` folder,
   `App_Data` folder. Kuch bhi na dikhe to aap galat folder me hain (kabhi `/` par upload na karein).
 - **Overwrite ka sawaal:** *"Overwrite if source is newer"* ya *"Overwrite if different size"* —
