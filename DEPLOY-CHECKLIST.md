@@ -135,7 +135,7 @@ These are known gaps, not bugs. Each one has a single, obvious place to fix it.
 | Feature | Where the TODO lives | What finishing looks like |
 | --- | --- | --- |
 | ~~**Online payment**~~ | **Code is finished (6 Nov 2026)** — `CartController` + `Services/RazorpayService.cs`. It stays in demo mode until the keys are filled in. See "Payments — the five switches" below. |
-| **Admin one-time code by e-mail/SMS** | `Controllers/AdminController.cs` — after the password is accepted | Wire an SMTP or API provider, send `code`, and delete the `Otp__ShowOnScreen` line from `web.config`. |
+| ~~**Admin one-time code by e-mail**~~ | **Done 12 Nov 2026**, hardened in Phase 0 — `AdminController.DeliverOtpAsync` mails the code to the owner, the backup address and the account address. | On the live site the code is never drawn on screen; `Otp__ShowOnScreen=true` is the deliberate one-sign-in exception. **Now blocked only on the `Email__*` settings** — see "Email — the six switches" below. |
 | ~~**Contact form by e-mail**~~ | **Half done (12 Nov 2026).** The message is now e-mailed to the owner, and if mail is not configured the page tells the customer to call instead of pretending it arrived. | **Still open:** the message is **not** saved in the database (the earlier note here was wrong — nothing was stored). Add a `ContactMessage` table and saving in task 3, plus a honeypot and a rate limit. |
 | **Newsletter sign-up** | `Controllers/HomeController.cs` — the footer form | Hand the address to a mailing-list provider. |
 | **Product image upload** | `Views/Admin/_ProductFormFields.cshtml` | A file input, saved to `wwwroot/images/products/`, with the path written back to the product. |
@@ -151,6 +151,38 @@ The Razorpay code is in place but switched off, so nothing changes until you fil
 | | `Razorpay__KeySecret` | from the Razorpay dashboard |
 | | `Razorpay__WebhookSecret` | a password you invent, typed in both places |
 | Razorpay dashboard | Payment capture | **Automatic** — otherwise money sits authorised and never captured |
+
+### Email — the six switches
+
+saptarshi: added 13-Nov-2026. Until Phase 0 the admin code could fall back to the screen, so mail was
+optional. It is not optional any more: on the live site the code only arrives by mail. Fill these in
+**before** the first sign-in after the Phase 0 deploy.
+
+| Where | Key | Value |
+| --- | --- | --- |
+| Panel env vars *(preferred)* / `web.config` | `Email__Enabled` | `true` |
+| | `Email__UserName` | the **Login** shown on Brevo's *SMTP & API → SMTP* tab |
+| | `Email__Password` | the **SMTP key** (`xsmtpsib-…`) — *not* the API key |
+| | `Email__FromAddress` | an address that Brevo shows as **Verified** under *Senders* |
+| | `Email__OwnerAddress` | your own inbox — orders, contact form and the sign-in code land here |
+| | `Email__BackupOwnerAddress` | a second inbox, so one bounce cannot lock you out |
+
+`Email__Host` (`smtp-relay.brevo.com`), `Email__Port` (`587`) and `Email__UseStartTls` (`true`)
+already come from `appsettings.json`; they only need setting if the host blocks 587 — Brevo also
+answers on **2525**.
+
+Three rules, learned the hard way:
+
+1. **Secrets live on the server only.** Never in this file, in git, or in a chat message. If a key is
+   ever pasted somewhere public, revoke it in Brevo and generate a new one — a revoked key costs
+   nothing, a leaked one can send mail in your name.
+2. **Panel environment variables survive a deploy; `web.config` does not.** Every upload overwrites
+   the server's `web.config` with the published copy, so anything typed there has to be typed again.
+3. **`Email__FromAddress` must be a verified sender.** Brevo rejects the message otherwise, and the
+   site will honestly say it could not send the code.
+
+Quick test that costs no sign-in attempt: send a message from the site's **Contact** page and see
+whether it reaches `Email__OwnerAddress`.
 
 Webhook URL to add in the Razorpay dashboard, with events `payment.captured`, `payment.failed`,
 `order.paid`:
