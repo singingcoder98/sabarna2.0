@@ -166,6 +166,29 @@ DLL apne aap load nahi hota.
 **Upload hone me 2–10 minute lag sakte hain** (free plan). Neeche transfer queue me progress dikhega.
 Sab line jab khatam ho jaayein aur **Failed transfers = 0** ho, tab aage badhiye.
 
+### Step 4-A — FileZilla ke chhote-chhote detail (jahan log atakte hain)
+
+- **FTP password kahan milega:** MonsterASP panel → apni site `site105374` → **FTP / File Manager** (ya
+  *FTP Accounts*) → account `site105374` ke saamne **Show / Change password**. Panel apne aap kabhi
+  mail nahi karta.
+- **Pehli baar connect par certificate ki warning** aa sakti hai (*"Unknown certificate"* / *"The
+  server's certificate is unknown"*). Ye normal hai — shared hosting ka apna certificate hota hai.
+  **Trust / OK** dabaiye (tick "Always trust").
+- **Remote folder sahi hai ya nahi**, iska test: `/wwwroot` khulte hi in cheezon me se kam se kam 2
+  dikhni chahiye — `Sabarna.Web.dll`, `web.config`, `appsettings.json`, `wwwroot` folder,
+  `App_Data` folder. Kuch bhi na dikhe to aap galat folder me hain (kabhi `/` par upload na karein).
+- **Overwrite ka sawaal:** *"Overwrite if source is newer"* ya *"Overwrite if different size"* —
+  dono theek hain. **"Skip"** kabhi na chuniye, warna purana DLL hi chalta rahega. Aage ke liye
+  tick kar dijiye *"Always use this action"*.
+- **Free plan me upload toot jata hai:** FileZilla khud dobara connect karta hai. Queue me sirf
+  **failed** lines par right-click → **Reset and requeue** (poora folder dobara bhejne ki zaroorat
+  nahi). Neeche status bar me **Failed transfers: 0** hone tak rukiye.
+- **Ek saath 2 se zyada connection na rakhiye:** File → Site Manager → apni site → *Transfer
+  Settings* → **Maximum simultaneous transfers = 2**. Zyada karne par host "Too many connections"
+  bolta hai.
+- **`app_offline.htm` khud se na banaiye.** Site rokni ho to panel ka **Stop** button hai; us file
+  se har page 500 deta hai (README me likha hai).
+
 ### Step 5 — `App_Data` kabhi upload nahi karna ⚠️
 
 Server ka `App_Data/app.db` file hi **poori dukaan** hai — saare orders, products, settings.
