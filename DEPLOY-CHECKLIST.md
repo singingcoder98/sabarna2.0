@@ -39,6 +39,12 @@ Do these before telling anyone the address exists.
       permission; a read-only host fails here and nowhere earlier.
 - [ ] **A test order goes all the way through:** add to cart → refresh the page (cart survives) →
       checkout → success page → cart is empty.
+- [ ] **saptarshi: BEFORE this update goes live — make sure the sign-in code can reach you.**
+      From Phase 0 the live site never prints the code on the screen. Either the `Email__*`
+      settings work (send yourself a test), or add
+      `<environmentVariable name="Otp__ShowOnScreen" value="true" />` in `web.config` for the
+      first sign-in, then remove it and restart. Skip this and the admin panel cannot be entered
+      at all — the password is right, but the code has nowhere to go.
 - [ ] **`/Admin/Login` works:** `admin@sabarna.in` / `Sabarna@2024`, then the six-digit code
       (saptarshi: by email on the host — it is not printed on screen in `Production`), then you are
       taken to *Admin password* and must choose a new one before the dashboard opens.
