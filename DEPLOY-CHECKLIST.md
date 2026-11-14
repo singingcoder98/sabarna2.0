@@ -180,6 +180,14 @@ Three rules, learned the hard way:
    the server's `web.config` with the published copy, so anything typed there has to be typed again.
 3. **`Email__FromAddress` must be a verified sender.** Brevo rejects the message otherwise, and the
    site will honestly say it could not send the code.
+4. **The six lines must sit OUTSIDE any XML comment.** The template in `web.config` ships them inside
+   one, and lifting only the values while leaving the surrounding `<!--` and `-->` in place leaves the
+   shop behaving exactly as if mail were never configured — no error anywhere, no mail, and an empty
+   *Transactional → Logs* page in Brevo that looks like "mail is broken" when it is really "mail was
+   never switched on". Quick check: there must be **no `-->`** after the last `Email__` line until the
+   `</environmentVariables>` tag.
+5. **`Email__UserName` is the SMTP *Login* shown on Brevo's SMTP page**, which is usually not the
+   Gmail address people assume — copy it character for character.
 
 Quick test that costs no sign-in attempt: send a message from the site's **Contact** page and see
 whether it reaches `Email__OwnerAddress`.
