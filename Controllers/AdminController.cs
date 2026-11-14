@@ -312,13 +312,16 @@ public class AdminController : Controller
 
         // saptarshi: Phase 0 — "could not send" is now an error, not a friendly note, because on the
         // live site there is nothing to fall back to by design.
-        if (delivered)
-        {
-            TempData["Toast"] = $"Password accepted. A 6-digit code is on its way to {MaskEmail(admin.Email)} — it expires in 5 minutes.";
-        }
-        else if (ShowOtpOnScreen)
+        // saptarshi: 14-Nov-2026 — the screen test comes FIRST. When Otp__ShowOnScreen is on,
+        // DeliverOtpAsync returns true without sending anything, and the old order made the page
+        // promise an e-mail that was never sent. Honest wording matters more than a friendly one.
+        if (ShowOtpOnScreen)
         {
             TempData["Toast"] = "Password accepted. Your code is on the next screen.";
+        }
+        else if (delivered)
+        {
+            TempData["Toast"] = $"Password accepted. A 6-digit code is on its way to {MaskEmail(admin.Email)} — it expires in 5 minutes.";
         }
         else
         {
@@ -441,13 +444,13 @@ public class AdminController : Controller
 
         var delivered = await DeliverOtpAsync(admin, code);
 
-        if (delivered)
-        {
-            TempData["Toast"] = $"A fresh code is on its way to {MaskEmail(admin.Email)}. The earlier one no longer works.";
-        }
-        else if (ShowOtpOnScreen)
+        if (ShowOtpOnScreen)
         {
             TempData["Toast"] = "A fresh code is shown below. The earlier one no longer works.";
+        }
+        else if (delivered)
+        {
+            TempData["Toast"] = $"A fresh code is on its way to {MaskEmail(admin.Email)}. The earlier one no longer works.";
         }
         else
         {
