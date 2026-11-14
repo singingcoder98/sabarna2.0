@@ -96,9 +96,14 @@ public class HomeController : Controller
     }
 
     // ---------------------------------------------------------------------------------------------
-    // POST / — the newsletter form at the bottom of the home page.
-    // The address is echoed back in a toast today; connecting a mailing list is a TODO (see README).
+    // saptarshi: 14-Nov-2026 — the newsletter POST is switched off together with its form.
+    //
+    // It only ever echoed "Thank you, we will write to you" and saved nothing: no table, no mail, no
+    // list. The home page now offers a WhatsApp button instead, which the owner actually sees.
+    // Kept here (commented, not deleted) so the wording and the validation can be reused the day a
+    // real subscriber list is built.
     // ---------------------------------------------------------------------------------------------
+    /*
     [HttpPost]
     [ValidateAntiForgeryToken]
     public IActionResult Index([FromForm] string email)
@@ -116,6 +121,7 @@ public class HomeController : Controller
         TempData["Toast"] = $"Thank you — we will write to {email.Trim()} when the next batch is ready.";
         return Redirect(Url.Content("~/") + "#newsletter");
     }
+    */
 
     // ---------------------------------------------------------------------------------------------
     // GET /Home/About

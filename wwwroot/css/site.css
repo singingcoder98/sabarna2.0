@@ -1185,6 +1185,22 @@ code {
     max-width: 48ch;
 }
 
+/* saptarshi: 14-Nov-2026 - the orange band now asks for one WhatsApp message instead of an email
+   address. Same band, same look; the button simply sits where the form used to be. */
+.mb-newsletter-action {
+    background-color: var(--mb-green-900);
+    border-color: var(--mb-green-900);
+    color: var(--mb-cream);
+    margin-bottom: 0.85rem;
+}
+
+.mb-newsletter-action:hover,
+.mb-newsletter-action:focus {
+    background-color: #1d3325;
+    border-color: #1d3325;
+    color: var(--mb-cream);
+}
+
 .mb-newsletter-form {
     display: flex;
     gap: 0.6rem;

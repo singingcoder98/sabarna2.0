@@ -17,7 +17,7 @@ back to the project; `README.md` explains how it works, `DEPLOY-CHECKLIST.md` li
 ## What is built
 
 **Storefront.** Home (dark hero, category strip, featured products, CSS-only motion band, testimonials,
-orange newsletter), Shop with search, category and price filters plus sorting, product details with
+orange batch-notes band, WhatsApp only — there is no email newsletter), Shop with search, category and price filters plus sorting, product details with
 related items, combos page, session cart, checkout, order confirmation, about, contact, the four
 policy pages, and a branded error page. 13 seeded products: ghee in three sizes, two honeys, two
 pickles, mustard oil, and three jaggery items (powder, blocks, Ghee + Gur combo), plus three combos.

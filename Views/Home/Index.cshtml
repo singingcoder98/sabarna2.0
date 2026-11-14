@@ -391,28 +391,45 @@
     </div>
 </section>
 
-@* ============================== 10. NEWSLETTER ============================== *@
+@* ============================== 10. BATCH NOTES (WhatsApp) ============================== *@
+@*
+    saptarshi: 14-Nov-2026 — the email form that used to sit here was removed on purpose.
+
+    It accepted an address, showed "Thank you, we will write to you", and saved nothing: no table, no
+    mail, no list. A shop must not thank a customer for something it did not do. Until a real
+    subscriber list exists (Phase 1), the honest version is a single WhatsApp button — the owner
+    collects the same names in a place that actually works.
+
+    The section id stays "newsletter" so any old link, bookmark or redirect still lands here.
+*@
 <section class="mb-newsletter" id="newsletter">
     <div class="container">
         <div class="row align-items-center g-4">
             <div class="col-lg-6">
                 <p class="mb-kicker mb-kicker-on-orange">Batch notes</p>
-                <h2 class="mb-newsletter-title">One short letter when a batch is ready</h2>
+                <h2 class="mb-newsletter-title">One message when a batch is ready</h2>
                 <p class="mb-newsletter-text">
-                    Ghee is made twice a month and pickles once a season. Leave your email and we will write
-                    when the jars are actually filled — not before.
+                    Ghee is made twice a month and pickles once a season. Send us one WhatsApp message and
+                    we will put you on the batch list — you hear from us when the jars are actually
+                    filled, not before.
                 </p>
             </div>
             <div class="col-lg-6">
-                <form method="post" asp-controller="Home" asp-action="Index" class="mb-newsletter-form">
-                    @Html.AntiForgeryToken()
-                    <label class="visually-hidden" for="newsletterEmail">Email address</label>
-                    <input class="form-control" type="email" id="newsletterEmail" name="email"
-                           placeholder="name&#64;example.com" maxlength="160" autocomplete="email" required />
-                    <button class="btn btn-brand" type="submit">Join the list</button>
-                </form>
+                @if (!string.IsNullOrWhiteSpace(Model.Settings.WhatsappLink))
+                {
+                    <a class="btn btn-brand mb-newsletter-action"
+                       href="@Model.Settings.WhatsappLink" target="_blank" rel="noopener">
+                        Ask to be on the batch list
+                    </a>
+                }
+                else
+                {
+                    <a class="btn btn-brand mb-newsletter-action" href="@Model.Settings.PhoneLink">
+                        Call @Model.Settings.Phone
+                    </a>
+                }
                 <p class="mb-newsletter-note">
-                    One email a fortnight at most. No sharing, no selling, unsubscribe in one click.
+                    One message, and you are on it. No email list, no sharing, no selling.
                 </p>
             </div>
         </div>

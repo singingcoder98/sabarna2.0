@@ -166,7 +166,8 @@ App_Data/                        where SQLite writes app.db on IIS; published, n
 .dockerignore                    keeps bin/, obj/ and app.db out of the image
 
 Controllers/
-  HomeController.cs              Index (GET + newsletter POST), About, Policies, Privacy, Terms,
+  HomeController.cs              Index (GET; the newsletter POST is commented out, 14 Nov 2026), About,
+                                 Policies, Privacy, Terms,
                                  Shipping, Error
   ShopController.cs              Index(?category), Details(id), Combos
   CartController.cs              Index, Add, Update, Remove, Checkout (GET/POST), Success
@@ -323,7 +324,10 @@ different image in those small slots.
    on the live site the code is *never* drawn on screen any more, so `Email__*` (Brevo free plan)
    must work before the first sign-in — otherwise the panel cannot be entered. The deliberate
    exception is `Otp__ShowOnScreen=true`, one sign-in only, then put it back to `false`.
-   Still open: the **contact form** and the **newsletter** are toasted, not stored — see item 3 of
+   **Changed 14 Nov 2026:** the newsletter form was removed rather than left pretending — it accepted
+   an address, said "we will write to you" and stored nothing. The orange band on the home page now
+   asks for one WhatsApp message, which the owner actually receives. A real subscriber list is still
+   open (Phase 1), and so is storing the **contact form** messages in the database — see item 3 of
    `DEPLOY-CHECKLIST.md` §4.
 3. **Product image upload.** The admin types an image path (`/images/products/…`). The path is
    normalised, but there is no upload control yet.
@@ -678,7 +682,7 @@ touched.
 
 ## 13. Hands-on with the running site (a 3-minute tour)
 
-1. `/` — hero, trust marquee, product grid, combos, FAQ, newsletter.
+1. `/` — hero, trust marquee, product grid, combos, FAQ, batch notes (WhatsApp button).
 2. Add two jars to the basket, open `/Cart`, use the +/− steppers, then *Proceed to checkout*.
 3. Fill the form, choose UPI, place the order → you land on the confirmation page with an order number.
 4. `/Admin` → sign in (password, then the on-screen code) → the new order is at the top of **Orders**.
