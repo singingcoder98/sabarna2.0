@@ -118,7 +118,7 @@ Do them in this order, then tell people.
       | Placeholder | Where to change it |
       | --- | --- |
       | Address "P.O. Kharagpur, West Bengal 721301" (was Santiniketan 731235 in the original brief) | `/Admin/Settings` |
-      | Phone `+91 98000 12345`, WhatsApp `919800012345`, email `hello@sabarna.in` | `/Admin/Settings` |
+      | Phone, WhatsApp and email — **done 13-Nov-2026**: `+91 89101 11809`, `918910111809`, `orders.sabarna@gmail.com` (the seeded placeholders are swapped automatically on the next start; check them in `/Admin/Settings`) | `/Admin/Settings` |
       | Product photographs (`wwwroot/images/products/`) | file upload is not built yet — copy files over and set the path |
       | `og-cover.jpg` (the picture WhatsApp shows when the link is shared) | replace the file |
 

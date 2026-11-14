@@ -4,6 +4,14 @@
     It deliberately shows nothing about the order until the proof is right.
 *@
 @model Sabarna.Web.Models.OrderProofViewModel
+@using Microsoft.EntityFrameworkCore
+@inject Sabarna.Web.Data.AppDbContext Db
+@{
+    // saptarshi: 13-Nov-2026 — the number comes from /Admin/Settings, so it is changed in one place.
+    var shopInfo = Db.Settings.AsNoTracking().FirstOrDefault();
+    var supportPhone = string.IsNullOrWhiteSpace(shopInfo?.Phone) ? "+91 89101 11809" : shopInfo!.Phone;
+}
+
 @{
     ViewData["Title"] = "Look up your order";
 }
@@ -35,7 +43,7 @@
             </form>
 
             <p class="mb-success-text mt-3">
-                Trouble getting in? Call or WhatsApp us at <strong>+91 98000 12345</strong> and we will help.
+                Trouble getting in? Call or WhatsApp us at <strong>@supportPhone</strong> and we will help.
             </p>
         </div>
     </div>

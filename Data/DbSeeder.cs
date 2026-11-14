@@ -44,9 +44,10 @@ public static class DbSeeder
             BrandName = "Sabarna Pure",
             Tagline = "Small-batch ghee, honey & pickles",
             Logo = "/images/logo-mark.png",
-            Email = "hello@sabarna.in",
-            Phone = "+91 98000 12345",
-            Whatsapp = "919800012345",
+            // saptarshi: 13-Nov-2026 — the shop's real contact details.
+            Email = "orders.sabarna@gmail.com",
+            Phone = "+91 89101 11809",
+            Whatsapp = "918910111809",
             Address = "Sabarna Small Farms, P.O. Kharagpur, West Bengal 721301",
             HeroKicker = "Farm to home · since 2016",
             HeroTitle1 = "Ghee that still",
@@ -97,6 +98,22 @@ public static class DbSeeder
             // owner's own wording survives and only the brand word changes.
             changed |= ScrubOldName(settings, oldName);
 
+            // saptarshi: 13-Nov-2026 — the real phone number and inbox, in place of the placeholders
+            // that shipped with the demo data. This runs once on the live database too (it is only a
+            // string swap) and it touches NOTHING else: only the exact old placeholder values are
+            // replaced, so anything the shop owner typed himself is left exactly as it is.
+            //   phone     +91 98000 12345     ->  +91 89101 11809
+            //   whatsapp  919800012345        ->  918910111809
+            //   email     hello@sabarna.in    ->  orders.sabarna@gmail.com
+            changed |= ReplaceContactDetail(settings.Phone, "+91 98000 12345", "+91 89101 11809",
+                                            value => settings.Phone = value);
+
+            changed |= ReplaceContactDetail(settings.Whatsapp, "919800012345", "918910111809",
+                                            value => settings.Whatsapp = value);
+
+            changed |= ReplaceContactDetail(settings.Email, "hello@sabarna.in", "orders.sabarna@gmail.com",
+                                            value => settings.Email = value);
+
             if (changed)
             {
                 settings.UpdatedAt = DateTime.UtcNow;
@@ -146,6 +163,29 @@ public static class DbSeeder
         {
             await db.SaveChangesAsync();
         }
+    }
+
+    /// <summary>
+    /// saptarshi: 13-Nov-2026 — swaps one known placeholder for the real value.
+    /// Returns true only when something actually changed, and leaves any other value untouched, so a
+    /// detail the owner has edited in /Admin/Settings is never overwritten by a deploy.
+    /// </summary>
+    private static bool ReplaceContactDetail(string current, string placeholder, string replacement,
+                                            Action<string> assign)
+    {
+        var isOldPlaceholder = string.Equals((current ?? string.Empty).Trim(), placeholder,
+                                             StringComparison.OrdinalIgnoreCase);
+
+        // An empty field is filled in as well: a shop with no phone number on it is not a shop yet.
+        var isEmpty = string.IsNullOrWhiteSpace(current);
+
+        if (!isOldPlaceholder && !isEmpty)
+        {
+            return false;
+        }
+
+        assign(replacement);
+        return true;
     }
 
     /// <summary>

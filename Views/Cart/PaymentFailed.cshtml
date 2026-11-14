@@ -4,6 +4,14 @@
     The basket is deliberately left untouched so "try again" is one click.
 *@
 @model Sabarna.Web.Models.PaymentFailedViewModel
+@using Microsoft.EntityFrameworkCore
+@inject Sabarna.Web.Data.AppDbContext Db
+@{
+    // saptarshi: 13-Nov-2026 — the number comes from /Admin/Settings, so it is changed in one place.
+    var shopInfo = Db.Settings.AsNoTracking().FirstOrDefault();
+    var supportPhone = string.IsNullOrWhiteSpace(shopInfo?.Phone) ? "+91 89101 11809" : shopInfo!.Phone;
+}
+
 @{
     ViewData["Title"] = "Payment did not go through";
 }
@@ -38,7 +46,7 @@
             <p class="mb-success-note">
                 Your basket is still saved. If money left your account and you see this page, wait a
                 few minutes — Razorpay confirms the payment with us directly — then check your email,
-                or call +91 98000 12345 with order @Model.OrderNumber.
+                or call @supportPhone with order @Model.OrderNumber.
             </p>
         </div>
     </div>

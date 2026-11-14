@@ -5,6 +5,14 @@
     server. The page never decides that anything was paid.
 *@
 @model Sabarna.Web.Models.PaymentViewModel
+@using Microsoft.EntityFrameworkCore
+@inject Sabarna.Web.Data.AppDbContext Db
+@{
+    // saptarshi: 13-Nov-2026 — the number comes from /Admin/Settings, so it is changed in one place.
+    var shopInfo = Db.Settings.AsNoTracking().FirstOrDefault();
+    var supportPhone = string.IsNullOrWhiteSpace(shopInfo?.Phone) ? "+91 89101 11809" : shopInfo!.Phone;
+}
+
 @{
     ViewData["Title"] = "Secure payment";
 
@@ -62,7 +70,7 @@
             <noscript>
                 <p class="mb-success-note">
                     The payment window needs JavaScript. Please turn it on, or call us on
-                    +91 98000 12345 and we will take the order by phone.
+                    @supportPhone and we will take the order by phone.
                 </p>
             </noscript>
         </div>

@@ -1,3 +1,12 @@
+@using Microsoft.EntityFrameworkCore
+@inject Sabarna.Web.Data.AppDbContext Db
+@* saptarshi: 13-Nov-2026 — the address comes from /Admin/Settings, not from this file, so the
+   owner can change it in one place and every page follows. *@
+@{
+    var shop = Db.Settings.AsNoTracking().FirstOrDefault();
+    var shopEmail = string.IsNullOrWhiteSpace(shop?.Email) ? "orders.sabarna@gmail.com" : shop!.Email;
+}
+
 <section class="mb-page-head">
     <div class="container">
         <nav aria-label="Breadcrumb" class="mb-crumbs">
@@ -47,7 +56,7 @@
 
                     <h2>Your choices</h2>
                     <p>
-                        Write to <a href="mailto:hello&#64;sabarna.in">hello&#64;sabarna.in</a> to see, correct or
+                        Write to <a href="mailto:@shopEmail">@shopEmail</a> to see, correct or
                         delete the information we hold about you. We answer within two working days and we
                         will not ask you to justify the request.
                     </p>
@@ -73,7 +82,7 @@
                         We keep your name, address, email and phone so we can deliver a parcel and answer
                         your questions. We never sell your data. No trackers, no ad pixels.
                     </p>
-                    <a class="btn btn-outline-brand btn-sm mt-2" href="mailto:hello&#64;sabarna.in">Ask a privacy question</a>
+                    <a class="btn btn-outline-brand btn-sm mt-2" href="mailto:@shopEmail">Ask a privacy question</a>
                 </aside>
             </div>
         </div>

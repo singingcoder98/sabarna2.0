@@ -660,14 +660,19 @@ the farm story, the batch sizes, the "nine months of shelf life", the courier ti
 with the owner's own words — the home page hero and contact details are editable from
 `/Admin/Settings` without touching code.
 
-**Contact details used in the demo**
+**Contact details used in the demo** *(saptarshi: updated 13-Nov-2026 to the shop's real ones)*
 
 | | |
 | --- | --- |
 | Address | Sabarna Farm, Village Sabarna, P.O. Kharagpur, West Bengal 721301 |
-| Phone | +91 98000 12345 |
-| Email | hello@sabarna.in |
-| WhatsApp | 919800012345 (digits only, with country code) |
+| Phone | +91 89101 11809 |
+| Email | orders.sabarna@gmail.com |
+| WhatsApp | 918910111809 (digits only, with country code) |
+
+Every one of these is editable from `/Admin/Settings`; the footer, the contact page, the payment
+pages and the structured data all read that single row. On an existing database the seeded
+placeholder values are replaced once, on the next start — a value the owner typed himself is never
+touched.
 
 ---
 
