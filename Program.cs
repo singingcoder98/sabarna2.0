@@ -3,6 +3,7 @@ using Sabarna.Web.Models;
 using Sabarna.Web.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.HttpsPolicy;   // saptarshi: HttpsRedirectionOptions
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,6 +37,16 @@ builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("Email
 // without a certificate would otherwise redirect every visitor to an address that does not answer:
 // the escape hatch is one environment variable, not a code change.
 var forceHttps = builder.Configuration.GetValue<bool?>("Security:ForceHttps") ?? true;
+
+// saptarshi: Phase 0 fix (14-Nov-2026) — the redirect needs to know WHERE https lives.
+// Behind IIS the app is never told its own public port, so UseHttpsRedirection gives up quietly
+// with "Failed to determine the https port" and plain http keeps working. That is exactly what the
+// live site was doing. 443 is the answer for every normal host; HttpsPort in appsettings (or the
+// HttpsPort environment variable) overrides it if a host ever uses something else.
+builder.Services.Configure<HttpsRedirectionOptions>(options =>
+{
+    options.HttpsPort = builder.Configuration.GetValue<int?>("HttpsPort") ?? 443;
+});
 
 // Behind a tunnel (cloudflared, ngrok) or a hosting proxy, the request arrives as plain HTTP on
 // localhost. Reading the forwarded headers is what keeps https, the public host name, canonical
@@ -147,6 +158,9 @@ if (!app.Environment.IsDevelopment())
 // saptarshi: Phase 0 (12-Nov-2026) — plain http is sent to https before anything else happens, so a
 // password or an admin cookie never travels in clear text. Behind IIS the request reaches the app as
 // https already (ForwardedHeaders reads X-Forwarded-Proto), which is why this does not loop.
+// 14-Nov-2026: the port is now set explicitly (above). Without it the middleware had no idea where
+// to redirect and silently did nothing — the live site stayed on http while the cookies were Secure,
+// which also meant a sign-in could never stick.
 if (forceHttps && !app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
