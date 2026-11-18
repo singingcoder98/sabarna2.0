@@ -17,6 +17,25 @@ list) and this file, which is the list for **the days after** deployment.
 
 ---
 
+## Local / AEO / LLM SEO — what the owner must do by hand (saptarshi, 16-Nov-2026)
+
+The code now says, everywhere, that the shop is **Sabarna Pure, Vivekananda Nagar, Madhyamgram,
+Kolkata 700129** — footer, contact page, terms, `Store`/`LocalBusiness` JSON-LD, FAQ answers. The
+rest is off-site and cannot be written in code:
+
+1. **Google Business Profile** (the single biggest local lever) — create it at
+   business.google.com for "Sabarna Pure", food business, address above, category *Pickle
+   manufacturer* / *Food products supplier*, phone +91 89101 11809, website, same hours as the site.
+   Google posts a PIN card to the address to verify. Then add photos of the jars and ask every happy
+   customer for a review — 10 reviews beat any keyword.
+2. **Same name/address/phone everywhere** (NAP): IndiaMART, Justdial, Sulekha, Facebook page,
+   WhatsApp Business profile, Instagram bio. One spelling, one PIN code, no "Kharagpur" anywhere.
+3. **Search Console + Bing Webmaster** — add the domain, submit `/sitemap.xml`.
+4. **`/llms.txt`** — live once deployed. It is the one-screen fact sheet for ChatGPT/Perplexity;
+   nothing to submit, they find it from the sitemap and robots.txt.
+5. **Reviews on the product pages** — the `Product` schema already supports `aggregateRating`, but it
+   is sent only when real reviews exist in the database. Never ask for invented stars.
+
 ## SEO at launch (saptarshi, 16-Nov-2026)
 
 1. **Base URL** — `appsettings.json` → `"Seo": { "BaseUrl": "" }`. Empty means "use whatever host the

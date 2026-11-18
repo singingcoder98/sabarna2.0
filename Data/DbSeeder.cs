@@ -54,7 +54,7 @@ public static class DbSeeder
             Phone = "+91 89101 11809",
             Whatsapp = "918910111809",
             // saptarshi: 16-Nov-2026 — the shop is in Madhyamgram, Kolkata 700129.
-            Address = "Sabarna Pure, Madhyamgram, Kolkata, West Bengal 700129",
+            Address = "Sabarna Pure, Vivekananda Nagar, Madhyamgram, Kolkata, West Bengal 700129",
             HeroKicker = "Farm to home · since 2016",
             HeroTitle1 = "Achar, bori and honey",
             HeroTitle2 = "from one kitchen",
@@ -635,9 +635,12 @@ public static class DbSeeder
     {
         var settings = await db.Settings.FirstOrDefaultAsync();
 
-        if (settings != null && settings.Address.Contains("Kharagpur", StringComparison.OrdinalIgnoreCase))
+        // saptarshi: 16-Nov-2026 — the owner gave the exact street. Any older address (Kharagpur, or
+        // "Madhyamgram" without the street) is replaced once; after that this line never fires.
+        if (settings != null
+            && !settings.Address.Contains("Vivekananda", StringComparison.OrdinalIgnoreCase))
         {
-            settings.Address = "Sabarna Pure, Madhyamgram, Kolkata, West Bengal 700129";
+            settings.Address = "Sabarna Pure, Vivekananda Nagar, Madhyamgram, Kolkata, West Bengal 700129";
             settings.UpdatedAt = DateTime.UtcNow;
         }
 

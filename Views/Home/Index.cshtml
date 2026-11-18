@@ -316,83 +316,42 @@
                 <a class="btn btn-outline-brand mt-2" asp-controller="Contact" asp-action="Index">Ask us directly</a>
             </div>
             <div class="col-lg-8">
+                @* saptarshi: 16-Nov-2026 — the questions are now data (Services/Faq.cs) so the visible
+                   answers and the FAQPage markup above are the same words, character for character.
+                   Google refuses FAQ rich results when the markup says something the page does not. *@
                 <div class="accordion mb-faq" id="faqAccordion">
-                    <div class="accordion-item">
-                        <h3 class="accordion-header" id="faqHeadOne">
-                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#faqOne" aria-expanded="true" aria-controls="faqOne">
-                                How long does the pickle keep without a fridge?
-                            </button>
-                        </h3>
-                        <div id="faqOne" class="accordion-collapse collapse show" aria-labelledby="faqHeadOne" data-bs-parent="#faqAccordion">
-                            <div class="accordion-body">
-                                Twelve months from the filling date written on the jar, and longer if the jar stays
-                                in a cool, dark cupboard. Always use a dry spoon — water is the only thing that
-                                spoils a pickle.
+                    @{ var faqIndex = 0; }
+                    @foreach (var faq in Sabarna.Web.Services.Faq.General)
+                    {
+                        faqIndex++;
+                        var headingId = $"faqHead{faqIndex}";
+                        var panelId = $"faq{faqIndex}";
+                        var open = faqIndex == 1;
+
+                        <div class="accordion-item">
+                            <h3 class="accordion-header" id="@headingId">
+                                <button class="accordion-button @(open ? string.Empty : "collapsed")" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#@panelId"
+                                        aria-expanded="@(open ? "true" : "false")" aria-controls="@panelId">
+                                    @faq.Question
+                                </button>
+                            </h3>
+                            <div id="@panelId" class="accordion-collapse collapse @(open ? "show" : string.Empty)"
+                                 aria-labelledby="@headingId" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    @faq.Answer
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="accordion-item">
-                        <h3 class="accordion-header" id="faqHeadTwo">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#faqTwo" aria-expanded="false" aria-controls="faqTwo">
-                                My honey has turned solid. Is it spoiled?
-                            </button>
-                        </h3>
-                        <div id="faqTwo" class="accordion-collapse collapse" aria-labelledby="faqHeadTwo" data-bs-parent="#faqAccordion">
-                            <div class="accordion-body">
-                                No — that is what raw honey does in winter. Crystallisation is proof it was never heated
-                                or blended with syrup. Stand the jar in warm water for ten minutes and it turns liquid again.
-                            </div>
-                        </div>
-                    </div>
-                    <div class="accordion-item">
-                        <h3 class="accordion-header" id="faqHeadThree">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#faqThree" aria-expanded="false" aria-controls="faqThree">
-                                Do you offer cash on delivery?
-                            </button>
-                        </h3>
-                        <div id="faqThree" class="accordion-collapse collapse" aria-labelledby="faqHeadThree" data-bs-parent="#faqAccordion">
-                            <div class="accordion-body">
-                                No. We accept UPI, cards and netbanking only. Parcels are insured and every jar is padded,
-                                but cash handling at the courier end costs us more than it is worth — so we skip it entirely.
-                            </div>
-                        </div>
-                    </div>
-                    <div class="accordion-item">
-                        <h3 class="accordion-header" id="faqHeadFour">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#faqFour" aria-expanded="false" aria-controls="faqFour">
-                                How quickly will my parcel arrive?
-                            </button>
-                        </h3>
-                        <div id="faqFour" class="accordion-collapse collapse" aria-labelledby="faqHeadFour" data-bs-parent="#faqAccordion">
-                            <div class="accordion-body">
-                                We pack on Mondays and Thursdays. Kolkata and Howrah usually get it in two days; the rest of
-                                India takes four to six working days. You will get the tracking link by email.
-                            </div>
-                        </div>
-                    </div>
-                    <div class="accordion-item">
-                        <h3 class="accordion-header" id="faqHeadFive">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#faqFive" aria-expanded="false" aria-controls="faqFive">
-                                A jar arrived broken. What now?
-                            </button>
-                        </h3>
-                        <div id="faqHeadFive" class="accordion-collapse collapse" aria-labelledby="faqHeadFive" data-bs-parent="#faqAccordion">
-                            <div class="accordion-body">
-                                Send us a photo within 48 hours and we replace it in the next dispatch — no return needed.
-                                The full policy is on our <a asp-controller="Home" asp-action="Shipping">shipping page</a>.
-                            </div>
-                        </div>
-                    </div>
+                    }
                 </div>
             </div>
         </div>
     </div>
 </section>
+
+@* saptarshi: 16-Nov-2026 — FAQPage schema, generated from the same list the visitor just read. *@
+<script type="application/ld+json">@Html.Raw(Sabarna.Web.Services.Faq.SchemaJson())</script>
 
 @* ============================== 10. BATCH NOTES (WhatsApp) ============================== *@
 @*

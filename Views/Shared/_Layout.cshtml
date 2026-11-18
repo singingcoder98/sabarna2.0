@@ -259,8 +259,10 @@
     // saptarshi: 16-Nov-2026 — one @graph for the whole business: who we are, what the site is, and
     // where the shop actually is. Base URL comes from "Seo": { "BaseUrl": … } in appsettings.
     var seoBase = SeoConfig.Value.Origin(Context.Request);
+    // saptarshi: 16-Nov-2026 — street, locality, region and PIN are separate fields in schema.org.
     var storeGraph = Sabarna.Web.Services.StructuredData.StoreGraph(
-        store.BrandName, store.Tagline, store.Email, store.Phone, store.Address,
+        store.BrandName, store.Tagline, store.Email, store.Phone,
+        "Vivekananda Nagar",
         seoBase, "Madhyamgram", "West Bengal", "700129");
 }
 <script type="application/ld+json">@Html.Raw(storeGraph)</script>

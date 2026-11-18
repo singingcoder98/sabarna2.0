@@ -54,6 +54,39 @@ public static class StructuredData
                 {
                     ["@type"] = "Organization",
                     ["name"] = brand
+                },
+
+                // saptarshi: 16-Nov-2026 — ecommerce SEO: the delivery price a shopper sees in the
+                // merchant listing. The numbers come from CartService, so schema and basket can never
+                // disagree: ₹49 flat, free above ₹999, India only.
+                ["shippingDetails"] = new Dictionary<string, object>
+                {
+                    ["@type"] = "OfferShippingDetails",
+                    ["shippingRate"] = new Dictionary<string, object>
+                    {
+                        ["@type"] = "MonetaryAmount",
+                        ["value"] = "49.00",
+                        ["currency"] = "INR"
+                    },
+                    ["shippingDestination"] = new Dictionary<string, object>
+                    {
+                        ["@type"] = "DefinedRegion",
+                        ["addressCountry"] = "IN"
+                    },
+                    ["deliveryTime"] = new Dictionary<string, object>
+                    {
+                        ["@type"] = "ShippingDeliveryTime",
+                        ["handlingTime"] = new Dictionary<string, object>
+                        {
+                            ["@type"] = "QuantitativeValue", ["minValue"] = 1, ["maxValue"] = 3,
+                            ["unitCode"] = "DAY"
+                        },
+                        ["transitTime"] = new Dictionary<string, object>
+                        {
+                            ["@type"] = "QuantitativeValue", ["minValue"] = 2, ["maxValue"] = 6,
+                            ["unitCode"] = "DAY"
+                        }
+                    }
                 }
             }
         };
@@ -153,6 +186,12 @@ public static class StructuredData
             ["logo"] = $"{origin}/images/logo.png",
             ["email"] = email,
             ["telephone"] = phone,
+            ["slogan"] = tagline,
+            ["knowsAbout"] = new[]
+            {
+                "Bengali achar", "kuler achar", "amsi achar", "aam achar", "mixed pickle",
+                "dal bori (daler bori)", "Sundarban honey", "Bengali home food"
+            },
             ["priceRange"] = "₹89–₹189",
             ["currenciesAccepted"] = "INR",
             ["paymentAccepted"] = "UPI, Credit Card, Debit Card, Netbanking",
@@ -168,6 +207,7 @@ public static class StructuredData
             ["areaServed"] = new object[]
             {
                 new Dictionary<string, object> { ["@type"] = "City", ["name"] = "Kolkata" },
+                new Dictionary<string, object> { ["@type"] = "City", ["name"] = "Madhyamgram" },
                 new Dictionary<string, object> { ["@type"] = "City", ["name"] = "Barasat" },
                 new Dictionary<string, object> { ["@type"] = "State", ["name"] = "West Bengal" },
                 new Dictionary<string, object> { ["@type"] = "Country", ["name"] = "India" }
