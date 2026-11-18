@@ -56,14 +56,72 @@ public static class Faq
             "label. Payment is online only (UPI, cards, netbanking); there is no cash on delivery.")
     };
 
+    /// <summary>
+    /// saptarshi: 16-Nov-2026 — three questions per shelf, shown on every product page of that shelf.
+    /// Product pages are where "how do I cook bori" and "does achar need a fridge" actually get
+    /// asked, and a short answer there is what an AI answer engine quotes.
+    /// </summary>
+    public static IReadOnlyList<Item> ForCategory(string? category)
+    {
+        var key = (category ?? string.Empty).Trim().ToLowerInvariant();
+
+        if (key.Contains("honey"))
+        {
+            return new List<Item>
+            {
+                new("Is Sundarban honey raw or heated?",
+                    "Raw. The honey is strained through cloth and bottled — never heated, never blended and " +
+                    "nothing added, which is why it still smells of the mangrove flowers it came from."),
+                new("What does Sundarban honey taste like?",
+                    "Darker and more mineral than garden honey, with a salty edge from the mangrove flowers " +
+                    "(khalsi, goran, keora). It is sharper on the tongue and less sweet than clover honey."),
+                new("Can I cook with raw honey?",
+                    "Better not. Heat destroys the enzymes and aroma that make raw honey worth buying — stir it " +
+                    "into warm water or warm milk after the pan is off the stove.")
+            };
+        }
+
+        if (key.Contains("bori"))
+        {
+            return new List<Item>
+            {
+                new("How do I cook dal bori?",
+                    "Fry it in medium-hot mustard oil for about twenty seconds a side, then add it to the dal or " +
+                    "the dalna for the last five minutes. It soaks the gravy without falling apart."),
+                new("How long does bori keep?",
+                    "Six months in a sealed packet in a dry cupboard, and longer in the fridge. Bori is sun-dried " +
+                    "with no water left in it, so it keeps without any preservative."),
+                new("Is bori fried before packing?",
+                    "No. Every bori we sell is raw and sun-dried — you fry it at home, which is why it still " +
+                    "tastes of dal and not of old oil.")
+            };
+        }
+
+        return new List<Item>
+        {
+            new("Does Bengali achar need to be kept in the fridge?",
+                "No. Salt and mustard oil preserve it at room temperature for twelve months; a fridge makes the " +
+                "oil solidify and the pieces go soft. Keep the jar in a dark cupboard with the lid tight."),
+            new("How much achar should I eat at a time?",
+                "A piece or two with a meal. It is a condiment, salty and oily by design — if you watch your salt, " +
+                "take less and use a dry spoon so the rest keeps."),
+            new("Is your achar made without preservatives?",
+                "Yes. No preservative, no vinegar, no artificial colour and no citric acid — mango, kul or lemon, " +
+                "salt, mustard oil and spice, then sun. The date on the jar is the day it was filled.")
+        };
+    }
+
     /// <summary>The FAQPage block for <c>application/ld+json</c>. Same words as the page shows.</summary>
-    public static string SchemaJson()
+    public static string SchemaJson() => SchemaJson(General);
+
+    /// <summary>The FAQPage block for any list of questions.</summary>
+    public static string SchemaJson(IReadOnlyList<Item> items)
     {
         var schema = new Dictionary<string, object>
         {
             ["@context"] = "https://schema.org",
             ["@type"] = "FAQPage",
-            ["mainEntity"] = General.Select(item => new Dictionary<string, object>
+            ["mainEntity"] = items.Select(item => new Dictionary<string, object>
             {
                 ["@type"] = "Question",
                 ["name"] = item.Question,

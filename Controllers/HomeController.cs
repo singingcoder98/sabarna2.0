@@ -133,6 +133,7 @@ public class HomeController : Controller
     public async Task<IActionResult> About()
     {
         ViewData["Title"] = "Our story — a kitchen in Madhyamgram";
+        ViewData["Breadcrumbs"] = "Our story";
         ViewData["Description"] = "Eleven of us, one courtyard and a rooftop full of drying bori — how "
                                 + "Sabarna cures its pickles, dries its dal bori and bottles its honey.";
         return View(await GetSettingsAsync());
@@ -151,6 +152,8 @@ public class HomeController : Controller
         ViewData["Title"] = "Health & tradition — achar, bori & honey";
         ViewData["Description"] = "What is really in Bengali achar, dal bori and raw honey — protein, "
                                 + "iron, vitamin C, mustard oil for hair and skin — and what we do not claim.";
+        // saptarshi: 16-Nov-2026 — the page shows a Home / Health & tradition trail; this is its markup.
+        ViewData["Breadcrumbs"] = "Health & tradition";
         return View(await GetSettingsAsync());
     }
 

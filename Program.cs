@@ -22,6 +22,16 @@ var builder = WebApplication.CreateBuilder(args);
 // ---- 1. MVC (controllers + Razor views) ------------------------------------------------------
 builder.Services.AddControllersWithViews();
 
+// saptarshi: 16-Nov-2026 — Core Web Vitals. HTML, CSS and JS were leaving the server uncompressed;
+// brotli cuts a page to roughly a fifth of its size on the wire, which is the cheapest ranking win
+// on a shared host. Images are already compressed, so they are deliberately left out of the list.
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.MimeTypes = Microsoft.AspNetCore.ResponseCompression.ResponseCompressionDefaults.MimeTypes
+        .Concat(new[] { "image/svg+xml", "application/xml", "text/plain", "application/ld+json" });
+});
+
 // ---- 1b. Preview mode -----------------------------------------------------------------------
 // While the shop is being shown to people before launch it must stay out of search engines (and
 // can ask for a shared code). Both switches live in appsettings.json under "Preview".
@@ -198,7 +208,27 @@ app.Use(async (context, next) =>
     await next();
 });
 
-app.UseStaticFiles();
+// saptarshi: 16-Nov-2026 — compress the response first, then serve the file.
+app.UseResponseCompression();
+
+// saptarshi: 16-Nov-2026 — static files get a cache header. The CSS and JS already carry
+// ?v=<hash> (asp-append-version), so a long cache is safe for them; images are seven days, because
+// a product photo is replaced under the SAME file name when the owner refreshes a jar.
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = context =>
+    {
+        var path = context.Context.Request.Path.Value ?? string.Empty;
+        var isImage = path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase)
+                   || path.EndsWith(".png", StringComparison.OrdinalIgnoreCase)
+                   || path.EndsWith(".webp", StringComparison.OrdinalIgnoreCase)
+                   || path.EndsWith(".svg", StringComparison.OrdinalIgnoreCase);
+
+        context.Context.Response.Headers.CacheControl = isImage
+            ? "public,max-age=604800"
+            : "public,max-age=2592000";
+    }
+});
 
 // Preview gate: noindex everywhere, and optionally a shared code before anything is shown.
 app.UseMiddleware<PreviewGateMiddleware>();

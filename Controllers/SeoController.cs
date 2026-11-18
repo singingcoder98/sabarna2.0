@@ -42,7 +42,7 @@ public class SeoController : Controller
         var products = await _db.Products.AsNoTracking()
             .Where(p => p.Active)
             // saptarshi: 16-Nov-2026 — the slug is what the sitemap publishes.
-            .Select(p => new { p.Id, p.Slug, p.Category, p.UpdatedAt, p.CreatedAt })
+            .Select(p => new { p.Id, p.Slug, p.Category, p.Image, p.Name, p.UpdatedAt, p.CreatedAt })
             .ToListAsync();
 
         var categories = products
@@ -54,7 +54,10 @@ public class SeoController : Controller
 
         var xml = new StringBuilder();
         xml.AppendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-        xml.AppendLine("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
+        // saptarshi: 16-Nov-2026 — the image namespace: a product photo in the sitemap is what gets it
+        // into Google Images, where "kuler achar" is searched as often as it is in web search.
+        xml.AppendLine("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" " +
+                       "xmlns:image=\"http://www.google.com/schemas/sitemap-image/1.1\">");
 
         // ---- the pages that always exist -------------------------------------------------------
         var pages = new (string Path, string ChangeFrequency, string Priority)[]
@@ -88,7 +91,9 @@ public class SeoController : Controller
         {
             var lastTouched = product.UpdatedAt == default ? product.CreatedAt : product.UpdatedAt;
             var slug = string.IsNullOrWhiteSpace(product.Slug) ? $"p{product.Id}" : product.Slug;
-            AppendUrl(xml, $"{origin}/product/{slug}", lastTouched, "weekly", "0.8");
+            var imagePath = string.IsNullOrWhiteSpace(product.Image) ? "/images/og-cover.jpg" : product.Image;
+            AppendUrl(xml, $"{origin}/product/{slug}", lastTouched, "weekly", "0.8",
+                      $"{origin}{imagePath}", product.Name);
         }
 
         xml.AppendLine("</urlset>");
@@ -223,9 +228,74 @@ public class SeoController : Controller
         return Content(text.ToString(), "text/plain", Encoding.UTF8);
     }
 
+    /// <summary>
+    /// saptarshi: 16-Nov-2026 — /feed.xml, an Atom feed of the shelf.
+    ///
+    /// Two things read it: Google Merchant Center (which can pull a product feed straight from a URL,
+    /// so prices and stock stay in sync without a spreadsheet) and the price-comparison crawlers that
+    /// still matter in India. Generated from the database on every request, like the sitemap.
+    /// </summary>
+    [HttpGet]
+    [Route("feed.xml")]
+    [ResponseCache(Duration = 1800, Location = ResponseCacheLocation.Any)]
+    public async Task<IActionResult> Feed()
+    {
+        var origin = _seo.Origin(Request);
+        var store = await _db.Settings.AsNoTracking().FirstOrDefaultAsync();
+
+        var products = await _db.Products.AsNoTracking()
+            .Where(p => p.Active)
+            .OrderBy(p => p.Category)
+            .ToListAsync();
+
+        var lastUpdated = products
+            .Select(p => p.UpdatedAt == default ? p.CreatedAt : p.UpdatedAt)
+            .DefaultIfEmpty(DateTime.UtcNow)
+            .Max();
+
+        var xml = new StringBuilder();
+        xml.AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+        xml.AppendLine("<feed xmlns=\"http://www.w3.org/2005/Atom\">");
+        xml.AppendLine("  <title>Sabarna Pure — Bengali achar, dal bori and Sundarban honey</title>");
+        xml.AppendLine($"  <link href=\"{origin}/feed.xml\" rel=\"self\" />");
+        xml.AppendLine($"  <link href=\"{origin}/\" />");
+        xml.AppendLine($"  <id>{origin}/</id>");
+        xml.AppendLine($"  <updated>{lastUpdated:yyyy-MM-ddTHH:mm:ssZ}</updated>");
+        xml.AppendLine($"  <author><name>{WebUtility.HtmlEncode(store?.BrandName ?? "Sabarna Pure")}</name>" +
+                       $"<email>{WebUtility.HtmlEncode(store?.Email ?? string.Empty)}</email></author>");
+
+        foreach (var product in products)
+        {
+            var slug = string.IsNullOrWhiteSpace(product.Slug) ? $"p{product.Id}" : product.Slug;
+            var link = $"{origin}/product/{slug}";
+            var updated = product.UpdatedAt == default ? product.CreatedAt : product.UpdatedAt;
+            var summary = $"{product.Name} — ₹{product.Price:0} ({product.Unit}). Category: {product.Category}. " +
+                          (product.Stock > 0 ? "In stock." : "Out of stock.") +
+                          " Made by hand in Vivekananda Nagar, Madhyamgram, Kolkata 700129. No preservatives.";
+
+            xml.AppendLine("  <entry>");
+            xml.AppendLine($"    <title>{WebUtility.HtmlEncode(product.Name)}</title>");
+            xml.AppendLine($"    <link href=\"{link}\" />");
+            xml.AppendLine($"    <id>{link}</id>");
+            xml.AppendLine($"    <updated>{updated:yyyy-MM-ddTHH:mm:ssZ}</updated>");
+            xml.AppendLine($"    <category term=\"{WebUtility.HtmlEncode(product.Category)}\" />");
+            xml.AppendLine($"    <summary>{WebUtility.HtmlEncode(summary)}</summary>");
+            if (!string.IsNullOrWhiteSpace(product.Image))
+            {
+                xml.AppendLine($"    <link rel=\"enclosure\" href=\"{origin}{product.Image}\" type=\"image/jpeg\" />");
+            }
+            xml.AppendLine("  </entry>");
+        }
+
+        xml.AppendLine("</feed>");
+
+        return Content(xml.ToString(), "application/atom+xml", Encoding.UTF8);
+    }
+
     /// <summary>One &lt;url&gt; block, with the values escaped.</summary>
     private static void AppendUrl(StringBuilder xml, string location, DateTime lastModified,
-                                  string changeFrequency, string priority)
+                                  string changeFrequency, string priority,
+                                  string? imageUrl = null, string? imageTitle = null)
     {
         var stamp = lastModified == default ? DateTime.UtcNow : lastModified;
 
@@ -234,6 +304,18 @@ public class SeoController : Controller
         xml.AppendLine($"    <lastmod>{stamp:yyyy-MM-dd}</lastmod>");
         xml.AppendLine($"    <changefreq>{changeFrequency}</changefreq>");
         xml.AppendLine($"    <priority>{priority}</priority>");
+        // saptarshi: 16-Nov-2026 — the photo, with the product name as its title.
+        if (!string.IsNullOrWhiteSpace(imageUrl))
+        {
+            xml.AppendLine("    <image:image>");
+            xml.AppendLine($"      <image:loc>{WebUtility.HtmlEncode(imageUrl)}</image:loc>");
+            if (!string.IsNullOrWhiteSpace(imageTitle))
+            {
+                xml.AppendLine($"      <image:title>{WebUtility.HtmlEncode(imageTitle!)}</image:title>");
+            }
+            xml.AppendLine("    </image:image>");
+        }
+
         xml.AppendLine("  </url>");
     }
 }

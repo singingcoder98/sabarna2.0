@@ -28,6 +28,7 @@ public class ContactController : Controller
     {
         // saptarshi: 16-Nov-2026 — "contact" is what people search; "talk to us" was charming, not findable.
         ViewData["Title"] = "Contact us — Madhyamgram, Kolkata";
+        ViewData["Breadcrumbs"] = "Contact";
         ViewData["Description"] = "Questions about a jar, a bulk order or a delivery? Call, email or "
                                 + "WhatsApp the farm — a person answers.";
 
@@ -48,6 +49,7 @@ public class ContactController : Controller
     {
         // saptarshi: 16-Nov-2026 — "contact" is what people search; "talk to us" was charming, not findable.
         ViewData["Title"] = "Contact us — Madhyamgram, Kolkata";
+        ViewData["Breadcrumbs"] = "Contact";
         ViewData["Description"] = "Questions about a jar, a bulk order or a delivery? Call, email or "
                                 + "WhatsApp the farm — a person answers.";
 

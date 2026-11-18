@@ -172,6 +172,57 @@
     </div>
 </section>
 
+@{
+    // saptarshi: 16-Nov-2026 — AEO on the product page: three questions for this shelf, answered in the
+    // first sentence, and the same words in FAQPage markup below (Google rejects markup that the page
+    // does not show).
+    var productFaqs = Sabarna.Web.Services.Faq.ForCategory(product.Category);
+}
+<section class="mb-section mb-section-cream">
+    <div class="container">
+        <div class="row g-5">
+            <div class="col-lg-4">
+                <p class="mb-kicker mb-kicker-dark">Before you buy</p>
+                <h2 class="mb-section-title">Questions about this jar</h2>
+                <p class="mb-section-text">
+                    The three things people ask us most about this shelf. Anything else — WhatsApp us and a
+                    person from the kitchen replies, usually within a few hours.
+                </p>
+            </div>
+            <div class="col-lg-8">
+                <div class="accordion mb-faq" id="productFaq">
+                    @{ var faqNumber = 0; }
+                    @foreach (var item in productFaqs)
+                    {
+                        faqNumber++;
+                        var headId = $"productFaqHead{faqNumber}";
+                        var bodyId = $"productFaqBody{faqNumber}";
+                        var isOpen = faqNumber == 1;
+
+                        <div class="accordion-item">
+                            <h3 class="accordion-header" id="@headId">
+                                <button class="accordion-button @(isOpen ? string.Empty : "collapsed")" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#@bodyId"
+                                        aria-expanded="@(isOpen ? "true" : "false")" aria-controls="@bodyId">
+                                    @item.Question
+                                </button>
+                            </h3>
+                            <div id="@bodyId" class="accordion-collapse collapse @(isOpen ? "show" : string.Empty)"
+                                 aria-labelledby="@headId" data-bs-parent="#productFaq">
+                                <div class="accordion-body">
+                                    @item.Answer
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script type="application/ld+json">@Html.Raw(Sabarna.Web.Services.Faq.SchemaJson(productFaqs))</script>
+
 @if (Model.Related.Count > 0)
 {
     <section class="mb-section mb-section-cream">

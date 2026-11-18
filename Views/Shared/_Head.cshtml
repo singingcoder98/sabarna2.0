@@ -91,6 +91,21 @@
 <meta name="geo.placename" content="Madhyamgram, Kolkata" />
 <meta name="ICBM" content="22.7000, 88.4500" />
 <link rel="canonical" href="@canonical" />
+@* saptarshi: 16-Nov-2026 — the product feed, discoverable by Merchant Center and by feed readers. *@
+<link rel="alternate" type="application/atom+xml" title="@brandName — product feed" href="/feed.xml" />
+
+@* saptarshi: 16-Nov-2026 — a page that shows a "Home / Our story" trail also declares it, so the
+   trail shows up in the search result instead of a naked URL. Product pages declare their own. *@
+@if (!string.IsNullOrWhiteSpace(ViewData["Breadcrumbs"] as string))
+{
+    var crumbName = (string)ViewData["Breadcrumbs"]!;
+    var crumbTrail = new List<(string Name, string Url)>
+    {
+        ("Home", origin + "/"),
+        (crumbName, origin + path)
+    };
+    <script type="application/ld+json">@Html.Raw(Sabarna.Web.Services.StructuredData.Breadcrumbs(crumbTrail))</script>
+}
 
 @* Open Graph — used by WhatsApp, Facebook, LinkedIn and Google when a link is shared. *@
 <meta property="og:type" content="@ogType" />

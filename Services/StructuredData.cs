@@ -212,7 +212,20 @@ public static class StructuredData
                 new Dictionary<string, object> { ["@type"] = "State", ["name"] = "West Bengal" },
                 new Dictionary<string, object> { ["@type"] = "Country", ["name"] = "India" }
             },
-            ["parentOrganization"] = new Dictionary<string, object> { ["@id"] = organizationId }
+            ["parentOrganization"] = new Dictionary<string, object> { ["@id"] = organizationId },
+
+            // saptarshi: 16-Nov-2026 — who to call, in which language. An answer engine sizing up a
+            // local shop looks for exactly this before it recommends one.
+            ["contactPoint"] = new Dictionary<string, object>
+            {
+                ["@type"] = "ContactPoint",
+                ["telephone"] = phone,
+                ["email"] = email,
+                ["contactType"] = "customer service",
+                ["areaServed"] = "IN",
+                ["availableLanguage"] = new[] { "en", "bn" }
+            },
+            ["availableLanguage"] = new[] { "English", "Bengali" }
         };
 
         var graph = new Dictionary<string, object>

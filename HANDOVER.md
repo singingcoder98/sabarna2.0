@@ -21,6 +21,12 @@ orange batch-notes band, WhatsApp only — there is no email newsletter), Shop w
 related items, combos page, session cart, checkout, order confirmation, about, contact, the four
 policy pages, and a branded error page.
 
+**SEO endpoints (16-Nov-2026):** `/sitemap.xml` (products + images), `/robots.txt` (AI crawlers named
+explicitly), `/feed.xml` (Atom product feed for Merchant Center), `/llms.txt` (one-screen fact sheet
+for ChatGPT/Perplexity). All four read the base URL from `Seo:BaseUrl` and are generated from the
+database. FAQ copy lives in `Services/Faq.cs` and feeds both the visible accordions and the FAQPage
+markup — the two can never disagree, which is the condition Google puts on FAQ rich results.
+
 **Health & tradition (16-Nov-2026):** `/Home/Benefits` (footer → "Health & tradition") and a "why
 this jar" block on every product page, both fed from `Services/ProductBenefits.cs`. That one file
 holds every health-adjacent sentence the shop publishes: what the food contains (protein, iron,

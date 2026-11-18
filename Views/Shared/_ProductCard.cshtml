@@ -12,7 +12,7 @@
 <article class="card mb-card h-100">
     <div class="mb-card-media">
         <a asp-controller="Shop" asp-action="Product" asp-route-slug="@Model.SlugOrId" tabindex="-1" aria-hidden="true">
-            <img src="@image" alt="@(Sabarna.Web.Services.ProductContent.For(Model)?.AltText ?? Model.Name)" loading="lazy" width="600" height="450" />
+            <img src="@image" alt="@(Sabarna.Web.Services.ProductContent.For(Model)?.AltText ?? Model.Name)" loading="lazy" decoding="async" width="600" height="450" />
         </a>
 
         @if (!string.IsNullOrWhiteSpace(Model.Tag))
