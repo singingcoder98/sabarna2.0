@@ -1,10 +1,10 @@
-# Sabarna — farm-fresh ghee, honey & pickles
+# Sabarna — Bengali achar, dal bori & wild honey
 
 A complete, production-shaped e-commerce site for a small Indian farm food business, built with
 **ASP.NET Core 8 MVC + Razor views + Bootstrap 5.3.3**. Server-rendered, no JavaScript framework,
 no CDN, no payment-gateway dependency to run it locally.
 
-* **Brand:** Sabarna (ghee, honey, pickles, cold-pressed oil)
+* **Brand:** Sabarna (pickles, dal bori, wild honey) — the shelf is the owner's price list, nothing else
 * **Market:** India — all prices in ₹ (INR), GST included
 * **Payments:** online only — UPI, cards, netbanking. **Cash on delivery is not offered anywhere.**
 * **Cart:** session based, no login needed

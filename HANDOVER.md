@@ -19,8 +19,14 @@ back to the project; `README.md` explains how it works, `DEPLOY-CHECKLIST.md` li
 **Storefront.** Home (dark hero, category strip, featured products, CSS-only motion band, testimonials,
 orange batch-notes band, WhatsApp only — there is no email newsletter), Shop with search, category and price filters plus sorting, product details with
 related items, combos page, session cart, checkout, order confirmation, about, contact, the four
-policy pages, and a branded error page. 13 seeded products: ghee in three sizes, two honeys, two
-pickles, mustard oil, and three jaggery items (powder, blocks, Ghee + Gur combo), plus three combos.
+policy pages, and a branded error page.
+
+**The shelf (16-Nov-2026):** the shop sells the owner's real price list and nothing else — four dal
+bori (biuli, matar, moshla, musur), four pickles in 250 g and 500 g (amsi, mango spicy, kul, mixed)
+and one 100 g honey. The ghee / oil / jaggery / combo rows the shop was demo-seeded with are still in
+the database but switched off (`Active = false`): old orders point at them. `SeedRealCatalogueAsync`
+in `Data/DbSeeder.cs` does this once — the "Bori" shelf is its marker, so it never re-adds a product
+the owner deletes, and it only ever hides rows it created itself.
 
 **Cart and orders.** Session JSON cart that survives a refresh, quantity clamped 1–20, free delivery
 over ₹999 else ₹49, payment restricted server-side to UPI / Card / Netbanking (no cash on delivery

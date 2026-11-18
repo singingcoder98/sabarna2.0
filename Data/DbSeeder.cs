@@ -28,6 +28,7 @@ public static class DbSeeder
         await SeedProductsAsync(db);
         // saptarshi: 16-Nov-2026 — the shop now sells the owner's real price list, not the demo shelf.
         await SeedRealCatalogueAsync(db);
+        await RefreshHeroCopyAsync(db);
         await SeedOrdersAsync(db);
     }
 
@@ -44,7 +45,8 @@ public static class DbSeeder
         db.Settings.Add(new SiteSetting
         {
             BrandName = "Sabarna Pure",
-            Tagline = "Small-batch ghee, honey & pickles",
+            // saptarshi: 16-Nov-2026 — the price list is pickles, bori and honey.
+            Tagline = "Small-batch achar, bori & wild honey",
             Logo = "/images/logo-mark.png",
             // saptarshi: 13-Nov-2026 — the shop's real contact details.
             Email = "orders.sabarna@gmail.com",
@@ -52,11 +54,11 @@ public static class DbSeeder
             Whatsapp = "918910111809",
             Address = "Sabarna Small Farms, P.O. Kharagpur, West Bengal 721301",
             HeroKicker = "Farm to home · since 2016",
-            HeroTitle1 = "Ghee that still",
-            HeroTitle2 = "smells of the farm",
-            HeroText = "We are a family of eleven from Midnapore who make bilona ghee, wild forest honey "
-                     + "and sun-cured pickles in batches small enough to know every jar by hand. "
-                     + "No refining, no preservatives, no promises we cannot keep.",
+            HeroTitle1 = "Achar, bori and honey",
+            HeroTitle2 = "from one kitchen",
+            HeroText = "We are a family of eleven from Midnapore who sun-cure pickles, hand-shape dal bori "
+                     + "and bottle wild forest honey in batches small enough to know every jar by hand. "
+                     + "No preservatives, no promises we cannot keep.",
             UpdatedAt = DateTime.UtcNow
         });
 
@@ -567,6 +569,53 @@ public static class DbSeeder
 
         db.Products.AddRange(products);
         await db.SaveChangesAsync();
+    }
+
+    // -----------------------------------------------------------------------------------------
+    // 2b. The home page copy still talked about ghee. saptarshi: 16-Nov-2026
+    //
+    // A database seeded before today carries the old hero text, and the hero is read from the
+    // database, not from this file. So the old wording is replaced — but ONLY where the value is
+    // still character-for-character the default we seeded. The moment the owner edits a line on
+    // /Admin/Settings this method leaves it alone forever.
+    // -----------------------------------------------------------------------------------------
+    private static async Task RefreshHeroCopyAsync(AppDbContext db)
+    {
+        var settings = await db.Settings.FirstOrDefaultAsync();
+        if (settings == null)
+        {
+            return;
+        }
+
+        var changed = false;
+
+        if (settings.Tagline == "Small-batch ghee, honey & pickles")
+        {
+            settings.Tagline = "Small-batch achar, bori & wild honey";
+            changed = true;
+        }
+
+        if (settings.HeroTitle1 == "Ghee that still" && settings.HeroTitle2 == "smells of the farm")
+        {
+            settings.HeroTitle1 = "Achar, bori and honey";
+            settings.HeroTitle2 = "from one kitchen";
+            changed = true;
+        }
+
+        if (settings.HeroText?.StartsWith("We are a family of eleven from Midnapore who make bilona ghee",
+                StringComparison.Ordinal) == true)
+        {
+            settings.HeroText = "We are a family of eleven from Midnapore who sun-cure pickles, hand-shape "
+                              + "dal bori and bottle wild forest honey in batches small enough to know every "
+                              + "jar by hand. No preservatives, no promises we cannot keep.";
+            changed = true;
+        }
+
+        if (changed)
+        {
+            settings.UpdatedAt = DateTime.UtcNow;
+            await db.SaveChangesAsync();
+        }
     }
 
     // -----------------------------------------------------------------------------------------
