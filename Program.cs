@@ -3,6 +3,7 @@ using Sabarna.Web.Models;
 using Sabarna.Web.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.ResponseCompression;   // saptarshi: AddResponseCompression lives here
 using Microsoft.AspNetCore.HttpsPolicy;   // saptarshi: HttpsRedirectionOptions
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
