@@ -3,6 +3,8 @@
    for you — that is why this line is here rather than in _ViewImports. *@
 @inject Sabarna.Web.Data.AppDbContext Db
 @inject Sabarna.Web.Services.CartService Cart
+@* saptarshi: 16-Nov-2026 — the base address for every absolute URL in the page shell. *@
+@inject Microsoft.Extensions.Options.IOptions<Sabarna.Web.Services.SeoOptions> SeoConfig
 @*
     The public shell: sticky navbar, page body, dark green footer, floating WhatsApp button,
     toast container and the JSON-LD block that tells Google this is an online store.
@@ -19,7 +21,7 @@
             Email = "orders.sabarna@gmail.com",   // saptarshi: 13-Nov-2026
             Phone = "+91 89101 11809",
             Whatsapp = "918910111809",
-            Address = "Sabarna Farm, Village Sabarna, P.O. Kharagpur, West Bengal 721301"
+            Address = "Sabarna Pure, Madhyamgram, Kolkata, West Bengal 700129"
         };
     }
 
@@ -126,7 +128,7 @@
                 </div>
                 <p class="mb-footer-text">
                     @(store.Tagline). Small batches, honest labels and a parcel that smells of the kitchen
-                    it came from. Made in Midnapore, shipped across India.
+                    it came from. Made in Madhyamgram, Kolkata, shipped across India.
                 </p>
                 <p class="mb-footer-note">
                     Online payment only — UPI, cards and netbanking. We do not offer cash on delivery.
@@ -221,6 +223,9 @@
     }
 </div>
 
+@* saptarshi: 16-Nov-2026 — replaced by the @graph block below (Organization + WebSite +
+   Store/LocalBusiness with the Madhyamgram address). Kept, not deleted, in case the old single-node
+   shape is ever wanted back.
 @{
     // Structured data: helps Google show the shop name, address and accepted payments.
     var jsonLd = new Dictionary<string, object>
@@ -248,6 +253,17 @@
     var jsonLdText = System.Text.Json.JsonSerializer.Serialize(jsonLd);
 }
 <script type="application/ld+json">@Html.Raw(jsonLdText)</script>
+*@
+
+@{
+    // saptarshi: 16-Nov-2026 — one @graph for the whole business: who we are, what the site is, and
+    // where the shop actually is. Base URL comes from "Seo": { "BaseUrl": … } in appsettings.
+    var seoBase = SeoConfig.Value.Origin(Context.Request);
+    var storeGraph = Sabarna.Web.Services.StructuredData.StoreGraph(
+        store.BrandName, store.Tagline, store.Email, store.Phone, store.Address,
+        seoBase, "Madhyamgram", "West Bengal", "700129");
+}
+<script type="application/ld+json">@Html.Raw(storeGraph)</script>
 
 <partial name="_Scripts" />
 </body>

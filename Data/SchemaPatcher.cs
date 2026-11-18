@@ -57,6 +57,14 @@ public static class SchemaPatcher
         ("AdminUsers", new[]
         {
             ("MustChangePassword", "INTEGER NOT NULL DEFAULT 0")
+        }),
+
+        // saptarshi: 16-Nov-2026 — SEO columns. Empty defaults, so the patch is a pure ADD on a
+        // database that already holds real orders and real products.
+        ("Products", new[]
+        {
+            ("Slug",          "TEXT NOT NULL DEFAULT ''"),
+            ("DescriptionBn", "TEXT NOT NULL DEFAULT ''")
         })
     };
 

@@ -17,6 +17,19 @@ list) and this file, which is the list for **the days after** deployment.
 
 ---
 
+## SEO at launch (saptarshi, 16-Nov-2026)
+
+1. **Base URL** — `appsettings.json` → `"Seo": { "BaseUrl": "" }`. Empty means "use whatever host the
+   request came in on" (that is why localhost and runasp.net both work). On launch day set it once:
+   `"BaseUrl": "https://sabarna.in"` (or `Seo__BaseUrl` as an environment variable). Canonical tags,
+   `og:url`, sitemap URLs and every JSON-LD `@id` read from it — no code change, no rebuild.
+2. **Preview off** — `"Preview": { "Enabled": false }` (or `Preview__Enabled=false`). While it is true
+   the site sends `noindex` and a `Disallow: /` robots.txt on purpose. This is the launch switch.
+3. **Check after the switch** — `/robots.txt` shows `Allow: /` and a `Sitemap:` line;
+   `/sitemap.xml` lists `/product/<slug>` URLs; view-source on a product page shows one `<title>`,
+   one canonical, `Product` + `Organization`/`Store` JSON-LD.
+4. **Search Console** — add the domain, submit `https://…/sitemap.xml`.
+
 ## 0-A. The owner's steps, in this order — say them again at every visit
 
 saptarshi: this section exists because the owner asked for his own tasks to be repeated step by

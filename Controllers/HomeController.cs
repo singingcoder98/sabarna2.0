@@ -23,10 +23,11 @@ public class HomeController : Controller
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        // saptarshi: 16-Nov-2026 — the shelf is pickles, dal bori and honey now, so the description
-        // says what the visitor will actually find (a description promising ghee was a bounce).
-        ViewData["Description"] = "Small-batch Bengali pickles, sun-dried dal bori and raw forest honey "
-                                + "from a family kitchen in Midnapore, West Bengal. Shipped across India.";
+        // saptarshi: 16-Nov-2026 — SEO: a 57-character title (keyword first, brand after) and a
+        // description inside the 155 characters Google shows. Location is Madhyamgram, Kolkata.
+        ViewData["Title"] = "Bengali achar, dal bori & Sundarban honey";
+        ViewData["Description"] = "Handmade Bengali achar, sun-dried dal bori and raw Sundarban honey from a "
+                                + "family kitchen in Madhyamgram, Kolkata. No preservatives. Delivered across India.";
 
         // The hero backdrop is a CSS background image, so nothing tells the browser about it until
         // site.css has been parsed. Preloading it here is what keeps the first paint quick.
@@ -131,7 +132,7 @@ public class HomeController : Controller
     [HttpGet]
     public async Task<IActionResult> About()
     {
-        ViewData["Title"] = "Our story";
+        ViewData["Title"] = "Our story — a kitchen in Madhyamgram";
         ViewData["Description"] = "Eleven of us, one courtyard and a rooftop full of drying bori — how "
                                 + "Sabarna cures its pickles, dries its dal bori and bottles its honey.";
         return View(await GetSettingsAsync());
@@ -147,7 +148,7 @@ public class HomeController : Controller
     [HttpGet]
     public async Task<IActionResult> Benefits()
     {
-        ViewData["Title"] = "Health & tradition";
+        ViewData["Title"] = "Health & tradition — achar, bori & honey";
         ViewData["Description"] = "What is really in Bengali achar, dal bori and raw honey — protein, "
                                 + "iron, vitamin C, mustard oil for hair and skin — and what we do not claim.";
         return View(await GetSettingsAsync());

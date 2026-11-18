@@ -100,6 +100,90 @@ public static class StructuredData
         return JsonSerializer.Serialize(schema, Options);
     }
 
+    /// <summary>
+    /// saptarshi: 16-Nov-2026 — Organization + WebSite + Store (a LocalBusiness subtype) in one
+    /// @graph. This is what lets Google show the shop's name, phone, address and opening city in
+    /// the knowledge panel, and what ties every product page to one business instead of a stranger
+    /// called "Sabarna Pure" with no address.
+    ///
+    /// Locality is Madhyamgram, Kolkata 700129 — the owner's actual base — and the area served is
+    /// named explicitly, because "Kolkata" and "Barasat" are the words a nearby customer types.
+    /// </summary>
+    public static string StoreGraph(string brandName, string tagline, string email, string phone,
+                                    string address, string origin, string locality, string region,
+                                    string postalCode)
+    {
+        var name = string.IsNullOrWhiteSpace(brandName) ? "Sabarna Pure" : brandName;
+        var organizationId = $"{origin}/#organization";
+        var storeId = $"{origin}/#store";
+        var websiteId = $"{origin}/#website";
+
+        var organization = new Dictionary<string, object>
+        {
+            ["@type"] = "Organization",
+            ["@id"] = organizationId,
+            ["name"] = name,
+            ["url"] = origin,
+            ["logo"] = $"{origin}/images/logo.png",
+            ["email"] = email,
+            ["telephone"] = phone,
+            ["description"] = tagline
+        };
+
+        var website = new Dictionary<string, object>
+        {
+            ["@type"] = "WebSite",
+            ["@id"] = websiteId,
+            ["url"] = origin,
+            ["name"] = name,
+            ["inLanguage"] = "en-IN",
+            ["publisher"] = new Dictionary<string, object> { ["@id"] = organizationId }
+        };
+
+        var store = new Dictionary<string, object>
+        {
+            // Store is a LocalBusiness subtype; OnlineStore is kept because the shop really does
+            // sell online — Google accepts both types on one node.
+            ["@type"] = new[] { "Store", "LocalBusiness", "OnlineStore" },
+            ["@id"] = storeId,
+            ["name"] = name,
+            ["description"] = tagline,
+            ["url"] = origin,
+            ["image"] = $"{origin}/images/og-cover.jpg",
+            ["logo"] = $"{origin}/images/logo.png",
+            ["email"] = email,
+            ["telephone"] = phone,
+            ["priceRange"] = "₹89–₹189",
+            ["currenciesAccepted"] = "INR",
+            ["paymentAccepted"] = "UPI, Credit Card, Debit Card, Netbanking",
+            ["address"] = new Dictionary<string, object>
+            {
+                ["@type"] = "PostalAddress",
+                ["streetAddress"] = address,
+                ["addressLocality"] = locality,
+                ["addressRegion"] = region,
+                ["postalCode"] = postalCode,
+                ["addressCountry"] = "IN"
+            },
+            ["areaServed"] = new object[]
+            {
+                new Dictionary<string, object> { ["@type"] = "City", ["name"] = "Kolkata" },
+                new Dictionary<string, object> { ["@type"] = "City", ["name"] = "Barasat" },
+                new Dictionary<string, object> { ["@type"] = "State", ["name"] = "West Bengal" },
+                new Dictionary<string, object> { ["@type"] = "Country", ["name"] = "India" }
+            },
+            ["parentOrganization"] = new Dictionary<string, object> { ["@id"] = organizationId }
+        };
+
+        var graph = new Dictionary<string, object>
+        {
+            ["@context"] = "https://schema.org",
+            ["@graph"] = new object[] { organization, website, store }
+        };
+
+        return JsonSerializer.Serialize(graph, Options);
+    }
+
     /// <summary>The shop listing, as an ordered list of the jars on the shelf.</summary>
     public static string ProductList(IReadOnlyList<Product> products, string origin, string name)
     {
@@ -108,7 +192,8 @@ public static class StructuredData
             {
                 ["@type"] = "ListItem",
                 ["position"] = index + 1,
-                ["url"] = $"{origin}/Shop/Details/{product.Id}",
+                // saptarshi: 16-Nov-2026 — the clean product URL, same as everywhere else.
+                ["url"] = $"{origin}/product/{product.SlugOrId}",
                 ["name"] = product.Name
             })
             .ToList();

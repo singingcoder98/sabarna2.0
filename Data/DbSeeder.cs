@@ -29,6 +29,7 @@ public static class DbSeeder
         // saptarshi: 16-Nov-2026 — the shop now sells the owner's real price list, not the demo shelf.
         await SeedRealCatalogueAsync(db);
         await RefreshHeroCopyAsync(db);
+        await RefreshProductSeoAsync(db);
         await SeedOrdersAsync(db);
     }
 
@@ -52,7 +53,8 @@ public static class DbSeeder
             Email = "orders.sabarna@gmail.com",
             Phone = "+91 89101 11809",
             Whatsapp = "918910111809",
-            Address = "Sabarna Small Farms, P.O. Kharagpur, West Bengal 721301",
+            // saptarshi: 16-Nov-2026 — the shop is in Madhyamgram, Kolkata 700129.
+            Address = "Sabarna Pure, Madhyamgram, Kolkata, West Bengal 700129",
             HeroKicker = "Farm to home · since 2016",
             HeroTitle1 = "Achar, bori and honey",
             HeroTitle2 = "from one kitchen",
@@ -616,6 +618,57 @@ public static class DbSeeder
             settings.UpdatedAt = DateTime.UtcNow;
             await db.SaveChangesAsync();
         }
+    }
+
+    // -----------------------------------------------------------------------------------------
+    // 2c. SEO for every jar, and the shop's own address. saptarshi: 16-Nov-2026
+    //
+    // Runs on every start and only ever fills a hole:
+    //   • a product with no Slug gets one (unique), so /product/kuler-achar-500g exists;
+    //   • a product with no Bengali description gets the one written in ProductContent;
+    //   • a description that is still the short demo text (under 80 characters) is replaced by the
+    //     80-120 word version — anything the owner has written himself is longer than that and is
+    //     left exactly as he typed it;
+    //   • the old Kharagpur address becomes the real Madhyamgram one, once.
+    // -----------------------------------------------------------------------------------------
+    private static async Task RefreshProductSeoAsync(AppDbContext db)
+    {
+        var settings = await db.Settings.FirstOrDefaultAsync();
+
+        if (settings != null && settings.Address.Contains("Kharagpur", StringComparison.OrdinalIgnoreCase))
+        {
+            settings.Address = "Sabarna Pure, Madhyamgram, Kolkata, West Bengal 700129";
+            settings.UpdatedAt = DateTime.UtcNow;
+        }
+
+        foreach (var product in await db.Products.ToListAsync())
+        {
+            if (string.IsNullOrWhiteSpace(product.Slug))
+            {
+                product.Slug = await Slugger.MakeUniqueAsync(db, product.Name, product.Id);
+            }
+
+            var copy = ProductContent.For(product);
+
+            if (copy == null)
+            {
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(product.Description) || product.Description.Trim().Length < 80)
+            {
+                product.Description = copy.Description;
+            }
+
+            if (string.IsNullOrWhiteSpace(product.DescriptionBn))
+            {
+                product.DescriptionBn = copy.DescriptionBn;
+            }
+
+            product.UpdatedAt = DateTime.UtcNow;
+        }
+
+        await db.SaveChangesAsync();
     }
 
     // -----------------------------------------------------------------------------------------

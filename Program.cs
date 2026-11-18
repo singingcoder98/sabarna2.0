@@ -32,6 +32,10 @@ builder.Services.Configure<PreviewOptions>(builder.Configuration.GetSection("Pre
 builder.Services.Configure<RazorpayOptions>(builder.Configuration.GetSection("Razorpay"));
 builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("Email"));
 
+// saptarshi: 16-Nov-2026 — the public base address (canonical, og:url, sitemap, JSON-LD) comes from
+// configuration instead of the request host, so the domain can change without touching code.
+builder.Services.Configure<SeoOptions>(builder.Configuration.GetSection("Seo"));
+
 // saptarshi: Phase 0 (12-Nov-2026) — HTTPS on/off in one place.
 // "Security:ForceHttps" is true unless someone deliberately turns it off. It exists because a host
 // without a certificate would otherwise redirect every visitor to an address that does not answer:
@@ -203,6 +207,14 @@ app.UseRouting();
 app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
+
+// saptarshi: 16-Nov-2026 — clean product URLs: /product/kuler-achar-500g instead of /Shop/Details/7.
+// The old numeric address still works and redirects (301) to this one, so no bookmark or WhatsApp
+// link from the last two years breaks.
+app.MapControllerRoute(
+    name: "product",
+    pattern: "product/{slug}",
+    defaults: new { controller = "Shop", action = "Product" });
 
 app.MapControllerRoute(
     name: "default",

@@ -11,8 +11,8 @@
 }
 <article class="mb-combo-card h-100">
     <div class="mb-combo-media">
-        <a asp-controller="Shop" asp-action="Details" asp-route-id="@Model.Id" tabindex="-1" aria-hidden="true">
-            <img src="@image" alt="@Model.Name" loading="lazy" width="700" height="480" />
+        <a asp-controller="Shop" asp-action="Product" asp-route-slug="@Model.SlugOrId" tabindex="-1" aria-hidden="true">
+            <img src="@image" alt="@(Sabarna.Web.Services.ProductContent.For(Model)?.AltText ?? Model.Name)" loading="lazy" width="700" height="480" />
         </a>
         @if (Model.OnSale && saving > 0)
         {
@@ -23,7 +23,7 @@
     <div class="mb-combo-body">
         <p class="mb-combo-kicker">@items.Count jars, one box</p>
         <h3 class="mb-combo-title">
-            <a asp-controller="Shop" asp-action="Details" asp-route-id="@Model.Id">@Model.Name</a>
+            <a asp-controller="Shop" asp-action="Product" asp-route-slug="@Model.SlugOrId">@Model.Name</a>
         </h3>
         <p class="mb-combo-text">@Model.Description</p>
 

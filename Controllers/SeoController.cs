@@ -20,11 +20,14 @@ public class SeoController : Controller
 {
     private readonly AppDbContext _db;
     private readonly PreviewOptions _preview;
+    // saptarshi: 16-Nov-2026 — the configured public address, so the sitemap survives a domain move.
+    private readonly SeoOptions _seo;
 
-    public SeoController(AppDbContext db, IOptions<PreviewOptions> preview)
+    public SeoController(AppDbContext db, IOptions<PreviewOptions> preview, IOptions<SeoOptions> seo)
     {
         _db = db;
         _preview = preview.Value;
+        _seo = seo.Value;
     }
 
     [HttpGet]
@@ -32,13 +35,14 @@ public class SeoController : Controller
     [ResponseCache(Duration = 1800, Location = ResponseCacheLocation.Any)]
     public async Task<IActionResult> Sitemap()
     {
-        var origin = $"{Request.Scheme}://{Request.Host}";
+        var origin = _seo.Origin(Request);
         var now = DateTime.UtcNow;
 
         // Only what is visible in the shop: hidden products are not dead links, they are absent.
         var products = await _db.Products.AsNoTracking()
             .Where(p => p.Active)
-            .Select(p => new { p.Id, p.Category, p.UpdatedAt, p.CreatedAt })
+            // saptarshi: 16-Nov-2026 — the slug is what the sitemap publishes.
+            .Select(p => new { p.Id, p.Slug, p.Category, p.UpdatedAt, p.CreatedAt })
             .ToListAsync();
 
         var categories = products
@@ -83,7 +87,8 @@ public class SeoController : Controller
         foreach (var product in products)
         {
             var lastTouched = product.UpdatedAt == default ? product.CreatedAt : product.UpdatedAt;
-            AppendUrl(xml, $"{origin}/Shop/Details/{product.Id}", lastTouched, "weekly", "0.8");
+            var slug = string.IsNullOrWhiteSpace(product.Slug) ? $"p{product.Id}" : product.Slug;
+            AppendUrl(xml, $"{origin}/product/{slug}", lastTouched, "weekly", "0.8");
         }
 
         xml.AppendLine("</urlset>");
@@ -101,7 +106,7 @@ public class SeoController : Controller
     [ResponseCache(Duration = 1800, Location = ResponseCacheLocation.Any)]
     public IActionResult Robots()
     {
-        var origin = $"{Request.Scheme}://{Request.Host}";
+        var origin = _seo.Origin(Request);
 
         var text = new StringBuilder();
 

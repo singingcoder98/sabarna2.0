@@ -26,7 +26,8 @@ public class ContactController : Controller
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        ViewData["Title"] = "Talk to us";
+        // saptarshi: 16-Nov-2026 — "contact" is what people search; "talk to us" was charming, not findable.
+        ViewData["Title"] = "Contact us — Madhyamgram, Kolkata";
         ViewData["Description"] = "Questions about a jar, a bulk order or a delivery? Call, email or "
                                 + "WhatsApp the farm — a person answers.";
 
@@ -45,7 +46,8 @@ public class ContactController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Index(ContactViewModel form)
     {
-        ViewData["Title"] = "Talk to us";
+        // saptarshi: 16-Nov-2026 — "contact" is what people search; "talk to us" was charming, not findable.
+        ViewData["Title"] = "Contact us — Madhyamgram, Kolkata";
         ViewData["Description"] = "Questions about a jar, a bulk order or a delivery? Call, email or "
                                 + "WhatsApp the farm — a person answers.";
 

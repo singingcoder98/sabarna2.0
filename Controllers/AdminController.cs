@@ -931,6 +931,13 @@ public class AdminController : Controller
         product.Featured = form.Featured;
         product.ComboItemsJson = form.ComboItemsJson;
         product.Image = NormaliseImagePath(form.Image);
+
+        // saptarshi: 16-Nov-2026 — a clean URL for the shop window. Written once: an existing slug
+        // is never silently rewritten, so a link already shared on WhatsApp keeps working.
+        if (string.IsNullOrWhiteSpace(product.Slug))
+        {
+            product.Slug = await Slugger.MakeUniqueAsync(_db, product.Name, product.Id);
+        }
         // product.Sold is intentionally left alone: it is a counter, not a form field.
 
         await _db.SaveChangesAsync();

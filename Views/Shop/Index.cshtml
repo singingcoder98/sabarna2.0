@@ -1,4 +1,6 @@
 @model Sabarna.Web.Models.ShopViewModel
+@* saptarshi: 16-Nov-2026 — canonical/JSON-LD base URL from appsettings. *@
+@inject Microsoft.Extensions.Options.IOptions<Sabarna.Web.Services.SeoOptions> SeoConfig
 @{
     var hasFilter = !string.IsNullOrWhiteSpace(Model.Category);
 }
@@ -60,7 +62,8 @@
 @{
     // ItemList tells Google this page is a list of products, in the order they are shown, with
     // one URL per jar — useful when it decides which page to load for "buy ghee online india".
-    var shelfOrigin = $"{Context.Request.Scheme}://{Context.Request.Host}";
+    // saptarshi: 16-Nov-2026 — configured base URL, same as the canonical tags.
+    var shelfOrigin = SeoConfig.Value.Origin(Context.Request);
     var listName = hasFilter ? $"{Model.Category} at Sabarna" : "Everything on the shelf at Sabarna";
 }
 @if (Model.Products.Count > 0)

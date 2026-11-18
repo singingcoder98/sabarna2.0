@@ -59,6 +59,24 @@ public class Product
     [Display(Name = "Description")]
     public string Description { get; set; } = string.Empty;
 
+    // saptarshi: 16-Nov-2026 — SEO. The Bengali description shown under the English one, and the
+    // clean URL ("/product/kuler-achar-500g"). Both are filled by DbSeeder.RefreshProductSeoAsync,
+    // and the slug is regenerated whenever the owner saves a product with an empty one.
+    [StringLength(2000)]
+    [Display(Name = "Description (Bengali)")]
+    public string DescriptionBn { get; set; } = string.Empty;
+
+    [StringLength(80)]
+    [Display(Name = "URL slug")]
+    public string Slug { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The part that goes after /product/. If the slug is still empty — a product added a second
+    /// ago in the admin panel — "p12" is used instead, so a link is never dead.
+    /// </summary>
+    [NotMapped]
+    public string SlugOrId => string.IsNullOrWhiteSpace(Slug) ? $"p{Id}" : Slug;
+
     [Display(Name = "Visible in the shop")]
     public bool Active { get; set; } = true;
 

@@ -1,4 +1,7 @@
 @model Sabarna.Web.Models.SiteSetting
+@* saptarshi: 16-Nov-2026 — the public address now comes from appsettings ("Seo": { "BaseUrl": … }),
+   not from whatever Host header the request arrived on. One setting to change on launch day. *@
+@inject Microsoft.Extensions.Options.IOptions<Sabarna.Web.Services.SeoOptions> SeoConfig
 @*
     Everything that lives inside <head>:
       • page title + meta description (set per page with ViewData["Title"] / ViewData["Description"])
@@ -27,7 +30,30 @@
             : $"{brandName} — {Model.Tagline}";
     }
 
-    var origin = $"{Context.Request.Scheme}://{Context.Request.Host}";
+    // saptarshi: 16-Nov-2026 — configured base URL, falling back to the request host (localhost,
+    // the runasp.net staging address) when the setting is empty.
+    var seo = SeoConfig.Value;
+    var origin = seo.Origin(Context.Request);
+
+    // saptarshi: 16-Nov-2026 — Google shows about 60 characters of a title and 155 of a description.
+    // Anything longer is cut by Google at a word it chooses, so we cut it at a word we choose.
+    if (fullTitle.Length > seo.MaxTitleLength)
+    {
+        if (!string.IsNullOrWhiteSpace(pageTitle) && pageTitle!.Length <= seo.MaxTitleLength)
+        {
+            // The page's own words on their own are short enough — drop the brand, keep the keyword.
+            fullTitle = pageTitle!;
+        }
+        else
+        {
+            fullTitle = TrimToLength(fullTitle, seo.MaxTitleLength);
+        }
+    }
+
+    if (description.Length > seo.MaxDescriptionLength)
+    {
+        description = TrimToLength(description, seo.MaxDescriptionLength);
+    }
 
     // The category filter is part of the address of a real page, so it belongs in the canonical.
     // Anything else in the query string (paging, tracking) is dropped, which is the point of it.
@@ -100,3 +126,24 @@
 @* Bootstrap 5.3.3 is vendored in wwwroot/lib/bootstrap — no CDN, works offline. *@
 <link rel="stylesheet" href="~/lib/bootstrap/css/bootstrap.min.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+@functions {
+    // saptarshi: 16-Nov-2026 — cut at the last whole word before the limit, and mark the cut.
+    private static string TrimToLength(string text, int limit)
+    {
+        text = (text ?? string.Empty).Trim();
+        if (text.Length <= limit)
+        {
+            return text;
+        }
+
+        var cut = text.Substring(0, limit - 1);
+        var lastSpace = cut.LastIndexOf(' ');
+        if (lastSpace > limit / 2)
+        {
+            cut = cut.Substring(0, lastSpace);
+        }
+
+        return cut.TrimEnd(' ', ',', ';', ':', '-', '.') + "…";
+    }
+}

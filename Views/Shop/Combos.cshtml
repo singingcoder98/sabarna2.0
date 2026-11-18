@@ -60,7 +60,7 @@
                                     }
                                 </div>
                                 <div class="d-flex flex-wrap gap-2">
-                                    <a class="btn btn-gold" asp-controller="Shop" asp-action="Details" asp-route-id="@featured.Id">
+                                    <a class="btn btn-gold" asp-controller="Shop" asp-action="Product" asp-route-slug="@featured.SlugOrId">
                                         See what's inside
                                     </a>
                                     <form method="post" asp-controller="Cart" asp-action="Add" data-cart-form>

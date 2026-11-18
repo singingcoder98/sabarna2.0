@@ -1,10 +1,16 @@
 @model Sabarna.Web.Models.ProductDetailsViewModel
+@* saptarshi: 16-Nov-2026 — the base address for the canonical, the OG tags and the Product schema. *@
+@inject Microsoft.Extensions.Options.IOptions<Sabarna.Web.Services.SeoOptions> SeoConfig
 @{
     var product = Model.Product;
     var image = product.HasImage ? product.Image : "/images/placeholder.svg";
     var returnUrl = Context.Request.Path + Context.Request.QueryString;
     var rounded = (int)Math.Round(product.Rating, MidpointRounding.AwayFromZero);
     var maxQty = Math.Min(product.Stock, CartService.MaxQty);
+
+    // saptarshi: 16-Nov-2026 — keyword-bearing alt text, falling back to the name.
+    var seoCopy = Sabarna.Web.Services.ProductContent.For(product);
+    var imageAlt = seoCopy?.AltText ?? product.Name;
     if (maxQty < 1)
     {
         maxQty = 1;
@@ -25,7 +31,7 @@
         <div class="row g-5 align-items-start">
             <div class="col-lg-6">
                 <div class="mb-product-media">
-                    <img src="@image" alt="@product.Name" width="900" height="900" />
+                    <img src="@image" alt="@imageAlt" width="900" height="900" />
                     @if (!string.IsNullOrWhiteSpace(product.Tag))
                     {
                         <span class="mb-product-tag">@product.Tag</span>
@@ -70,6 +76,12 @@
                 }
 
                 <p class="mb-product-desc">@product.Description</p>
+                @if (!string.IsNullOrWhiteSpace(product.DescriptionBn))
+                {
+                    @* saptarshi: 16-Nov-2026 — Bengali for the Bengali customer, marked as Bengali so
+                       screen readers and Google both know the language changed. *@
+                    <p class="mb-product-desc" lang="bn">@product.DescriptionBn</p>
+                }
 
                 @if (product.IsCombo && Model.ComboItems.Count > 0)
                 {
@@ -189,7 +201,8 @@
     // ---- search engine furniture for this one jar -------------------------------------------
     // These ViewData values are read by _Head, which renders after the body, so setting them
     // here works exactly like setting them in the controller.
-    var seoOrigin = $"{Context.Request.Scheme}://{Context.Request.Host}";
+    // saptarshi: 16-Nov-2026 — configured base URL (appsettings "Seo": { "BaseUrl": … }).
+    var seoOrigin = SeoConfig.Value.Origin(Context.Request);
     var seoPageUrl = seoOrigin + Context.Request.Path;
     var seoTrail = new List<(string Name, string Url)>
     {

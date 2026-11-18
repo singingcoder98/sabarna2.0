@@ -45,7 +45,7 @@
                         <img src="@heroImage" alt="@heroPick.Name" width="640" height="420" class="mb-hero-pick-img" />
                         <h2 class="mb-hero-pick-title">@heroPick.Name</h2>
                         <p class="mb-hero-pick-unit">@heroPick.Unit · &#8377;@heroPick.Price.ToString("0")</p>
-                        <a class="btn btn-brand btn-sm w-100" asp-controller="Shop" asp-action="Details" asp-route-id="@heroPick.Id">
+                        <a class="btn btn-brand btn-sm w-100" asp-controller="Shop" asp-action="Product" asp-route-slug="@heroPick.SlugOrId">
                             Have a look
                         </a>
                     </aside>
@@ -97,7 +97,7 @@
                 <h2 class="mb-section-title">Eleven of us, one courtyard and a roof full of drying bori</h2>
                 <p class="mb-section-text">
                     @* saptarshi: 16-Nov-2026 — the shelf is pickles, bori and honey; the story says so. *@
-                    Our grandfather sold milk in Kharagpur. The same courtyard now holds the pickle jars, the
+                    Our grandfather sold milk in Madhyamgram. The same courtyard now holds the pickle jars, the
                     bori drying on the roof and the drums of forest honey. Everything is still made in
                     batches small enough that one of us has tasted every single one of them. Whatever we
                     cannot make honestly, we do not sell.
@@ -210,7 +210,7 @@
                 {
                     var jarImage = jar.HasImage ? jar.Image : "/images/placeholder.svg";
 
-                    <a class="mb-motion-tile" asp-controller="Shop" asp-action="Details" asp-route-id="@jar.Id">
+                    <a class="mb-motion-tile" asp-controller="Shop" asp-action="Product" asp-route-slug="@jar.SlugOrId">
                         <span class="mb-motion-frame">
                             <img src="@jarImage" alt="@jar.Name" width="480" height="480"
                                  loading="lazy" decoding="async" />

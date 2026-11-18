@@ -11,8 +11,8 @@
 }
 <article class="card mb-card h-100">
     <div class="mb-card-media">
-        <a asp-controller="Shop" asp-action="Details" asp-route-id="@Model.Id" tabindex="-1" aria-hidden="true">
-            <img src="@image" alt="@Model.Name" loading="lazy" width="600" height="450" />
+        <a asp-controller="Shop" asp-action="Product" asp-route-slug="@Model.SlugOrId" tabindex="-1" aria-hidden="true">
+            <img src="@image" alt="@(Sabarna.Web.Services.ProductContent.For(Model)?.AltText ?? Model.Name)" loading="lazy" width="600" height="450" />
         </a>
 
         @if (!string.IsNullOrWhiteSpace(Model.Tag))
@@ -29,7 +29,7 @@
     <div class="card-body mb-card-body">
         <p class="mb-card-category">@Model.Category</p>
         <h3 class="mb-card-title">
-            <a asp-controller="Shop" asp-action="Details" asp-route-id="@Model.Id">@Model.Name</a>
+            <a asp-controller="Shop" asp-action="Product" asp-route-slug="@Model.SlugOrId">@Model.Name</a>
         </h3>
         <p class="mb-card-unit">@Model.Unit</p>
 
