@@ -25,6 +25,16 @@ public class SeoOptions
     /// <summary>Shown after a page title: "Amsi Pickle — 500 g · Sabarna Pure".</summary>
     public string TitleSuffix { get; set; } = "Sabarna Pure";
 
+    /// <summary>
+    /// saptarshi: 16-Nov-2026 — the two things only the owner knows: when the kitchen is open, and
+    /// which social profiles exist. Both are empty by default and are simply left out of the schema
+    /// until they are filled — no invented opening hours on a page a customer might drive to.
+    /// Format: "Mo-Sa 10:00-19:00" (schema.org openingHours) and full profile URLs.
+    /// </summary>
+    public string OpeningHours { get; set; } = string.Empty;
+
+    public string[] SocialLinks { get; set; } = Array.Empty<string>();
+
     /// <summary>Google shows roughly 60 characters of a title and 155 of a description.</summary>
     public int MaxTitleLength { get; set; } = 60;
 

@@ -144,7 +144,7 @@ public static class StructuredData
     /// </summary>
     public static string StoreGraph(string brandName, string tagline, string email, string phone,
                                     string address, string origin, string locality, string region,
-                                    string postalCode)
+                                    string postalCode, string openingHours = "", string[]? socialLinks = null)
     {
         var name = string.IsNullOrWhiteSpace(brandName) ? "Sabarna Pure" : brandName;
         var organizationId = $"{origin}/#organization";
@@ -160,7 +160,9 @@ public static class StructuredData
             ["logo"] = $"{origin}/images/logo.png",
             ["email"] = email,
             ["telephone"] = phone,
-            ["description"] = tagline
+            ["description"] = tagline,
+            // saptarshi: 16-Nov-2026 — the shop has been selling since 2016; a real date is a trust signal.
+            ["foundingDate"] = "2016"
         };
 
         var website = new Dictionary<string, object>
@@ -213,6 +215,7 @@ public static class StructuredData
                 new Dictionary<string, object> { ["@type"] = "Country", ["name"] = "India" }
             },
             ["parentOrganization"] = new Dictionary<string, object> { ["@id"] = organizationId },
+            ["foundingDate"] = "2016",
 
             // saptarshi: 16-Nov-2026 — who to call, in which language. An answer engine sizing up a
             // local shop looks for exactly this before it recommends one.
@@ -228,6 +231,22 @@ public static class StructuredData
             ["availableLanguage"] = new[] { "English", "Bengali" }
         };
 
+        // saptarshi: 16-Nov-2026 — only what the owner has actually told us.
+        if (!string.IsNullOrWhiteSpace(openingHours))
+        {
+            store["openingHours"] = openingHours.Trim();
+        }
+
+        var profiles = (socialLinks ?? Array.Empty<string>())
+            .Where(link => !string.IsNullOrWhiteSpace(link))
+            .ToArray();
+
+        if (profiles.Length > 0)
+        {
+            store["sameAs"] = profiles;
+            organization["sameAs"] = profiles;
+        }
+
         var graph = new Dictionary<string, object>
         {
             ["@context"] = "https://schema.org",
@@ -235,6 +254,48 @@ public static class StructuredData
         };
 
         return JsonSerializer.Serialize(graph, Options);
+    }
+
+    /// <summary>
+    /// saptarshi: 16-Nov-2026 — Article markup for a guide. It tells Google (and an AI answer engine)
+    /// that this is a written piece by this business, when it was published, and what picture goes
+    /// with it — which is what earns a guide a place in the "read more" strip of a search result.
+    /// </summary>
+    public static string Article(string headline, string description, string url, string imageUrl,
+                                 string origin, string publishedIso, string publisherName)
+    {
+        var schema = new Dictionary<string, object>
+        {
+            ["@context"] = "https://schema.org",
+            ["@type"] = "Article",
+            ["headline"] = headline,
+            ["description"] = description,
+            ["url"] = url,
+            ["mainEntityOfPage"] = url,
+            ["image"] = new[] { imageUrl },
+            ["datePublished"] = publishedIso,
+            ["dateModified"] = publishedIso,
+            ["inLanguage"] = "en-IN",
+            ["author"] = new Dictionary<string, object>
+            {
+                ["@type"] = "Organization",
+                ["name"] = publisherName,
+                ["url"] = origin
+            },
+            ["publisher"] = new Dictionary<string, object>
+            {
+                ["@type"] = "Organization",
+                ["name"] = publisherName,
+                ["url"] = origin,
+                ["logo"] = new Dictionary<string, object>
+                {
+                    ["@type"] = "ImageObject",
+                    ["url"] = $"{origin}/images/logo.png"
+                }
+            }
+        };
+
+        return JsonSerializer.Serialize(schema, Options);
     }
 
     /// <summary>The shop listing, as an ordered list of the jars on the shelf.</summary>

@@ -21,6 +21,12 @@ orange batch-notes band, WhatsApp only — there is no email newsletter), Shop w
 related items, combos page, session cart, checkout, order confirmation, about, contact, the four
 policy pages, and a branded error page.
 
+**Guides (16-Nov-2026):** `/guides` — six articles written from the kitchen (`Services/Guides.cs`),
+each rendered by `Views/Guides/Show.cshtml` with `Article` + `BreadcrumbList` markup and a sidebar
+that links to the jars it is about. They target the questions a product page cannot rank for ("why did
+my honey crystallise", "why does bori break in the pan"). Adding a seventh guide = one entry in that
+file; the sitemap, `/llms.txt`, the index page and the "other guides" list all pick it up.
+
 **SEO endpoints (16-Nov-2026):** `/sitemap.xml` (products + images), `/robots.txt` (AI crawlers named
 explicitly), `/feed.xml` (Atom product feed for Merchant Center), `/llms.txt` (one-screen fact sheet
 for ChatGPT/Perplexity). All four read the base URL from `Seo:BaseUrl` and are generated from the

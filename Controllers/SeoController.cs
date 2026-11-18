@@ -68,6 +68,8 @@ public class SeoController : Controller
             ("/Home/About", "monthly", "0.7"),
             // saptarshi: 16-Nov-2026 — benefits page, useful for "honey for skin", "mustard oil for hair".
             ("/Home/Benefits", "monthly", "0.7"),
+            // saptarshi: 16-Nov-2026 — the guides.
+            ("/guides", "monthly", "0.6"),
             ("/Contact", "monthly", "0.6"),
             ("/Home/Shipping", "monthly", "0.5"),
             ("/Home/Policies", "yearly", "0.4"),
@@ -78,6 +80,12 @@ public class SeoController : Controller
         foreach (var page in pages)
         {
             AppendUrl(xml, origin + page.Path, now, page.ChangeFrequency, page.Priority);
+        }
+
+        // ---- one page per guide (saptarshi: 16-Nov-2026) ----------------------------------------
+        foreach (var guide in Guides.All)
+        {
+            AppendUrl(xml, $"{origin}/guides/{guide.Slug}", now, "monthly", "0.6");
         }
 
         // ---- one page per category, because /Shop?category=… is a real landing page -------------
@@ -212,9 +220,17 @@ public class SeoController : Controller
         text.AppendLine("## Pages");
         text.AppendLine();
         foreach (var path in new[] { "/", "/Shop", "/Home/About", "/Home/Benefits", "/Contact",
-                                     "/Home/Shipping", "/Home/Policies", "/Home/Privacy", "/Home/Terms" })
+                                     "/guides", "/Home/Shipping", "/Home/Policies", "/Home/Privacy", "/Home/Terms" })
         {
             text.AppendLine($"- {origin}{path}");
+        }
+
+        text.AppendLine();
+        text.AppendLine("## Guides (citable answers)");
+        text.AppendLine();
+        foreach (var guide in Guides.All)
+        {
+            text.AppendLine($"- [{guide.Title}]({origin}/guides/{guide.Slug}) — {guide.MetaDescription}");
         }
 
         text.AppendLine();

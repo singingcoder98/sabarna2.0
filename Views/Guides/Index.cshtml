@@ -1,0 +1,52 @@
+@model IReadOnlyList<Sabarna.Web.Services.Guides.Guide>
+@*
+    saptarshi: 16-Nov-2026 — the guides index. Built only out of sections, cards and page-head styles
+    the site already uses; no new design.
+*@
+<section class="mb-page-head mb-page-head-dark">
+    <div class="container">
+        <nav aria-label="Breadcrumb" class="mb-crumbs mb-crumbs-light">
+            <a asp-controller="Home" asp-action="Index">Home</a>
+            <span aria-hidden="true">/</span>
+            <span aria-current="page">Guides</span>
+        </nav>
+        <h1 class="mb-page-title">Things a Bengali kitchen knows, written down</h1>
+        <p class="mb-page-text">
+            How to keep a jar of achar for a year, why bori breaks in a hot pan, why raw honey goes grainy
+            in winter. Short guides from our own kitchen near Madhyamgram — no listicles, no filler.
+        </p>
+    </div>
+</section>
+
+<section class="mb-section mb-section-cream">
+    <div class="container">
+        <div class="row g-4">
+            @{ var cardNumber = 0; }
+            @foreach (var guide in Model)
+            {
+                cardNumber++;
+                <div class="col-md-6 col-lg-4">
+                    <div class="mb-promise-card">
+                        <span class="mb-promise-num">@cardNumber.ToString("00")</span>
+                        <p class="mb-kicker mb-kicker-dark">@guide.Kicker · @guide.ReadTime</p>
+                        <h2 class="mb-promise-title">
+                            <a asp-controller="Guides" asp-action="Show" asp-route-slug="@guide.Slug">@guide.Title</a>
+                        </h2>
+                        <p class="mb-promise-text">@guide.Intro</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="mb-section mb-section-cream-2">
+    <div class="container text-center">
+        <p class="mb-kicker mb-kicker-dark">Still have a question</p>
+        <h2 class="mb-section-title">Ask us on WhatsApp</h2>
+        <p class="mb-section-text mx-auto">
+            A guide cannot cover everything, and a person answers these messages — usually within a few hours.
+        </p>
+        <a class="btn btn-brand mt-2" asp-controller="Contact" asp-action="Index">Talk to us</a>
+    </div>
+</section>

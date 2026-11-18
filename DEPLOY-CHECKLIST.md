@@ -48,6 +48,13 @@ rest is off-site and cannot be written in code:
    `/sitemap.xml` lists `/product/<slug>` URLs; view-source on a product page shows one `<title>`,
    one canonical, `Product` + `Organization`/`Store` JSON-LD.
 4. **Search Console** — add the domain, submit `https://…/sitemap.xml`.
+5. **The pages that must exist after this deploy** — `/guides` (6 articles), `/guides/fry-dal-bori-without-breaking`,
+   `/Home/Benefits`, `/llms.txt`, `/feed.xml`, `/sitemap.xml` (products + images + guides),
+   `/robots.txt` (AI crawlers named). Check each one opens.
+6. **Two settings only the owner knows** — `"Seo": { "OpeningHours": "Mo-Sa 10:00-19:00",
+   "SocialLinks": [ "https://www.facebook.com/…", "https://www.instagram.com/…" ] }`. Left empty, these
+   are simply absent from the schema; filled in, the shop's knowledge panel shows opening hours and
+   social profiles.
 
 ## 0-A. The owner's steps, in this order — say them again at every visit
 

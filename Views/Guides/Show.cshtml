@@ -1,0 +1,122 @@
+@model Sabarna.Web.Services.Guides.GuidePage
+@* saptarshi: 16-Nov-2026 — one guide. Article + BreadcrumbList markup is generated from the same
+   words the reader sees, and the guide ends by pointing at the jars it is about. *@
+@inject Microsoft.Extensions.Options.IOptions<Sabarna.Web.Services.SeoOptions> SeoConfig
+@{
+    var guide = Model.Guide;
+    var origin = SeoConfig.Value.Origin(Context.Request);
+    var pageUrl = origin + Context.Request.Path;
+    var brand = string.IsNullOrWhiteSpace(Model.Settings.BrandName) ? "Sabarna Pure" : Model.Settings.BrandName;
+}
+
+<section class="mb-page-head mb-page-head-dark">
+    <div class="container">
+        <nav aria-label="Breadcrumb" class="mb-crumbs mb-crumbs-light">
+            <a asp-controller="Home" asp-action="Index">Home</a>
+            <span aria-hidden="true">/</span>
+            <a asp-controller="Guides" asp-action="Index">Guides</a>
+            <span aria-hidden="true">/</span>
+            <span aria-current="page">@guide.Kicker</span>
+        </nav>
+        <p class="mb-kicker">@guide.Kicker · @guide.ReadTime</p>
+        <h1 class="mb-page-title">@guide.Title</h1>
+        <p class="mb-page-text">@guide.Intro</p>
+    </div>
+</section>
+
+<section class="mb-section mb-section-cream">
+    <div class="container">
+        <div class="row g-5">
+            <div class="col-lg-8">
+                <div class="mb-prose">
+                    @foreach (var section in guide.Sections)
+                    {
+                        <h2>@section.Heading</h2>
+                        @foreach (var paragraph in section.Paragraphs)
+                        {
+                            <p>@paragraph</p>
+                        }
+                    }
+                    <p class="mb-note-fine">
+                        Written in our kitchen in Vivekananda Nagar, Madhyamgram, Kolkata 700129 —
+                        published @guide.Published. Questions go to a person, not a form:
+                        <a asp-controller="Contact" asp-action="Index">talk to us</a>.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="mb-note-card mb-note-card-sticky">
+                    <h2 class="mb-note-title">The jars in this guide</h2>
+                    @if (Model.Related.Count == 0)
+                    {
+                        <p class="mb-note-text">These jars are between batches right now.</p>
+                    }
+                    else
+                    {
+                        <ul class="mb-note-list">
+                            @foreach (var product in Model.Related)
+                            {
+                                <li>
+                                    <a asp-controller="Shop" asp-action="Product" asp-route-slug="@product.SlugOrId">
+                                        @product.Name
+                                    </a>
+                                    — ₹@product.Price.ToString("0")
+                                </li>
+                            }
+                        </ul>
+                    }
+                    <p class="mb-note-fine">
+                        Made in small batches, no preservatives, posted anywhere in India.
+                        <a asp-controller="Shop" asp-action="Index">See the whole shelf</a>.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@if (Model.Related.Count > 0)
+{
+    <section class="mb-section mb-section-cream-2">
+        <div class="container">
+            <div class="mb-section-head">
+                <div>
+                    <p class="mb-kicker mb-kicker-dark">From the same kitchen</p>
+                    <h2 class="mb-section-title">Buy what this guide is about</h2>
+                </div>
+            </div>
+            <div class="row g-4">
+                @foreach (var product in Model.Related)
+                {
+                    <div class="col-6 col-md-4">
+                        <partial name="_ProductCard" model="product" />
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<section class="mb-section mb-section-cream">
+    <div class="container">
+        <div class="mb-section-head">
+            <div>
+                <p class="mb-kicker mb-kicker-dark">Keep reading</p>
+                <h2 class="mb-section-title">Other guides</h2>
+            </div>
+        </div>
+        <ul class="mb-note-list">
+            @foreach (var other in Sabarna.Web.Services.Guides.All.Where(g => g.Slug != guide.Slug))
+            {
+                <li>
+                    <a asp-controller="Guides" asp-action="Show" asp-route-slug="@other.Slug">@other.Title</a>
+                </li>
+            }
+        </ul>
+    </div>
+</section>
+
+<script type="application/ld+json">
+    @Html.Raw(Sabarna.Web.Services.StructuredData.Article(
+        guide.Title, guide.MetaDescription, pageUrl, origin + "/images/og-cover.jpg", origin, guide.Published, brand))
+</script>
