@@ -729,6 +729,33 @@ code {
     line-height: 1.5;
 }
 
+/* saptarshi: 16-Nov-2026 — the "why this jar" block on a product page and the /Home/Benefits page.
+   Three small rules only; every colour comes from the palette above. */
+.mb-benefits-intro,
+.mb-benefits-focus {
+    max-width: 64ch;
+}
+
+.mb-benefits-focus {
+    font-weight: 600;
+    color: var(--mb-green-900);
+}
+
+.mb-benefits-more {
+    margin: 1.25rem 0 0;
+}
+
+.mb-benefits-more a {
+    font-weight: 600;
+    color: var(--mb-terra);
+    text-decoration: none;
+}
+
+.mb-benefits-more a:hover,
+.mb-benefits-more a:focus-visible {
+    text-decoration: underline;
+}
+
 /* ------------------------------- 9. Product cards ----------------------------------- */
 .mb-card {
     border: 1px solid var(--mb-line);

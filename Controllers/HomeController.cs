@@ -132,8 +132,24 @@ public class HomeController : Controller
     public async Task<IActionResult> About()
     {
         ViewData["Title"] = "Our story";
-        ViewData["Description"] = "Eleven people, four cows, one wood fire and a rooftop full of drying "
-                                + "mangoes — how Sabarna makes its ghee, honey and pickles.";
+        ViewData["Description"] = "Eleven of us, one courtyard and a rooftop full of drying bori — how "
+                                + "Sabarna cures its pickles, dries its dal bori and bottles its honey.";
+        return View(await GetSettingsAsync());
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // GET /Home/Benefits — saptarshi: 16-Nov-2026
+    //
+    // The owner asked for the benefits of each item to be on the site, in a brand voice. It is one
+    // page rather than a paragraph on every product because a page can be read, linked and shared;
+    // the product pages show the same words through Services/ProductBenefits.cs.
+    // ---------------------------------------------------------------------------------------------
+    [HttpGet]
+    public async Task<IActionResult> Benefits()
+    {
+        ViewData["Title"] = "Health & tradition";
+        ViewData["Description"] = "What is really in Bengali achar, dal bori and raw honey — protein, "
+                                + "iron, vitamin C, mustard oil for hair and skin — and what we do not claim.";
         return View(await GetSettingsAsync());
     }
 

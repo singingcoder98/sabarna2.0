@@ -21,6 +21,13 @@ orange batch-notes band, WhatsApp only — there is no email newsletter), Shop w
 related items, combos page, session cart, checkout, order confirmation, about, contact, the four
 policy pages, and a branded error page.
 
+**Health & tradition (16-Nov-2026):** `/Home/Benefits` (footer → "Health & tradition") and a "why
+this jar" block on every product page, both fed from `Services/ProductBenefits.cs`. That one file
+holds every health-adjacent sentence the shop publishes: what the food contains (protein, iron,
+vitamin C/E) and how a Bengali household has always used it (mustard oil for hair, honey for a
+throat). No cure/treat/prevent claims and no numbers without a lab report — a food business in India
+cannot make a health claim without approval, and the page says so openly.
+
 **The shelf (16-Nov-2026):** the shop sells the owner's real price list and nothing else — four dal
 bori (biuli, matar, moshla, musur), four pickles in 250 g and 500 g (amsi, mango spicy, kul, mixed)
 and one 100 g honey. The ghee / oil / jaggery / combo rows the shop was demo-seeded with are still in

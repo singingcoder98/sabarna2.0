@@ -119,6 +119,47 @@
     </div>
 </section>
 
+@{
+    // saptarshi: 16-Nov-2026 — every product page now answers "why would I eat this?" in the shop's
+    // own voice. The words live in Services/ProductBenefits.cs so no page can drift from the others.
+    var benefits = Sabarna.Web.Services.ProductBenefits.For(product);
+}
+<section class="mb-section mb-section-cream-2">
+    <div class="container">
+        <div class="mb-section-head">
+            <div>
+                <p class="mb-kicker mb-kicker-dark">@benefits.Kicker</p>
+                <h2 class="mb-section-title">@benefits.Headline</h2>
+            </div>
+        </div>
+        <p class="mb-section-text">@benefits.Intro</p>
+        @if (!string.IsNullOrWhiteSpace(benefits.Focus))
+        {
+            <p class="mb-section-text mb-benefits-focus">@benefits.Focus</p>
+        }
+        <div class="row g-4 mt-1">
+            @foreach (var card in benefits.Cards)
+            {
+                <div class="col-md-4">
+                    <div class="mb-value-card">
+                        <span class="mb-value-icon" aria-hidden="true">@card.Icon</span>
+                        <h3 class="mb-value-title">@card.Title</h3>
+                        <p class="mb-value-text">@card.Text</p>
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="mb-note-card mt-4">
+            <h3 class="mb-note-title">How we use it at home</h3>
+            <p class="mb-note-text">@benefits.Traditional</p>
+            <p class="mb-note-fine">@benefits.Fine</p>
+        </div>
+        <p class="mb-benefits-more">
+            <a asp-controller="Home" asp-action="Benefits">Read how we use every jar &rarr;</a>
+        </p>
+    </div>
+</section>
+
 @if (Model.Related.Count > 0)
 {
     <section class="mb-section mb-section-cream">

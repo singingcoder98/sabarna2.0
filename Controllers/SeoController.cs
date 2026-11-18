@@ -59,6 +59,8 @@ public class SeoController : Controller
             ("/Shop", "daily", "0.9"),
             ("/Shop/Combos", "weekly", "0.8"),
             ("/Home/About", "monthly", "0.7"),
+            // saptarshi: 16-Nov-2026 — benefits page, useful for "honey for skin", "mustard oil for hair".
+            ("/Home/Benefits", "monthly", "0.7"),
             ("/Contact", "monthly", "0.6"),
             ("/Home/Shipping", "monthly", "0.5"),
             ("/Home/Policies", "yearly", "0.4"),
