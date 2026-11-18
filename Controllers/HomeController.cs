@@ -23,8 +23,10 @@ public class HomeController : Controller
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        ViewData["Description"] = "Small-batch A2 bilona ghee, raw forest honey, sun-cured pickles and "
-                                + "cold-pressed oils from a family farm in Midnapore, West Bengal. Shipped across India.";
+        // saptarshi: 16-Nov-2026 — the shelf is pickles, dal bori and honey now, so the description
+        // says what the visitor will actually find (a description promising ghee was a bounce).
+        ViewData["Description"] = "Small-batch Bengali pickles, sun-dried dal bori and raw forest honey "
+                                + "from a family kitchen in Midnapore, West Bengal. Shipped across India.";
 
         // The hero backdrop is a CSS background image, so nothing tells the browser about it until
         // site.css has been parsed. Preloading it here is what keeps the first paint quick.

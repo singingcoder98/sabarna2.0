@@ -138,7 +138,8 @@
                 <ul class="mb-footer-list">
                     <li><a asp-controller="Shop" asp-action="Index">Everything</a></li>
                     <li><a asp-controller="Shop" asp-action="Combos">Combos</a></li>
-                    <li><a asp-controller="Shop" asp-action="Index" asp-route-category="Ghee &amp; Dairy">Ghee &amp; dairy</a></li>
+                    @* saptarshi: 16-Nov-2026 — the ghee shelf is hidden, the bori shelf is what he sells now. *@
+                    <li><a asp-controller="Shop" asp-action="Index" asp-route-category="Bori">Bori (dal bori)</a></li>
                     <li><a asp-controller="Shop" asp-action="Index" asp-route-category="Pickles">Pickles</a></li>
                     <li><a asp-controller="Shop" asp-action="Index" asp-route-category="Honey">Honey</a></li>
                 </ul>

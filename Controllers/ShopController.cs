@@ -52,8 +52,9 @@ public class ShopController : Controller
         ViewData["Title"] = string.IsNullOrWhiteSpace(category)
             ? "Shop everything"
             : $"{category}";
-        ViewData["Description"] = "Every jar we currently have on the shelf — ghee, honey, pickles, oils and "
-                                + "spices, with the price, the jar size and how much stock is left.";
+        // saptarshi: 16-Nov-2026 — matches the real price list (pickles, dal bori, honey).
+        ViewData["Description"] = "Every jar and packet on the shelf — Bengali pickles, sun-dried dal bori "
+                                + "and raw forest honey, with the price, the pack size and how much is left.";
 
         return View(model);
     }

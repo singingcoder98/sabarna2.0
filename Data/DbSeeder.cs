@@ -26,6 +26,8 @@ public static class DbSeeder
         await SeedSettingsAsync(db);
         await SeedAdminAsync(db, hasher);
         await SeedProductsAsync(db);
+        // saptarshi: 16-Nov-2026 — the shop now sells the owner's real price list, not the demo shelf.
+        await SeedRealCatalogueAsync(db);
         await SeedOrdersAsync(db);
     }
 
@@ -564,6 +566,226 @@ public static class DbSeeder
         };
 
         db.Products.AddRange(products);
+        await db.SaveChangesAsync();
+    }
+
+    // -----------------------------------------------------------------------------------------
+    // 3b. The real price list. saptarshi: 16-Nov-2026
+    //
+    // The shelf is exactly what the owner's price list says: four boris, four pickles in two
+    // sizes and one honey. Everything the shop was seeded with (ghee, oil, gur, combos) is
+    // hidden, NOT deleted — old orders still point at those rows, and the day he wants ghee back
+    // it is one tick on /Admin/Products.
+    //
+    // The "Bori" shelf is the marker: the moment it exists this method does nothing at all, so
+    // the owner may edit, rename or delete any of these rows afterwards without the seeder
+    // putting them back on the next restart.
+    // -----------------------------------------------------------------------------------------
+    private static async Task SeedRealCatalogueAsync(AppDbContext db)
+    {
+        if (await db.Products.AnyAsync(p => p.Category == "Bori"))
+        {
+            return;
+        }
+
+        var now = DateTime.UtcNow;
+
+        var priceList = new[]
+        {
+            (
+                Name: "Biuli Dal Bori — 250 g",
+                Category: "Bori",
+                Price: 110m,
+                Unit: "250 g pack",
+                Image: "/images/products/biuli-dal-bori.jpg",
+                Tag: "",
+                Description: "Hand-shaped urad dal bori, sun-dried on the roof and packed unfried. Puffs up in hot oil and holds its shape in a curry.",
+                Featured: true
+            ),
+            (
+                Name: "Matar Dal Bori — 250 g",
+                Category: "Bori",
+                Price: 99m,
+                Unit: "250 g pack",
+                Image: "/images/products/matar-dal-bori.jpg",
+                Tag: "",
+                Description: "Matar dal bori — lighter and a little sweeter than the urad ones. Good in dalna and in a poppy-seed gravy.",
+                Featured: false
+            ),
+            (
+                Name: "Moshla Bori — 250 g",
+                Category: "Bori",
+                Price: 110m,
+                Unit: "250 g pack",
+                Image: "/images/products/moshla-bori.jpg",
+                Tag: "",
+                Description: "The spiced one: cumin, black pepper and green chilli kneaded into the dal before it is dried. Eat it on its own with rice.",
+                Featured: false
+            ),
+            (
+                Name: "Musur Dal Bori — 250 g",
+                Category: "Bori",
+                Price: 119m,
+                Unit: "250 g pack",
+                Image: "/images/products/musur-dal-bori.jpg",
+                Tag: "",
+                Description: "Masoor dal bori, sun-dried till crisp. The quickest of the lot to fry, and the one our regulars ask for most.",
+                Featured: false
+            ),
+            (
+                Name: "Amsi Pickle (Sweet & Sour) — 500 g",
+                Category: "Pickles",
+                Price: 189m,
+                Unit: "500 g jar",
+                Image: "/images/products/pickle-amsi-500.jpg",
+                Tag: "",
+                Description: "Raw mango in mustard oil with sugar and roasted spices — sweet first, sour after. Bengal summer in a jar.",
+                Featured: true
+            ),
+            (
+                Name: "Amsi Pickle (Sweet & Sour) — 250 g",
+                Category: "Pickles",
+                Price: 99m,
+                Unit: "250 g jar",
+                Image: "/images/products/pickle-amsi-250.jpg",
+                Tag: "",
+                Description: "The same sweet-and-sour amsi in the smaller jar — enough for one person, or for a first taste.",
+                Featured: false
+            ),
+            (
+                Name: "Mango Pickle (Spicy) — 500 g",
+                Category: "Pickles",
+                Price: 169m,
+                Unit: "500 g jar",
+                Image: "/images/products/pickle-mango-500.jpg",
+                Tag: "",
+                Description: "Chunky raw mango, mustard oil, panch phoron and plenty of dried red chilli. Sharp, oily, made for rice and dal.",
+                Featured: false
+            ),
+            (
+                Name: "Mango Pickle (Spicy) — 250 g",
+                Category: "Pickles",
+                Price: 89m,
+                Unit: "250 g jar",
+                Image: "/images/products/pickle-mango-250.jpg",
+                Tag: "",
+                Description: "The spicy mango pickle in the small jar. Same recipe, same mustard oil, half the size.",
+                Featured: false
+            ),
+            (
+                Name: "Kul Pickle (Sweet & Sour) — 500 g",
+                Category: "Pickles",
+                Price: 179m,
+                Unit: "500 g jar",
+                Image: "/images/products/pickle-kul-500.jpg",
+                Tag: "Small batch",
+                Description: "Wild kul (ber) from the trees around the village, cooked sweet-and-sour in small batches. Seasonal — we make it only while the fruit lasts.",
+                Featured: true
+            ),
+            (
+                Name: "Kul Pickle (Sweet & Sour) — 250 g",
+                Category: "Pickles",
+                Price: 99m,
+                Unit: "250 g jar",
+                Image: "/images/products/pickle-kul-250.jpg",
+                Tag: "",
+                Description: "The kul pickle in the small jar, for anyone who wants to try it before buying the big one.",
+                Featured: false
+            ),
+            (
+                Name: "Mixed Pickle — 500 g",
+                Category: "Pickles",
+                Price: 179m,
+                Unit: "500 g jar",
+                Image: "/images/products/pickle-mixed-500.jpg",
+                Tag: "",
+                Description: "Mango, lemon, carrot and green chilli together in mustard oil — one spoon that covers a whole plate of rice.",
+                Featured: false
+            ),
+            (
+                Name: "Mixed Pickle — 250 g",
+                Category: "Pickles",
+                Price: 99m,
+                Unit: "250 g jar",
+                Image: "/images/products/pickle-mixed-250.jpg",
+                Tag: "",
+                Description: "The mixed pickle in the small jar — the same four vegetables, the same mustard oil.",
+                Featured: false
+            ),
+            (
+                Name: "Pure Honey — 100 g",
+                Category: "Honey",
+                Price: 90m,
+                Unit: "100 g jar",
+                Image: "/images/products/honey-100.jpg",
+                Tag: "",
+                Description: "Raw honey, strained and bottled, nothing added and nothing heated. The 100 g jar is the size to try before the bigger one.",
+                Featured: true
+            ),
+        };
+
+        // Only the shelf this file seeded is hidden. Anything the owner typed into /Admin/Products
+        // himself is left exactly as he set it — we do not switch off a product we did not create.
+        var demoNames = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "A2 Bilona Cow Ghee — 250 ml",
+            "A2 Bilona Cow Ghee — 500 ml",
+            "A2 Bilona Cow Ghee — 1 litre",
+            "Wild Forest Honey — 500 g",
+            "Sundarban Wild Honey — 250 g",
+            "Bengali Mango Pickle — 400 g",
+            "Lemon & Green Chilli Pickle — 350 g",
+            "Kachi Ghani Mustard Oil — 1 litre",
+            "Organic Jaggery Powder — 500 g",
+            "Jaggery Blocks (Gur) — 1 kg",
+            "The Everyday Duo — Ghee + Honey",
+            "Bengali Breakfast Box",
+            "Ghee & Gur Box — 500 ml + 500 g"
+        };
+
+        // Hide, never delete. The rows are still needed by past orders and by the admin panel.
+        foreach (var existing in await db.Products.ToListAsync())
+        {
+            if (demoNames.Contains(existing.Name))
+            {
+                existing.Active = false;
+                existing.Featured = false;
+                existing.UpdatedAt = now;
+            }
+        }
+
+        foreach (var line in priceList)
+        {
+            if (await db.Products.AnyAsync(p => p.Name == line.Name))
+            {
+                continue;
+            }
+
+            db.Products.Add(new Product
+            {
+                Name = line.Name,
+                Category = line.Category,
+                Price = line.Price,
+                Mrp = 0m,
+                Unit = line.Unit,
+                // No invented reviews: an empty rating is honest, a fake one is a lie Google can check.
+                Rating = 0,
+                Reviews = 0,
+                Image = line.Image,
+                Tag = line.Tag,
+                Description = line.Description,
+                Active = true,
+                // A starting number, edited on /Admin/Products the moment he counts his stock.
+                Stock = 30,
+                Sold = 0,
+                IsCombo = false,
+                Featured = line.Featured,
+                ComboItemsJson = "[]",
+                CreatedAt = now,
+                UpdatedAt = now
+            });
+        }
+
         await db.SaveChangesAsync();
     }
 
