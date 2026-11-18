@@ -29,10 +29,13 @@
         <div class="row g-5">
             <div class="col-lg-8">
                 <div class="mb-prose">
-                    @foreach (var section in guide.Sections)
+                    @* saptarshi: 16-Nov-2026 — the loop variable was called "section", and @section is a
+                       Razor directive, so the compiler read @section.Heading as one (RZ2005 / RZ1011).
+                       Renamed to "block". *@
+                    @foreach (var block in guide.Sections)
                     {
-                        <h2>@section.Heading</h2>
-                        @foreach (var paragraph in section.Paragraphs)
+                        <h2>@block.Heading</h2>
+                        @foreach (var paragraph in block.Paragraphs)
                         {
                             <p>@paragraph</p>
                         }

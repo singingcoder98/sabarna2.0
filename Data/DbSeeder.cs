@@ -1,5 +1,8 @@
 using System.Text.Json;
 using Sabarna.Web.Models;
+// saptarshi: 16-Nov-2026 — Slugger and ProductContent live in the Services namespace; without this
+// line the seeder cannot build their names (CS0103 at the two call sites below).
+using Sabarna.Web.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
