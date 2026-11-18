@@ -191,6 +191,9 @@ public class ShopController : Controller
             .ToList();
 
         ViewData["Title"] = "Special combos";
+        // saptarshi: 16-Nov-2026 — the combos page had a title but no description.
+        ViewData["Description"] = "Two or three of our jars boxed together at a lower price — pickles, dal bori "
+                                + "and Sundarban honey, packed by hand in Madhyamgram, Kolkata for gifting.";
         ViewData["Description"] = "Two or three of our jars wrapped together in a cotton gift box, at a "
                                 + "price lower than buying them separately.";
         return View(combos);

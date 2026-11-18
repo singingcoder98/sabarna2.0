@@ -169,6 +169,27 @@
         <p class="mb-benefits-more">
             <a asp-controller="Home" asp-action="Benefits">Read how we use every jar &rarr;</a>
         </p>
+        @{
+            // saptarshi: 16-Nov-2026 — the guide that talks about this very jar, so the reading path is
+            // both ways: shop → guide → shop. It is also what gives a new article its first internal link.
+            var relatedGuides = Sabarna.Web.Services.Guides.All
+                .Where(g => g.RelatedProducts.Contains(product.Name))
+                .ToList();
+        }
+        @if (relatedGuides.Count > 0)
+        {
+            <div class="mb-note-card mt-4">
+                <h3 class="mb-note-title">Read more about this jar</h3>
+                <ul class="mb-note-list">
+                    @foreach (var guide in relatedGuides)
+                    {
+                        <li>
+                            <a asp-controller="Guides" asp-action="Show" asp-route-slug="@guide.Slug">@guide.Title</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
     </div>
 </section>
 
