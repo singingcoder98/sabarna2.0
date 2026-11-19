@@ -1,5 +1,7 @@
 # After it is hosted — the checklist
 
+> saptarshi: 18-Nov-2026 — domain kharid kar live karne ke exact steps `DOMAIN-GO-LIVE.md` me hain.
+
 > **Status on 4 November 2026 (Phase 0 is written, not yet uploaded).** Live on the
 > MonsterASP.NET free plan at `https://sabarna.runasp.net` (site `site105374`), shared with the
 > co-admins as a preview. Right now: preview mode **on** (not indexed), access code **off**
