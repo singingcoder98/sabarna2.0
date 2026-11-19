@@ -98,6 +98,22 @@ CREATE TABLE IF NOT EXISTS ""PaymentEvents"" (
     {
         try
         {
+            // saptarshi: 18-Nov-2026 — PostgreSQL path.
+            //
+            // Everything in this file below exists for ONE reason: the live SQLite file already holds
+            // orders, and EnsureCreated never adds a column to an existing table. PostgreSQL never
+            // gets into that state, because it is created complete by EnsureCreated (or by a proper
+            // migration, once the project starts using them). The CREATE TABLE statements further
+            // down are SQLite dialect (AUTOINCREMENT) and would simply fail on Postgres.
+            //
+            // The only thing worth guaranteeing on Postgres is the same pair of indexes, so the
+            // "one payment can never mark two orders paid" rule survives the move.
+            if (DatabaseSetup.IsPostgres(db.Database))
+            {
+                await EnsurePostgresIndexesAsync(db, logger);
+                return;
+            }
+
             // ---- 1. Orders: add the columns that are not there yet -------------------------------
             var existing = await ColumnNamesAsync(db, "Orders");
 
@@ -194,14 +210,33 @@ CREATE TABLE IF NOT EXISTS ""PaymentEvents"" (
 
         try
         {
+            // saptarshi: 18-Nov-2026 — the same question, asked in the dialect of whichever database
+            // this build is talking to. SQLite: PRAGMA. PostgreSQL: information_schema.
+            var isPostgres = DatabaseSetup.IsPostgres(db.Database);
+
             await using var command = connection.CreateCommand();
-            command.CommandText = $"PRAGMA table_info(\"{table}\");";
+
+            if (isPostgres)
+            {
+                command.CommandText = "SELECT column_name FROM information_schema.columns " +
+                                      "WHERE table_schema = current_schema() AND table_name = @table;";
+
+                var parameter = command.CreateParameter();
+                parameter.ParameterName = "@table";
+                parameter.Value = table;
+                command.Parameters.Add(parameter);
+            }
+            else
+            {
+                command.CommandText = $"PRAGMA table_info(\"{table}\");";
+            }
 
             await using var reader = await command.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
                 // PRAGMA table_info columns: cid, name, type, notnull, dflt_value, pk
-                names.Add(reader.GetString(1));
+                // information_schema has a single column: column_name
+                names.Add(reader.GetString(isPostgres ? 0 : 1));
             }
         }
         finally
@@ -213,5 +248,29 @@ CREATE TABLE IF NOT EXISTS ""PaymentEvents"" (
         }
 
         return names;
+    }
+
+    /// <summary>
+    /// saptarshi: 18-Nov-2026 — the two indexes that protect payments, created on PostgreSQL.
+    ///
+    /// Both statements are plain SQL and valid in both engines, but they are deliberately kept apart
+    /// from the SQLite branch: the partial unique index below is what stops the same Razorpay payment
+    /// from marking a second order paid, and it must exist before the first real payment arrives.
+    /// </summary>
+    private static async Task EnsurePostgresIndexesAsync(AppDbContext db, ILogger logger)
+    {
+#pragma warning disable CA2100   // constant SQL text, no user input
+        await db.Database.ExecuteSqlRawAsync(
+            @"CREATE UNIQUE INDEX IF NOT EXISTS ""IX_Orders_RazorpayPaymentId""
+              ON ""Orders"" (""RazorpayPaymentId"")
+              WHERE ""RazorpayPaymentId"" IS NOT NULL AND ""RazorpayPaymentId"" <> '';");
+
+        await db.Database.ExecuteSqlRawAsync(
+            @"CREATE INDEX IF NOT EXISTS ""IX_Orders_RazorpayOrderId""
+              ON ""Orders"" (""RazorpayOrderId"");");
+#pragma warning restore CA2100
+
+        logger.LogInformation("SchemaPatcher: PostgreSQL — schema is created by EnsureCreated, "
+                              + "payment indexes ensured.");
     }
 }

@@ -144,7 +144,8 @@ public static class StructuredData
     /// </summary>
     public static string StoreGraph(string brandName, string tagline, string email, string phone,
                                     string address, string origin, string locality, string region,
-                                    string postalCode, string openingHours = "", string[]? socialLinks = null)
+                                    string postalCode, string openingHours = "", string[]? socialLinks = null,
+                                    string latitude = "", string longitude = "")
     {
         var name = string.IsNullOrWhiteSpace(brandName) ? "Sabarna Pure" : brandName;
         var organizationId = $"{origin}/#organization";
@@ -235,6 +236,22 @@ public static class StructuredData
         if (!string.IsNullOrWhiteSpace(openingHours))
         {
             store["openingHours"] = openingHours.Trim();
+        }
+
+        // saptarshi: 18-Nov-2026 — the exact pin, only when the owner has supplied both numbers.
+        // A GeoCoordinates built from a guess would put the shop in the wrong lane, and Google treats
+        // a map pin that disagrees with the address as a negative signal, not a neutral one.
+        if (!string.IsNullOrWhiteSpace(latitude) && !string.IsNullOrWhiteSpace(longitude))
+        {
+            store["geo"] = new Dictionary<string, object>
+            {
+                ["@type"] = "GeoCoordinates",
+                ["latitude"] = latitude.Trim(),
+                ["longitude"] = longitude.Trim()
+            };
+
+            // hasMap opens "Directions" in the right place from a search result.
+            store["hasMap"] = $"https://www.google.com/maps/search/?api=1&query={latitude.Trim()},{longitude.Trim()}";
         }
 
         var profiles = (socialLinks ?? Array.Empty<string>())

@@ -74,13 +74,36 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 });
 
 // ---- 2. Database -----------------------------------------------------------------------------
-// A single SQLite file next to the app. No server to install, no connection secrets to keep.
+// saptarshi: 18-Nov-2026 — SQLite or PostgreSQL, decided by configuration (see Data/DatabaseSetup.cs).
+//
+// The old code, kept here so the change is visible:
+//     var connectionString = builder.Configuration.GetConnectionString("Default");
+//     if (string.IsNullOrWhiteSpace(connectionString)) connectionString = "Data Source=app.db";
+//     builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(connectionString));
+//
+// Nothing else in the application knows the difference: the same entities, the same queries, the
+// same admin screens. Only the connection string and the provider change.
+var databaseKind = DatabaseSetup.Resolve(builder.Configuration);
+
 var connectionString = builder.Configuration.GetConnectionString("Default");
 if (string.IsNullOrWhiteSpace(connectionString))
 {
-    connectionString = "Data Source=app.db";
+    connectionString = DatabaseSetup.DefaultSqliteConnectionString;
 }
-builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(connectionString));
+
+// saptarshi: 18-Nov-2026 — the classic migration mistake: provider switched to Postgres but the old
+// SQLite connection string left behind. Npgsql would answer with a cryptic "Format of the initialization
+// string does not conform", so it is caught here and said in plain words instead.
+if (databaseKind == DatabaseKind.Postgres
+    && !connectionString.Contains("Host=", StringComparison.OrdinalIgnoreCase)
+    && !connectionString.Contains("Server=", StringComparison.OrdinalIgnoreCase))
+{
+    Console.WriteLine("[!] Database:Provider is Postgres, but ConnectionStrings:Default still looks like " +
+                      "the SQLite one (it needs Host=, Database=, Username=, Password=). " +
+                      "Set ConnectionStrings__Default on the host.");
+}
+
+builder.Services.AddDbContext<AppDbContext>(options => DatabaseSetup.Configure(options, databaseKind, connectionString));
 
 // ---- 3. Session (used for the shopping cart and the pending admin login) ----------------------
 builder.Services.AddDistributedMemoryCache();
@@ -145,6 +168,10 @@ builder.Services.AddAuthorization(options =>
 
 var app = builder.Build();
 
+// saptarshi: 18-Nov-2026 — say out loud which database this build is talking to. A wrong provider
+// after a migration is the kind of thing that is silent for a week and then costs an afternoon.
+app.Logger.LogInformation("Database provider: {Provider}.", databaseKind);
+
 // ---- Create the SQLite schema and the demo data on first run --------------------------------
 // saptarshi: changed 06-Nov-2026 — the patcher runs BEFORE the seeder, because the live database
 // already exists and new columns (Address, RazorpayOrderId, ...) have to be added to it by
@@ -153,11 +180,25 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-    await db.Database.EnsureCreatedAsync();
+    // saptarshi: 18-Nov-2026 — on PostgreSQL this is the first real network call. If the connection
+    // string is wrong the shop would otherwise die here with a wall of Npgsql text and no clue,
+    // so the failure is caught, written to the log in plain words, and the app carries on starting
+    // (the pages will show the friendly error page instead of the host's 500 page).
+    try
+    {
+        await db.Database.EnsureCreatedAsync();
 
-    await SchemaPatcher.EnsureAsync(db, app.Logger);
+        await SchemaPatcher.EnsureAsync(db, app.Logger);
 
-    await DbSeeder.SeedAsync(scope.ServiceProvider);
+        await DbSeeder.SeedAsync(scope.ServiceProvider);
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex,
+            "The database could not be prepared. Provider: {Provider}. Check ConnectionStrings:Default " +
+            "(on the host: the ConnectionStrings__Default environment variable) and that the database " +
+            "server is reachable.", databaseKind);
+    }
 }
 
 // ---- Request pipeline -----------------------------------------------------------------------

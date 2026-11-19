@@ -471,7 +471,43 @@ public class AdminController : Controller
     public IActionResult Backups()
     {
         ViewData["Title"] = "Backups";
+
+        // saptarshi: 18-Nov-2026 — the page explains a slightly different thing on PostgreSQL
+        // (JSON snapshots instead of a copy of app.db), so it needs to know which one it is.
+        ViewData["IsPostgres"] = _backups.IsPostgres;
+
         return View(_backups.ListBackups());
+    }
+
+    /// <summary>
+    /// saptarshi: 18-Nov-2026 — "Download all data as JSON", available on BOTH engines.
+    ///
+    /// This is the door out of SQLite: press it before switching the shop to PostgreSQL and you hold
+    /// every product, order and setting in one readable file. It is also the safety net afterwards,
+    /// because the file does not depend on either database existing.
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> ExportData()
+    {
+        try
+        {
+            var name = await _backups.CreateJsonSnapshotAsync();
+            var path = _backups.ResolvePath(name);
+
+            if (path == null)
+            {
+                TempData["Error"] = "The export was written but could not be read back. Try again.";
+                return RedirectToAction(nameof(Backups));
+            }
+
+            return PhysicalFile(path, "application/json", name);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Full data export failed.");
+            TempData["Error"] = "The export could not be written. The site is unaffected — try again.";
+            return RedirectToAction(nameof(Backups));
+        }
     }
 
     [HttpPost]

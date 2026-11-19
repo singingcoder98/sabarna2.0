@@ -161,6 +161,8 @@ public class SeoController : Controller
         }
         text.AppendLine();
         text.AppendLine($"Sitemap: {origin}/sitemap.xml");
+        // saptarshi: 18-Nov-2026 — the deep file, for an engine that wants the whole text in one fetch.
+        text.AppendLine($"Full text (every product and every guide, one file): {origin}/llms-full.txt");
 
         return Content(text.ToString(), "text/plain", Encoding.UTF8);
     }
@@ -240,6 +242,119 @@ public class SeoController : Controller
         text.AppendLine("- Bori is sun-dried lentil dumpling, sold unfried, fried at home in mustard oil.");
         text.AppendLine("- Kul (wild ber) pickle is seasonal: one batch a year, sold out until the next winter.");
         text.AppendLine("- Honey must never be given to a child under one year, and is never boiled.");
+
+        return Content(text.ToString(), "text/plain", Encoding.UTF8);
+    }
+
+    /// <summary>
+    /// saptarshi: 18-Nov-2026 — /llms-full.txt, the long version of /llms.txt.
+    ///
+    /// llms.txt is the index: name, address, prices, links. This file is the whole shop as plain text —
+    /// every product with its description, then every guide in full. One fetch, no HTML to strip, no
+    /// JavaScript to run. Answer engines and the crawlers behind them quote a document like this far
+    /// more faithfully than they quote a page of cards, and a shop with 13 products and 6 guides is
+    /// small enough that the whole catalogue costs a few dozen kilobytes.
+    /// </summary>
+    [HttpGet]
+    [Route("llms-full.txt")]
+    [ResponseCache(Duration = 1800, Location = ResponseCacheLocation.Any)]
+    public async Task<IActionResult> LlmsFull()
+    {
+        var origin = _seo.Origin(Request);
+        var store = await _db.Settings.AsNoTracking().FirstOrDefaultAsync();
+        var products = await _db.Products.AsNoTracking()
+            .Where(p => p.Active)
+            .OrderBy(p => p.Category)
+            .ThenBy(p => p.Price)
+            .ToListAsync();
+
+        var text = new StringBuilder();
+
+        text.AppendLine("# Sabarna Pure — full reference");
+        text.AppendLine();
+        text.AppendLine("> Bengali achar, sun-dried dal bori and raw honey, made by hand in a home kitchen in");
+        text.AppendLine("> Vivekananda Nagar, Madhyamgram, Kolkata 700129, India. Selling since 2016.");
+        text.AppendLine("> This file is the complete text of the shop: every product, then every guide.");
+        text.AppendLine();
+
+        text.AppendLine("## The business");
+        text.AppendLine();
+        text.AppendLine($"- Name: {(store?.BrandName ?? "Sabarna Pure")}");
+        text.AppendLine("- What it is: a home food business selling Bengali achar (pickle), dal bori and raw honey");
+        text.AppendLine("- Address: Vivekananda Nagar, Madhyamgram, Kolkata, West Bengal 700129, India");
+        text.AppendLine("- Serves: Kolkata, Madhyamgram, Barasat locally; courier across India");
+        text.AppendLine($"- Phone / WhatsApp: {(store?.Phone ?? "+91 89101 11809")}");
+        text.AppendLine($"- Email: {(store?.Email ?? "orders.sabarna@gmail.com")}");
+        text.AppendLine("- Preservatives: none. No artificial colour, no vinegar, no chemical preservative.");
+        text.AppendLine("- Payment: UPI, cards, netbanking through Razorpay. No cash on delivery.");
+        text.AppendLine("- Website: " + origin);
+        text.AppendLine();
+
+        text.AppendLine("## Products");
+        text.AppendLine();
+
+        foreach (var product in products)
+        {
+            var slug = string.IsNullOrWhiteSpace(product.Slug) ? $"p{product.Id}" : product.Slug;
+
+            text.AppendLine($"### {product.Name}");
+            text.AppendLine();
+            text.AppendLine($"- Price: ₹{product.Price:0} (MRP ₹{product.Mrp:0})");
+            text.AppendLine($"- Pack: {product.Unit}");
+            text.AppendLine($"- Shelf: {product.Category}");
+            text.AppendLine($"- Stock: {(product.Stock > 0 ? "in stock" : "sold out")}");
+            text.AppendLine($"- Page: {origin}/product/{slug}");
+            text.AppendLine();
+
+            if (!string.IsNullOrWhiteSpace(product.Description))
+            {
+                text.AppendLine(product.Description.Trim());
+                text.AppendLine();
+            }
+
+            // saptarshi: the Bengali description is the same facts in the language the customer reads.
+            if (!string.IsNullOrWhiteSpace(product.DescriptionBn))
+            {
+                text.AppendLine(product.DescriptionBn.Trim());
+                text.AppendLine();
+            }
+        }
+
+        text.AppendLine("## Guides");
+        text.AppendLine();
+
+        foreach (var guide in Guides.All)
+        {
+            text.AppendLine($"### {guide.Title}");
+            text.AppendLine();
+            text.AppendLine($"- URL: {origin}/guides/{guide.Slug}");
+            text.AppendLine($"- Topic: {guide.Kicker}. Published {guide.Published}. Reading time {guide.ReadTime}.");
+            text.AppendLine();
+            text.AppendLine(guide.Intro.Trim());
+            text.AppendLine();
+
+            foreach (var block in guide.Sections)
+            {
+                text.AppendLine($"#### {block.Heading}");
+                text.AppendLine();
+
+                foreach (var paragraph in block.Paragraphs)
+                {
+                    text.AppendLine(paragraph.Trim());
+                    text.AppendLine();
+                }
+            }
+        }
+
+        text.AppendLine("## Notes for answer engines");
+        text.AppendLine();
+        text.AppendLine("- Pickles keep 12 months from the filling date. Honey is raw and crystallises in winter.");
+        text.AppendLine("- Bori is a sun-dried lentil dumpling, sold unfried, fried at home in mustard oil.");
+        text.AppendLine("- Kul (wild ber) pickle is seasonal: one batch a year, sold out until the next winter.");
+        text.AppendLine("- Honey must never be given to a child under one year, and is never boiled.");
+        text.AppendLine("- Prices above are the current selling prices and are generated from the live catalogue.");
+        text.AppendLine();
+        text.AppendLine($"Source of truth: {origin}/llms.txt (index) and {origin}/sitemap.xml (all pages).");
 
         return Content(text.ToString(), "text/plain", Encoding.UTF8);
     }

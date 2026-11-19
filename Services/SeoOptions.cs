@@ -35,6 +35,21 @@ public class SeoOptions
 
     public string[] SocialLinks { get; set; } = Array.Empty<string>();
 
+    /// <summary>
+    /// saptarshi: 18-Nov-2026 — the shop's exact point on the map, for schema.org "geo".
+    ///
+    /// Left empty on purpose: an approximate latitude would tell Google the shop sits in the middle of
+    /// a field. Fill both (right-click the shop in Google Maps → "What's here?" gives 22.xxxx, 88.xxxx)
+    /// and the Store node gets a GeoCoordinates block; until then no geo is published at all, which is
+    /// exactly the behaviour that keeps a wrong pin off the map.
+    /// </summary>
+    public string Latitude { get; set; } = string.Empty;
+
+    public string Longitude { get; set; } = string.Empty;
+
+    /// <summary>True only when both halves of the coordinate are present.</summary>
+    public bool HasGeo => !string.IsNullOrWhiteSpace(Latitude) && !string.IsNullOrWhiteSpace(Longitude);
+
     /// <summary>Google shows roughly 60 characters of a title and 155 of a description.</summary>
     public int MaxTitleLength { get; set; } = 60;
 

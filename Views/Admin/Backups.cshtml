@@ -10,17 +10,35 @@
 <div class="mb-admin-head">
     <div>
         <h1 class="mb-admin-title">Backups</h1>
-        <p class="mb-admin-sub">
-            A copy of the database is taken automatically about once a day and kept for
-            @Sabarna.Web.Services.BackupService.RetentionDays days.
-            Download one and keep it somewhere else — a copy on this server does not survive the server.
-        </p>
+        @* saptarshi: 18-Nov-2026 — two engines, two kinds of backup, one screen. *@
+        @if (ViewData["IsPostgres"] as bool? == true)
+        {
+            <p class="mb-admin-sub">
+                The shop runs on <strong>PostgreSQL</strong>, so a backup is a readable JSON export of every
+                table (settings, products, orders, payment log). One is written automatically about once a
+                day and kept for @Sabarna.Web.Services.BackupService.RetentionDays days.
+                Download one and keep it somewhere else — the database server keeps its own point-in-time
+                copies, but only you can keep a copy off the internet.
+            </p>
+        }
+        else
+        {
+            <p class="mb-admin-sub">
+                A copy of the database is taken automatically about once a day and kept for
+                @Sabarna.Web.Services.BackupService.RetentionDays days.
+                Download one and keep it somewhere else — a copy on this server does not survive the server.
+            </p>
+        }
     </div>
     <div class="mb-admin-head-actions">
         <form method="post" asp-controller="Admin" asp-action="BackupNow" class="d-inline">
             @Html.AntiForgeryToken()
             <button type="submit" class="btn btn-brand btn-sm">Back up now</button>
         </form>
+        @* saptarshi: 18-Nov-2026 — the portable copy. Works whatever database the shop runs on. *@
+        <a class="btn btn-ghost btn-sm ms-2" asp-controller="Admin" asp-action="ExportData">
+            Download all data (JSON)
+        </a>
     </div>
 </div>
 
@@ -65,8 +83,20 @@
         </div>
     }
 
-    <p class="mb-admin-fine">
-        Restoring a copy: stop the site, replace <code>App_Data/app.db</code> with the downloaded file,
-        start the site. Nothing else needs to change — the schema is brought up to date on start.
-    </p>
+    @if (ViewData["IsPostgres"] as bool? == true)
+    {
+        <p class="mb-admin-fine">
+            Restoring a snapshot: open the <code>.json</code> file to read it — every order, product and
+            setting is in plain text. To put rows back, the database provider's own restore (Neon and
+            Supabase both keep automatic copies) is the fast route; the JSON file is what guarantees you
+            never lose a customer's details even if the server disappears.
+        </p>
+    }
+    else
+    {
+        <p class="mb-admin-fine">
+            Restoring a copy: stop the site, replace <code>App_Data/app.db</code> with the downloaded file,
+            start the site. Nothing else needs to change — the schema is brought up to date on start.
+        </p>
+    }
 </div>

@@ -29,6 +29,17 @@
   <ItemGroup>
     <!-- EF Core 8 with the file-based SQLite provider (zero setup for the shop owner). -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.10" />
+
+    <!--
+      saptarshi: 18-Nov-2026 — PostgreSQL support.
+
+      The shop can now run on PostgreSQL instead of the file-based SQLite. The SQLite package above
+      stays, because it is the default and the instant fallback: one environment variable
+      (Database__Provider=Postgres) switches to Postgres, deleting it switches back.
+      PostgreSQL is the better long-term home once two things happen — orders matter more than a
+      single file can safely hold, and more than one person needs to look at the admin screen.
+    -->
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.10" />
   </ItemGroup>
 
   <ItemGroup>

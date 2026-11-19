@@ -14,8 +14,11 @@
 //   orders are still coming in.
 // -------------------------------------------------------------------------------------------------
 
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Sabarna.Web.Data;
 
 namespace Sabarna.Web.Services;
 
@@ -30,17 +33,41 @@ public class BackupService
     private const string FilePrefix = "sabarna-";
     private const string FileSuffix = ".db";
 
+    // saptarshi: 18-Nov-2026 — a PostgreSQL shop cannot be copied as a file, so its backup is a JSON
+    // export instead (see CreateJsonSnapshotAsync). Same prefix, different extension.
+    private const string SnapshotSuffix = ".json";
+
     // Only names this service itself produces may ever be read back out of the folder.
     private static readonly Regex NamePattern =
-        new(@"^sabarna-\d{8}-\d{6}\.db$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+        new(@"^sabarna-\d{8}-\d{6}\.(db|json)$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     private readonly string _connectionString;
     private readonly string _folder;
     private readonly ILogger<BackupService> _logger;
 
-    public BackupService(IConfiguration configuration, IWebHostEnvironment environment, ILogger<BackupService> logger)
+    // saptarshi: 18-Nov-2026 — the JSON export needs a DbContext, and this service is a singleton,
+    // so it asks for a fresh scope each time instead of holding a connection open.
+    private readonly IServiceScopeFactory _scopes;
+
+    private readonly bool _isPostgres;
+
+    public BackupService(IConfiguration configuration, IWebHostEnvironment environment,
+                         ILogger<BackupService> logger, IServiceScopeFactory scopes)
     {
-        _connectionString = configuration.GetConnectionString("Default") ?? "Data Source=app.db";
+        _connectionString = configuration.GetConnectionString("Default")
+                            ?? DatabaseSetup.DefaultSqliteConnectionString;
+
+        _isPostgres = DatabaseSetup.Resolve(configuration) == DatabaseKind.Postgres;
+        _scopes = scopes;
+        _logger = logger;
+
+        if (_isPostgres)
+        {
+            // There is no database file to sit next to, so the snapshots live in the one folder that
+            // is already excluded from publishing and already excluded from the FileZilla upload.
+            _folder = Path.Combine(environment.ContentRootPath, "App_Data", "backups");
+            return;
+        }
 
         var builder = new SqliteConnectionStringBuilder(_connectionString);
         var dataSource = string.IsNullOrWhiteSpace(builder.DataSource) ? "app.db" : builder.DataSource;
@@ -53,9 +80,13 @@ public class BackupService
 
         // Backups sit next to the database, so they travel with App_Data and are never published.
         _folder = Path.Combine(databaseFolder ?? environment.ContentRootPath, "backups");
-
-        _logger = logger;
     }
+
+    /// <summary>
+    /// saptarshi: 18-Nov-2026 — true when the shop runs on PostgreSQL. The admin screen uses this to
+    /// explain that copies are now JSON snapshots rather than a .db file.
+    /// </summary>
+    public bool IsPostgres => _isPostgres;
 
     /// <summary>The folder holding the copies. Shown on the admin screen; never part of the web root.</summary>
     public string Folder => _folder;
@@ -64,6 +95,15 @@ public class BackupService
     public async Task<string> CreateBackupAsync(CancellationToken cancellationToken = default)
     {
         Directory.CreateDirectory(_folder);
+
+        // saptarshi: 18-Nov-2026 — PostgreSQL: export the rows instead of copying a file. A database
+        // server keeps its data in a directory the application must never touch, and pg_dump is not
+        // installed on a shared host, so a readable JSON export is the honest backup this app can make
+        // by itself. The provider (Neon, Supabase, your host) keeps the real point-in-time copies.
+        if (_isPostgres)
+        {
+            return await CreateJsonSnapshotAsync(cancellationToken);
+        }
 
         var name = FilePrefix + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss") + FileSuffix;
         var target = Path.Combine(_folder, name);
@@ -93,7 +133,7 @@ public class BackupService
             return Array.Empty<BackupFile>();
         }
 
-        return Directory.EnumerateFiles(_folder, FilePrefix + "*" + FileSuffix)
+        return Directory.EnumerateFiles(_folder, FilePrefix + "*")
             .Where(file => NamePattern.IsMatch(Path.GetFileName(file)))
             .Select(file => new FileInfo(file))
             .OrderByDescending(info => info.LastWriteTimeUtc)
@@ -131,12 +171,57 @@ public class BackupService
         return newest == null || newest.CreatedUtc < DateTime.UtcNow.AddHours(-20);
     }
 
+    /// <summary>
+    /// saptarshi: 18-Nov-2026 — the PostgreSQL backup: every table written to one readable JSON file.
+    ///
+    /// It is not a byte-for-byte database copy (that needs pg_dump, which a shared host does not have),
+    /// but it holds every row the shop cares about — settings, products, orders with their items and
+    /// the payment audit trail — so nothing a customer typed can ever be lost with the server. The file
+    /// can be kept on a PC, opened in Notepad, or imported back with a short script.
+    /// </summary>
+    public async Task<string> CreateJsonSnapshotAsync(CancellationToken cancellationToken = default)
+    {
+        using var scope = _scopes.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var snapshot = new
+        {
+            exportedAtUtc = DateTime.UtcNow,
+            database = "PostgreSQL",
+            settings = await db.Settings.AsNoTracking().ToListAsync(cancellationToken),
+            products = await db.Products.AsNoTracking().OrderBy(p => p.Id).ToListAsync(cancellationToken),
+            orders = await db.Orders.AsNoTracking()
+                .Include(order => order.Items)
+                .OrderBy(order => order.Id)
+                .ToListAsync(cancellationToken),
+            paymentEvents = await db.PaymentEvents.AsNoTracking()
+                .OrderBy(e => e.Id)
+                .ToListAsync(cancellationToken)
+        };
+
+        var name = FilePrefix + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss") + SnapshotSuffix;
+        var target = Path.Combine(_folder, name);
+
+        var json = JsonSerializer.Serialize(snapshot, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles
+        });
+
+        await File.WriteAllTextAsync(target, json, cancellationToken);
+
+        PruneOldBackups();
+
+        _logger.LogInformation("PostgreSQL snapshot written: {BackupFile}", name);
+        return name;
+    }
+
     /// <summary>Removes copies older than the retention window. Failures are logged, never thrown.</summary>
     private void PruneOldBackups()
     {
         var cutoff = DateTime.UtcNow.AddDays(-RetentionDays);
 
-        foreach (var file in Directory.EnumerateFiles(_folder, FilePrefix + "*" + FileSuffix))
+        foreach (var file in Directory.EnumerateFiles(_folder, FilePrefix + "*"))
         {
             try
             {
