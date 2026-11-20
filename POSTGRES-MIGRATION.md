@@ -188,3 +188,170 @@ Ye kaam main aage kar sakta hoon — bolein to.
 | 9 | Admin login + naya password | |
 | 10 | Test COD order → `/Admin/Orders` me dikhe | |
 | 11 | `/Admin/Backups` → "Back up now" → `.json` file bane | |
+
+---
+
+# PART 2 — Download kya karna hai, aur setup ka poora order
+
+> saptarshi: 18-Nov-2026 — neeche har cheez ka naam, size aur jagah likhi hai. Jahan "optional" likha
+> hai wahan sirf dekhne ke liye hai, kaam ke liye zaroori nahi.
+
+## A. Download list
+
+| # | Cheez | Zaroori? | Size | Kahan se |
+|---|---|---|---|---|
+| 1 | **Npgsql.EntityFrameworkCore.PostgreSQL** | ✅ haan | ~1.5 MB | **Visual Studio khud le aayega** — NuGet restore. Alag se kuch nahi karna |
+| 2 | **.NET 8 SDK** | ✅ (pehle se hai) | 200 MB | VS ke saath already installed — project `net8.0` par chalta hai |
+| 3 | **PostgreSQL server** | ❌ **NAHI** | 350 MB | Iski zarurat nahi — cloud (Neon) par database rahega |
+| 4 | **pgAdmin 4** | 🟡 optional | 130 MB | `pgadmin.org/download` — database ko aankhon se dekhna ho to. Nahi chahiye to Neon ka **SQL Editor** browser me hi kaam kar dega |
+| 5 | **DBeaver Community** | 🟡 optional (pgAdmin ka behtar option) | 120 MB | `dbeaver.io/download` — ek hi tool me Postgres + SQLite dono khul jate hain |
+| 6 | **Neon account** | ✅ haan | — | `neon.tech` (browser, koi download nahi, credit card nahi) |
+| 7 | **FileZilla** | ✅ (pehle se hai) | — | — |
+| 8 | **Notepad** | ✅ | — | connection string paste karne ke liye |
+
+**Chhota jawab: kuch bhi install nahi karna. Bas VS me Pull maarna hai (package khud aayega) aur Neon par account banana hai.**
+
+Agar database apni aankhon se dekhna hai (order aa raha hai ya nahi), to **DBeaver** le lein — ek hi
+window me Neon ka Postgres khul jayega.
+
+## B. Setup — poora order (12 step)
+
+### Step 1 — Visual Studio me naya code laayein
+
+1. VS kholen → **Git → Pull** (branch `arena/c683ad80-sabarna2-0`)
+2. **`Ctrl+Shift+B`**
+3. Restore ke waqt neeche "Restoring packages…" chalega, `Npgsql.EntityFrameworkCore.PostgreSQL` download hoga
+4. Build **0 errors** hona chahiye
+
+> Agar `NU1101: Unable to find package Npgsql.EntityFrameworkCore.PostgreSQL` aaye → internet nahi hai
+> ya NuGet source off hai (Tools → Options → NuGet Package Manager → Package Sources). Us page par
+> `https://api.nuget.org/v3/index.json` tick hona chahiye.
+
+### Step 2 — Publish folder banaayein
+
+1. `publish.cmd` double-click
+2. "Publish succeeded" aaye
+3. `D:\MVCDotNet\sabarna2.0\publish` kholein — ab list me **naye** files dikhne chahiye:
+   `Npgsql.dll`, `Npgsql.EntityFrameworkCore.PostgreSQL.dll`
+   *(ye do files na dikhein to publish purana hai — Step 1 dobara)*
+
+### Step 3 — Ye build pehle SQLite par upload karein (Postgres abhi nahi)
+
+1. FileZilla → left: `D:\MVCDotNet\sabarna2.0\publish`, right: `/`
+2. `Ctrl+A` → **Ctrl+click se `App_Data` aur `web.config` deselect**
+3. **Upload** → *Overwrite* → ✅ Always use this action
+4. Panel → **Restart**
+5. `Ctrl+Shift+R` → `/Shop` par 13 products dikhein
+
+> Pehle SQLite par chala kar dekhein. Ek saath do badlav (naya build + naya database) karne se
+> gadbad kahan hui ye pata nahi chalta.
+
+### Step 4 — Neon account
+
+1. Browser me `neon.tech` → **Sign up** (Google/GitHub se, credit card nahi lagta)
+2. **Create project**
+   - Name: `sabarna`
+   - Region: **Singapore** (India se sabse kam latency) — na mile to `AWS ap-southeast-1`
+   - Postgres version: jo default aaye, chhod dein
+3. **Create** → 20–30 second me project ban jayega
+
+### Step 5 — Connection string copy
+
+1. Neon dashboard → apna project → **Dashboard** → **Connect** (ya *Connection string*)
+2. **Pooled connection** ON rakhein
+3. Aisa link copy hoga:
+   ```
+   postgresql://neondb_owner:AbCd123xyz@ep-cool-name-123456-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
+   ```
+4. **Isse .NET format me badalna hai.** Notepad kholein aur ye pattern bhar dein:
+
+   ```
+   Host=<jo @ ke baad hai>;Port=5432;Database=neondb;Username=<jo // ke baad>;Password=<jo : ke baad>;SSL Mode=Require;Trust Server Certificate=true
+   ```
+
+   Upar wale example ka natija:
+   ```
+   Host=ep-cool-name-123456-pooler.ap-southeast-1.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=AbCd123xyz;SSL Mode=Require;Trust Server Certificate=true
+   ```
+
+> ⚠️ Password me `;` ya `=` ho to wo string tod dega — Neon password aisa nahi banata, par check kar lein.
+
+### Step 6 — (Optional) Pehle PC se connection test
+
+DBeaver install kiya ho to:
+1. DBeaver → **New Connection → PostgreSQL**
+2. Host / Port / Database / Username / Password alag-alag fields me daalein
+3. **SSL** tab → *require*
+4. **Test Connection** → green tick
+
+Green tick matlab Neon theek hai. Ye step app se pehle problem pakad leta hai.
+
+### Step 7 — Panel me do environment variables
+
+MonsterASP panel → site `site105374` → **Environment Variables** (kuch panel me *App Settings*) → **Add**:
+
+| Name | Value |
+|---|---|
+| `Database__Provider` | `Postgres` |
+| `ConnectionStrings__Default` | Step 5 wala poora .NET string |
+
+**Save** → phir **Restart**.
+
+> ⚠️ Naam me **do underscore** hain: `Database__Provider`. Ek underscore se kaam nahi karega.
+
+### Step 8 — Pehla start (yahi asli test hai)
+
+1. Browser me `/Shop` kholein — pehla load **20–40 second** le sakta hai (tables ban rahe hain, 13 products seed ho rahe hain)
+2. Panel → **Logs** kholein. Ye lines dikhni chahiye:
+   ```
+   Database provider: Postgres.
+   SchemaPatcher: PostgreSQL — schema is created by EnsureCreated, payment indexes ensured.
+   ```
+3. `/Shop` refresh → **13 products**, sahi price (Biuli Bor-i ₹110, Amsi Achar 500 g ₹189, Kul Achar 250 g ₹99, Pure Honey 100 g ₹90)
+
+Kuch na dikhe to **PART 1 ka section 6** (error table) dekhein.
+
+### Step 9 — Admin ka naya password
+
+Naya database = naya admin account. Pehli baar:
+
+| Field | Value |
+|---|---|
+| URL | `/Admin/Login` |
+| Email | `admin@sabarna.in` |
+| Password | `Sabarna@2024` |
+
+Login karte hi panel **naya password** maangega (purana likha hua hai isliye). **Abhi badal dein** —
+8+ character, ek capital, ek number, ek symbol.
+
+### Step 10 — Test order
+
+1. `/Shop` → ek product → **Add to cart** → checkout
+2. Payment method: **COD** (Razorpay abhi off hai)
+3. Order place karein
+4. `/Admin/Orders` → naya order dikhna chahiye
+
+Ye dikh gaya matlab **read + write dono kaam kar rahe hain**.
+
+### Step 11 — Backup test
+
+1. `/Admin/Backups` → **Back up now**
+2. List me `sabarna-YYYYMMDD-HHMMSS.json` aana chahiye
+3. **Download** → Notepad me kholein → orders/products dikhne chahiye
+
+### Step 12 — Purana data (agar chahiye)
+
+Switch se pehle SQLite par **"Download all data (JSON)"** dabaya tha? Wo file abhi bhi aapke PC me hai.
+Usme purane test orders hain. Unhe Postgres me daalna ho to mujhe bol dein — import script bana dunga.
+Nahi chahiye to file rakh dein, koi dikkat nahi.
+
+---
+
+## C. Ek line me poora order
+
+```
+Git Pull → Ctrl+Shift+B → publish.cmd → FileZilla upload (App_Data + web.config chhodkar)
+→ Restart → /Shop check (SQLite par) → Neon account → connection string .NET format me
+→ panel: 2 env var → Restart → log me "Database provider: Postgres" → /Shop 13 products
+→ admin login + naya password → test COD order → Backups → JSON download
+```
